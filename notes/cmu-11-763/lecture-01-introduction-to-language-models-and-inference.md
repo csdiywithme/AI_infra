@@ -279,7 +279,13 @@ P(y\mid x)
 
 ## 8. 模型概率与任务质量
 
-语言模型提供模型概率或模型分数，但应用真正关心外部任务价值：
+分析 inference 时需要分开三个层次：
+
+1. **模型分布** \(P_\theta(y\mid x)\)：模型认为不同输出的概率；
+2. **推理算法** \(A(\theta,x,C)\)：在计算预算 \(C\) 下产生输出或样本；
+3. **外部任务目标** \(r(y\mid x)\)：应用真正关心的质量。
+
+语言模型提供概率或模型分数，但应用真正关心外部任务价值：
 
 \[
 r(y\mid x)
@@ -305,12 +311,26 @@ r(y\mid x)
 
 ### 9.1 Search error
 
-推理算法没有找到模型评分最高的输出：
+先定义模型评分下的最优输出：
 
 \[
-s_\theta(y_{generated}\mid x)
+y_s=\arg\max_y s_\theta(y\mid x)
+\]
+
+如果实际算法返回 \(y_{alg}\)，但没有找到这个最高分输出：
+
+\[
+s_\theta(y_{alg}\mid x)
 <
-\max_y s_\theta(y\mid x)
+s_\theta(y_s\mid x)
+\]
+
+那么存在 search error。可以定义 search regret：
+
+\[
+R_{search}
+=
+s_\theta(y_s\mid x)-s_\theta(y_{alg}\mid x)
 \]
 
 可能原因：
@@ -322,6 +342,18 @@ s_\theta(y_{generated}\mid x)
 - 没有探索到更好的推理路径。
 
 主要改进方向是更好的 search/inference algorithm。
+
+一个典型例子是 greedy decoding 的局部选择不等于 sequence-level 全局最优：
+
+```text
+起点
+├── A：0.6
+│   └── A1：0.1    完整序列概率 0.06
+└── B：0.4
+    └── B1：0.9    完整序列概率 0.36
+```
+
+Greedy 第一步选择 A，但全局 MAP 序列是 B1。更大的 beam、best-first search 或合适的 lookahead 可能修复这个问题。
 
 ### 9.2 Model error
 
@@ -357,7 +389,97 @@ r(\hat y\mid x)<\max_y r(y\mid x)
 
 必须先确定错误类型。盲目扩大 beam 或增加采样数，可能只是在更昂贵地优化错误目标。
 
-## 10. 推理的多目标权衡
+### 9.4 更精确的 Search 不一定提高任务质量
+
+假设：
+
+| 输出 | 模型分数 \(s\) | 外部奖励 \(r\) |
+| --- | ---: | ---: |
+| 错误答案 | -1.0 | 0 |
+| 正确答案 | -2.0 | 1 |
+
+模型更偏好错误答案。如果近似搜索意外返回正确答案，那么它相对模型分数存在 search error，却获得更高任务奖励。扩大 beam 并找到模型 argmax 后：
+
+- Search error 减少；
+- 模型分数提高；
+- 外部任务质量反而下降。
+
+因此：
+
+> 减少 search error 只保证更好地优化 \(s_\theta\)，不保证提高 \(r\)。
+
+当增加搜索预算使模型分数提高、但外部指标停滞或下降时，主要瓶颈是 score/reward mismatch，而不是搜索能力。
+
+## 10. Inference 的 Goal：Sample 还是 Optimize？
+
+Inference 是上位概念，没有规定必须 sampling 或 optimization。目标取决于应用。
+
+### 10.1 忠实采样
+
+如果目标是：
+
+\[
+y\sim P_\theta(y\mid x)
+\]
+
+那么算法需要产生符合目标分布的样本，而不是寻找最高概率输出。样本的分数低于 argmax 是正常现象，不构成 search error。
+
+此时更合适的问题是：算法实际产生的分布 \(q\) 与目标分布是否一致，以及 diversity、calibration 和 sample efficiency 如何。
+
+Temperature、top-k 和 top-p 通常从经过修改或截断的分布 \(q\) 采样。只要目标就是这个 \(q\)，没有抽到最高概率 token 不是错误。
+
+### 10.2 优化模型分数
+
+如果目标是：
+
+\[
+\hat y=\arg\max_y\log P_\theta(y\mid x)
+\]
+
+那么这是 MAP decoding，属于组合搜索问题。此时可以讨论 greedy、beam、A* 是否找到目标，以及是否存在 search error。
+
+但 MAP sequence 不一定是模型分布中具有代表性的样本，也不一定具有最高外部任务质量。
+
+### 10.3 优化外部奖励
+
+很多应用真正希望：
+
+\[
+\hat y=\arg\max_y r(y\mid x)
+\]
+
+例如代码通过测试、数学答案正确或输出满足 schema。由于外部奖励往往只能在完整生成后计算，常见策略是先生成候选，再使用 verifier/reward 选择。
+
+### 10.4 Sampling 与 Optimization 可以组合
+
+Sampling 可以负责探索，optimization/aggregation 负责最终决策。
+
+**Best-of-N：**
+
+\[
+y_1,\ldots,y_N\sim P_\theta(y\mid x)
+\]
+
+\[
+\hat y=\arg\max_i r(y_i\mid x)
+\]
+
+**Self-consistency：**采样多个 reasoning paths，再对最终答案聚合或投票。
+
+**Minimum Bayes Risk：**使用 samples 近似期望风险，再选择期望损失最低的输出：
+
+\[
+\hat y
+\approx
+\arg\min_{y_i}
+\frac1N\sum_{j=1}^{N}\Delta(y_i,y_j)
+\]
+
+因此，视频中学生问题的准确结论是：
+
+> Sampling 和 optimization 不是互斥答案。Inference 可以只做其中一种，也可以用 sampling 探索输出空间，再用 optimization、reranking 或 aggregation 做决策。Search/model error 的定义主要适用于已经指定 sequence-level 优化目标的场景，不能直接套在纯 sampling 上。
+
+## 11. 推理的多目标权衡
 
 推理系统通常同时关注：
 
@@ -380,7 +502,7 @@ r(\hat y\mid x)<\max_y r(y\mid x)
 
 不存在脱离 workload 的“最佳推理算法”。交互式聊天、代码生成、数学推理和离线批处理的目标函数不同。
 
-## 11. 本讲结论
+## 12. 本讲结论
 
 1. Language model 是概率模型，inference algorithm 是使用模型产生结果的算法。
 2. 训练决定模型分布，推理决定如何在固定模型上分配计算。
@@ -388,12 +510,14 @@ r(\hat y\mid x)<\max_y r(y\mid x)
 4. 必须区分 search error 与 model error。
 5. Generation 可以作为 meta-generation 的子程序。
 6. 推理优化是质量、延迟、吞吐、多样性、内存与成本之间的系统性权衡。
+7. Sampling 与 optimization 是不同目标，也可以组成 sample-then-optimize 系统。
+8. Search error 的减少不保证外部任务质量提高。
 
 面向 AI Infra 的进一步理解：
 
 > LLM inference optimization 不只是优化一次 Transformer forward，而是联合优化模型执行、缓存、内存流量、请求调度、搜索策略、候选管理与任务级评价目标。
 
-## 12. 自测问题
+## 13. 自测问题
 
 1. 为什么完整序列的最大模型概率可能偏向短输出？
 2. Sampling 与 search 分别在优化或近似什么？
@@ -403,3 +527,6 @@ r(\hat y\mid x)<\max_y r(y\mid x)
 6. 如何通过候选集判断 search error 与 model error？
 7. 为什么扩大 inference-time compute 不一定提高质量？
 8. Prefill 与使用 KV Cache 的 decode 在计算形态上有何差异？
+9. 为什么纯 sampling 不应按“是否找到 argmax”判断 search error？
+10. 什么情况下扩大 beam 可能降低外部任务质量？
+11. Best-of-N 中 sampling 和 optimization 分别承担什么职责？
