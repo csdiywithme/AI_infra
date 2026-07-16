@@ -17,6 +17,7 @@
 
 ## 学习笔记
 
+- [CMU 11-763 Lecture 01：Introduction to Language Models and Inference](notes/cmu-11-763/lecture-01-introduction-to-language-models-and-inference.md)
 - [现代 Transformer 架构与 AI Infra 学习路线](notes/transformer/modern-transformer-architectures.md)
 - [Transformer Block 深入理解：Attention、FFN、Norm 与 Residual](notes/transformer/transformer-block-deep-dive.md)
 

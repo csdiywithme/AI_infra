@@ -1,0 +1,405 @@
+# Lecture 01：Introduction to Language Models and Inference
+
+## 课程信息
+
+- 课程：CMU 11-664/763 — Inference Algorithms for Language Modeling
+- 讲师：Graham Neubig
+- 日期：2025-08-26
+- [课程视频](https://www.youtube.com/watch?v=F-mduXzNcRQ)
+- [课程讲义](https://www.phontron.com/class/lminference-fall2025/assets/slides/2025-08-26-lm-intro/index.html)
+- 指定阅读：[From Decoding to Meta-Generation: Inference-time Algorithms for Large Language Models](https://arxiv.org/abs/2406.16838)，Sections 1–2
+
+## 1. 本讲目标
+
+第一讲主要建立后续课程需要的概念边界：
+
+1. 语言模型定义了什么？
+2. 训练与推理分别解决什么问题？
+3. 什么是 generation algorithm 与 meta-generation algorithm？
+4. 模型概率为什么不等于任务质量？
+5. 如何区分 search error 与 model error？
+6. 推理算法如何权衡质量、延迟、吞吐、多样性和成本？
+
+核心心智模型：
+
+> 语言模型定义一个 token 序列上的概率分布；推理算法负责在有限计算预算下使用这个模型产生符合应用目标的输出。
+
+## 2. 语言模型
+
+### 2.1 序列概率
+
+对于 token 序列：
+
+\[
+x=(x_1,x_2,\ldots,x_L)
+\]
+
+语言模型为其分配概率：
+
+\[
+P_\theta(x)
+\]
+
+现代 LLM 最常见的是自回归语言模型。利用概率链式法则：
+
+\[
+P_\theta(x)
+=
+\prod_{t=1}^{L}P_\theta(x_t\mid x_{<t})
+\]
+
+其中：
+
+- \(x_{<t}\)：当前位置之前的 token；
+- \(\theta\)：模型参数；
+- \(P_\theta(x_t\mid x_{<t})\)：给定历史前缀后的 next-token distribution。
+
+### 2.2 条件生成
+
+实际应用通常给定 prompt \(x\)，要求模型生成 response \(y\)：
+
+\[
+P_\theta(y\mid x)
+=
+\prod_{t=1}^{|y|}
+P_\theta(y_t\mid x,y_{<t})
+\]
+
+Prompt 是 prefix/query，response 是 completion。改变 prompt 会改变条件分布，但不改变模型参数。
+
+### 2.3 序列概率的长度效应
+
+完整序列概率是多个小于 1 的条件概率之积。使用 log probability 时：
+
+\[
+\log P_\theta(y\mid x)
+=
+\sum_t\log P_\theta(y_t\mid x,y_{<t})
+\]
+
+序列越长，累积 log probability 通常越负。因此，直接最大化未经校正的完整序列概率容易偏向短而普通的输出。
+
+这说明：
+
+> Maximum-probability sequence 不一定是人类或任务指标认为最好的 sequence。
+
+## 3. Transformer 建模与计算成本
+
+语言模型需要实现：
+
+\[
+P_\theta(x_t\mid x_{<t})
+\]
+
+当前主流实现是 decoder-only Transformer。每个 block 主要包含：
+
+- Self-Attention：在 token 之间传递信息；
+- FFN/MLP：在单个 token 内加工特征；
+- Norm：稳定模块输入尺度；
+- Residual：保存并累积各模块的更新。
+
+详细的 tensor shape、MHA/GQA、SwiGLU、KV Cache 和 FLOPs 推导见：[Transformer Block 深入理解](../transformer/transformer-block-deep-dive.md)。
+
+### 3.1 讲义中的计算规律
+
+对于完整长度为 \(L\) 的序列：
+
+- Q/K/V/O projections 随 \(L\) 线性增长；
+- FFN 随 \(L\) 线性增长，但矩阵通常很宽；
+- 完整 attention 的 \(QK^T\) 与 \(AV\) 包含 \(L^2\) 项；
+- 总成本随 Transformer 层数 \(N\) 近似线性增长。
+
+因此短上下文中 FFN 常占据主要 FLOPs；上下文足够长时，attention 的 \(L^2\) 项逐渐变得显著。
+
+### 3.2 Infra 补充：Prefill 与 Decode
+
+讲义中的完整 \(L\times L\) attention costing 主要对应 full-sequence forward/prefill。
+
+使用 KV Cache 的自回归 decode 中，每一步只有一个新 Query：
+
+\[
+Q_{new}:[B,H_q,1,d_h]
+\]
+
+它读取长度为 \(L\) 的历史 K/V：
+
+\[
+K_{cache},V_{cache}:[B,H_{kv},L,d_h]
+\]
+
+因此单步 attention 随历史长度近似线性增长。但 decode 具有串行依赖、矩阵较瘦，并且反复读取权重和 KV Cache，通常更容易受到显存带宽与调度效率限制。
+
+## 4. 训练与推理
+
+### 4.1 训练
+
+训练希望学习参数 \(\theta\)，使模型分布逼近数据分布。典型目标是最大似然估计：
+
+\[
+\theta^*
+=
+\arg\max_\theta
+\sum_{x\in\mathcal D}\log P_\theta(x)
+\]
+
+工程实现通常最小化 negative log-likelihood/cross-entropy，包括：
+
+1. Forward：计算预测与 loss；
+2. Backward：计算梯度；
+3. Optimizer step：更新参数。
+
+训练改变模型参数和模型分布。
+
+### 4.2 推理
+
+推理假定参数基本固定，目标是根据输入 \(x\) 产生输出 \(y\)。它可能包括：
+
+- 多次调用语言模型；
+- 维护生成状态与 KV Cache；
+- 选择扩展哪些 token 或候选序列；
+- 决定停止条件；
+- 使用 verifier、reward model、reranker 或外部工具；
+- 在输出质量与计算预算之间做决策。
+
+推理并不等价于单次 Transformer forward；它是围绕模型组织的一套生成和决策过程。
+
+## 5. 两类基本生成方法
+
+### 5.1 Sampling
+
+从模型分布中采样：
+
+\[
+y\sim P_\theta(y\mid x)
+\]
+
+逐 token 表示为：
+
+\[
+y_t\sim P_\theta(\cdot\mid x,y_{<t})
+\]
+
+特点：
+
+- 具有随机性和较高多样性；
+- 可以探索不同模式；
+- 单个样本的质量与可靠性可能较低。
+
+Temperature、top-k 和 top-p 都是在调整或截断采样分布。
+
+### 5.2 Search
+
+近似寻找某个评分函数下的最优输出：
+
+\[
+\hat y
+\approx
+\arg\max_y s_\theta(y\mid x)
+\]
+
+评分函数 \(s_\theta\) 不一定等于语言模型概率，还可以包含：
+
+- length penalty；
+- reward/verifier 分数；
+- 格式和语法约束；
+- 业务规则；
+- 多模型组合分数。
+
+Greedy decoding、beam search、best-first search 与 A* 可以理解为不同的搜索策略。
+
+## 6. Basic Generation 与 Meta-generation
+
+### 6.1 Basic generation
+
+基本生成逐 token 调用模型：
+
+```python
+def generate(model, x):
+    y = []
+    while not done(y):
+        distribution = model(x + y)
+        y.append(select(distribution))
+    return y
+```
+
+`select` 可以是 greedy、sampling 或搜索算法的一部分。
+
+### 6.2 Meta-generation
+
+Meta-generation 将“生成部分或完整 token 序列”作为子程序，再在候选之上执行进一步计算。
+
+典型的 generate-and-rerank：
+
+\[
+y^{(1)},\ldots,y^{(N)}\sim P_\theta(y\mid x)
+\]
+
+\[
+\hat y
+=
+\arg\max_{y^{(i)}}r(x,y^{(i)})
+\]
+
+常见方法包括：
+
+- Best-of-N；
+- self-consistency；
+- Minimum Bayes Risk；
+- verifier-guided search；
+- iterative refinement；
+- tool-use 与 agent workflow。
+
+Meta-generation 体现了 inference-time compute 的核心思想：固定模型并不意味着固定生成质量，可以通过增加候选、反馈、搜索和外部计算提高结果质量。
+
+## 7. 中间变量与推理轨迹
+
+最终答案 \(y\) 之外，模型可能生成中间推理过程 \(z\)：
+
+\[
+P(y\mid x)
+=
+\sum_zP(y,z\mid x)
+\]
+
+其中 \(z\) 可以是：
+
+- Chain of Thought；
+- scratchpad；
+- 搜索轨迹；
+- 工具调用记录；
+- agent 的中间状态。
+
+实际系统通常无法枚举并严格边缘化所有 \(z\)，而是采样或搜索少量轨迹。这引出：
+
+- reasoning token budget；
+- 多分支搜索；
+- 中间步骤验证；
+- 轨迹选择与答案聚合；
+- 质量提升与额外延迟之间的权衡。
+
+## 8. 模型概率与任务质量
+
+语言模型提供模型概率或模型分数，但应用真正关心外部任务价值：
+
+\[
+r(y\mid x)
+\]
+
+评价信号可能来自：
+
+- 人类偏好；
+- LLM-as-a-Judge；
+- accuracy；
+- BLEU、ROUGE；
+- 单元测试或程序执行；
+- 数学 verifier；
+- 安全、格式与业务规则。
+
+理想情况下 \(s_\theta(y\mid x)\) 与 \(r(y\mid x)\) 一致，但实际中经常错位。
+
+因此推理优化的完整目标不是“更快找到最高概率序列”，而是：
+
+> 在有限计算预算下，找到外部任务价值更高的输出。
+
+## 9. Search Error 与 Model Error
+
+### 9.1 Search error
+
+推理算法没有找到模型评分最高的输出：
+
+\[
+s_\theta(y_{generated}\mid x)
+<
+\max_y s_\theta(y\mid x)
+\]
+
+可能原因：
+
+- greedy 过早选择局部最优 token；
+- beam 太小；
+- 搜索被错误剪枝；
+- token/compute budget 不足；
+- 没有探索到更好的推理路径。
+
+主要改进方向是更好的 search/inference algorithm。
+
+### 9.2 Model error
+
+即使找到模型评分最高的输出，它也不是外部指标下最好的输出：
+
+\[
+\hat y=\arg\max_y s_\theta(y\mid x)
+\]
+
+但：
+
+\[
+r(\hat y\mid x)<\max_y r(y\mid x)
+\]
+
+主要改进方向包括：
+
+- 改进训练或对齐；
+- reward model/verifier；
+- reranking；
+- constrained decoding；
+- 多样本生成；
+- 外部反馈和工具。
+
+### 9.3 诊断表
+
+| 现象 | 主要问题 |
+| --- | --- |
+| 高质量答案的模型分数高，但搜索没有找到 | Search error |
+| 搜索找到模型最高分答案，但答案质量差 | Model error |
+| 候选集中有好答案，但 reranker 选错 | Scoring/model error |
+| 候选集中没有好答案 | Generation/search coverage error |
+
+必须先确定错误类型。盲目扩大 beam 或增加采样数，可能只是在更昂贵地优化错误目标。
+
+## 10. 推理的多目标权衡
+
+推理系统通常同时关注：
+
+- Quality；
+- Latency；
+- Throughput；
+- Diversity；
+- Memory；
+- Monetary/energy cost。
+
+不同算法有不同权衡：
+
+| 方法 | 典型特征 |
+| --- | --- |
+| Greedy | 延迟较低，多样性低，可能局部最优 |
+| Sampling | 多样性高，单样本不稳定 |
+| Beam search | 扩大搜索范围，但增加计算和状态管理 |
+| Best-of-N | 可能提高质量，但生成成本近似随 N 增加 |
+| 长 CoT | 可能提高推理质量，但增加 token 成本和尾延迟 |
+
+不存在脱离 workload 的“最佳推理算法”。交互式聊天、代码生成、数学推理和离线批处理的目标函数不同。
+
+## 11. 本讲结论
+
+1. Language model 是概率模型，inference algorithm 是使用模型产生结果的算法。
+2. 训练决定模型分布，推理决定如何在固定模型上分配计算。
+3. 最高模型概率不等于最高任务质量。
+4. 必须区分 search error 与 model error。
+5. Generation 可以作为 meta-generation 的子程序。
+6. 推理优化是质量、延迟、吞吐、多样性、内存与成本之间的系统性权衡。
+
+面向 AI Infra 的进一步理解：
+
+> LLM inference optimization 不只是优化一次 Transformer forward，而是联合优化模型执行、缓存、内存流量、请求调度、搜索策略、候选管理与任务级评价目标。
+
+## 12. 自测问题
+
+1. 为什么完整序列的最大模型概率可能偏向短输出？
+2. Sampling 与 search 分别在优化或近似什么？
+3. 为什么搜索分数不一定等于语言模型概率？
+4. Generation 与 meta-generation 的边界是什么？
+5. 为什么 Chain of Thought 可以视为中间变量？
+6. 如何通过候选集判断 search error 与 model error？
+7. 为什么扩大 inference-time compute 不一定提高质量？
+8. Prefill 与使用 KV Cache 的 decode 在计算形态上有何差异？

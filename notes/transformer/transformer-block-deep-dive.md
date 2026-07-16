@@ -429,6 +429,107 @@ Down: [B,L,d_ff] × [d_ff,d] → [B,L,d]
 
 Gate 控制哪些特征应该通过以及通过多少，Up 产生候选特征，Down 将结果恢复到 residual stream 的宽度。
 
+### 9.4 Hidden size 与 MLP size
+
+`hidden_size`（\(d\)）是 residual stream 的宽度。每个 token 在 Transformer 主干中始终使用 \(d\) 维表示：
+
+\[
+X:[B,L,d]
+\]
+
+`mlp_size` 通常也叫 `intermediate_size` 或 \(d_{ff}\)，是 token 进入 FFN 后临时扩展到的中间维度：
+
+\[
+[B,L,d]
+\rightarrow
+[B,L,d_{ff}]
+\rightarrow
+[B,L,d]
+\]
+
+因此，MLP size 不是模型参数量，也不是贯穿所有 block 的主干宽度。Down projection 必须把中间状态恢复为 \(d\)，才能与 residual stream 相加。
+
+### 9.5 MLP size 对容量和系统成本的影响
+
+如 9.2 所述，扩维为每个 token 提供更大的非线性特征空间。具体选择多大的 \(d_{ff}\)，则是模型容量与系统成本之间的权衡。
+
+增大 \(d_{ff}\) 通常会增强单层的逐 token 计算容量，但同时线性增加：
+
+- FFN 参数量；
+- FFN FLOPs；
+- 权重内存与内存流量；
+- 并行切分与 kernel shape 的设计压力。
+
+因此，\(d_{ff}/d\) 是模型质量与计算预算之间的架构超参数，不存在必须等于某个常数的数学定理。
+
+### 9.6 SwiGLU 的 \(8d/3\) 从哪里来
+
+经典 ReLU/GELU FFN 常使用 \(d_{ff}=4d\)，包含两个矩阵：
+
+\[
+W_1:[d,4d],\qquad W_2:[4d,d]
+\]
+
+忽略 bias，其参数量约为：
+
+\[
+d(4d)+(4d)d=8d^2
+\]
+
+SwiGLU 包含 Gate、Up、Down 三个矩阵，参数量约为：
+
+\[
+3dd_{ff}
+\]
+
+若希望 SwiGLU 与经典 \(4d\) FFN 的参数量和主要计算量大致相同，可以令：
+
+\[
+3dd_{ff}\approx8d^2
+\]
+
+得到：
+
+\[
+\boxed{d_{ff}\approx\frac83d\approx2.67d}
+\]
+
+这就是早期 LLaMA 使用“大约三倍 hidden size”的经典来源。实际实现还会将中间维度对齐到 256 等硬件友好的整数倍。
+
+例如 \(d=4096\) 时：
+
+\[
+\frac83\times4096\approx10922.7
+\]
+
+对齐后可取 \(d_{ff}=11008\)，实际比例约为 2.6875。
+
+### 9.7 Llama 3 的比例为什么不同
+
+\(8d/3\) 只是保持经典 FFN 参数预算的基线，不是架构约束。Llama 3 系列根据总体参数预算和训练实验选择了更宽的 FFN。
+
+| 模型 | Hidden size \(d\) | MLP size \(d_{ff}\) | 比例 |
+| --- | ---: | ---: | ---: |
+| Llama 3.1 8B | 4,096 | 14,336 | 3.50 |
+| Llama 3.1 70B | 8,192 | 28,672 | 3.50 |
+| Llama 3.1 405B | 16,384 | 53,248 | 3.25 |
+
+因此“MLP size 约为 hidden size 三倍”只是经验性描述。具体比例还受到模型深度、总参数量、训练质量和硬件对齐要求影响。
+
+以 8B 配置为例，单层 SwiGLU MLP 的参数量约为：
+
+\[
+3\times4096\times14336\approx176\text{M}
+\]
+
+32 层仅 MLP 权重就约为：
+
+\[
+176\text{M}\times32\approx5.64\text{B}
+\]
+
+这说明 dense LLM 的大部分参数和短上下文主要计算通常位于 MLP。需要注意，MLP 的中间 activation 不进入 KV Cache；KV Cache 只保存各 attention 层的历史 K/V。
+
 ## 10. Norm 的作用
 
 随着层数增加，hidden state 的尺度可能不断变化。Norm 在模块读取 residual stream 之前，将每个 token 的特征调整到相对稳定的数值范围。
@@ -750,3 +851,12 @@ Attention score：
 10. 为什么 Prefill 和 Decode 的 attention shape 不同？
 11. 为什么 Decode 更容易 memory-bound？
 12. 如何从矩阵 shape 现场推导参数量和 FLOPs？
+13. Hidden size 与 MLP/intermediate size 分别表示什么？
+14. 为什么经典 SwiGLU 中间维度约为 \(8d/3\)？
+15. 为什么实际 Llama 配置不必严格遵循 \(8d/3\)？
+
+## 17. 参考资料
+
+- [LLaMA: Open and Efficient Foundation Language Models](https://arxiv.org/abs/2302.13971)
+- [Meta Llama 3 官方实现](https://github.com/meta-llama/llama3/blob/main/llama/model.py)
+- [CMU 11-763 Lecture 01 讲义](https://www.phontron.com/class/lminference-fall2025/assets/slides/2025-08-26-lm-intro/index.html)
