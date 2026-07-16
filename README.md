@@ -15,4 +15,9 @@
 - 工程实践：性能分析、复现实验与技术总结
 - 求职准备：项目材料、面试知识点与岗位调研
 
+## 学习笔记
+
+- [现代 Transformer 架构与 AI Infra 学习路线](notes/transformer/modern-transformer-architectures.md)
+- [Transformer Block 深入理解：Attention、FFN、Norm 与 Residual](notes/transformer/transformer-block-deep-dive.md)
+
 后续目录将随着学习进度逐步建立，优先保持内容可复现、可检索、可持续更新。
