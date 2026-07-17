@@ -46,9 +46,9 @@ token 4: ✓ ✓ ✓ ✓
 
 它与语言模型分解直接对应：
 
-\[
+$$
 P(x)=\prod_tP(x_t\mid x_{<t})
-\]
+$$
 
 因此 decoder-only 成为现代生成式 LLM 的主流架构。
 
@@ -103,19 +103,19 @@ Vocabulary Logits
 
 原始 Transformer 常用 Post-Norm：
 
-\[
+$$
 x'=\operatorname{Norm}(x+\operatorname{Attention}(x))
-\]
+$$
 
 现代 LLM 更常使用 Pre-Norm：
 
-\[
+$$
 x'=x+\operatorname{Attention}(\operatorname{Norm}(x))
-\]
+$$
 
-\[
+$$
 y=x'+\operatorname{FFN}(\operatorname{Norm}(x'))
-\]
+$$
 
 常见 normalization 包括 LayerNorm 和 RMSNorm。Pre-Norm 通常更有利于深层模型的训练稳定性。
 
@@ -123,9 +123,9 @@ y=x'+\operatorname{FFN}(\operatorname{Norm}(x'))
 
 | 方法 | Query heads | KV heads | 主要系统影响 |
 | --- | ---: | ---: | --- |
-| MHA | \(H\) | \(H\) | 表达能力强，KV Cache 最大 |
-| MQA | \(H\) | 1 | KV Cache 最小，但共享程度最高 |
-| GQA | \(H\) | \(H_{kv}<H\) | 质量与推理效率之间的折中 |
+| MHA | $H$ | $H$ | 表达能力强，KV Cache 最大 |
+| MQA | $H$ | 1 | KV Cache 最小，但共享程度最高 |
+| GQA | $H$ | $H_{kv}<H$ | 质量与推理效率之间的折中 |
 | MLA | 多头 Query | 压缩/重参数化 KV | 进一步降低 KV 表示和缓存成本 |
 
 这些设计需要从以下角度比较：
@@ -138,7 +138,7 @@ y=x'+\operatorname{FFN}(\operatorname{Norm}(x'))
 
 ### 4.3 Attention 范围与替代方案
 
-Transformer 不一定在每一层执行完整的 \(L\times L\) attention：
+Transformer 不一定在每一层执行完整的 $L\times L$ attention：
 
 - Full attention；
 - Sliding-window attention；
@@ -165,18 +165,18 @@ Transformer 不一定在每一层执行完整的 \(L\times L\) attention：
 
 原始 Transformer FFN：
 
-\[
+$$
 \operatorname{FFN}(x)=\operatorname{ReLU}(xW_1)W_2
-\]
+$$
 
 现代 Llama-style SwiGLU：
 
-\[
+$$
 \operatorname{FFN}(x)=
 \left[
 \operatorname{SiLU}(xW_{gate})\odot xW_{up}
 \right]W_{down}
-\]
+$$
 
 FFN 又可分为：
 
@@ -201,10 +201,10 @@ MoE 能增加总参数容量，同时控制每个 token 的 active FLOPs，但�
 例如分析 GQA：
 
 - 数学：多个 Query heads 分组共享 K/V；
-- Shape：\(H_q>H_{kv}\)；
+- Shape：$H_q>H_{kv}$；
 - 语义：减少 K/V 冗余；
 - Compute：降低 K/V projection 成本；
-- Memory：KV Cache 约缩小 \(H_q/H_{kv}\) 倍；
+- Memory：KV Cache 约缩小 $H_q/H_{kv}$ 倍；
 - System：降低 decode HBM traffic，提高服务并发。
 
 ## 6. 结合 CS336 的学习顺序
@@ -222,9 +222,9 @@ MoE 能增加总参数容量，同时控制每个 token 的 active FLOPs，但�
 
 目标是看到：
 
-\[
+$$
 [B,L,d]\times[d,d_{ff}]
-\]
+$$
 
 就能立即写出输出形状、参数量、FLOPs 和内存读写量。
 
@@ -293,9 +293,9 @@ CS336 Assignment 1 要求实现 tokenizer、标准 Transformer、optimizer 并�
 
 给定：
 
-\[
+$$
 X\in\mathbb R^{B\times L\times d}
-\]
+$$
 
 应能写出 Q、K、V、attention score、attention output 和 FFN 中间状态的 shape。
 
@@ -304,8 +304,8 @@ X\in\mathbb R^{B\times L\times d}
 应能推导：
 
 - Q/K/V/O projection；
-- \(QK^T\)；
-- \(AV\)；
+- $QK^T$；
+- $AV$；
 - SwiGLU FFN；
 - LM Head。
 
@@ -322,11 +322,11 @@ X\in\mathbb R^{B\times L\times d}
 
 应能推导：
 
-\[
+$$
 \text{KV bytes}
 =
 2BNLH_{kv}d_h\times\text{bytes per element}
-\]
+$$
 
 并解释 MHA、GQA、MQA 对 KV Cache 和并发能力的影响。
 
@@ -334,7 +334,7 @@ X\in\mathbb R^{B\times L\times d}
 
 需要明确：
 
-> FlashAttention 保持标准 attention 的数学结果，核心收益主要来自减少 HBM 读写以及避免物化完整的 \(L\times L\) attention matrix，而不是简单减少理论 FLOPs。
+> FlashAttention 保持标准 attention 的数学结果，核心收益主要来自减少 HBM 读写以及避免物化完整的 $L\times L$ attention matrix，而不是简单减少理论 FLOPs。
 
 ### MoE
 

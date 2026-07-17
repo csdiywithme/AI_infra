@@ -30,40 +30,40 @@
 
 对于 token 序列：
 
-\[
+$$
 x=(x_1,x_2,\ldots,x_L)
-\]
+$$
 
 语言模型为其分配概率：
 
-\[
+$$
 P_\theta(x)
-\]
+$$
 
 现代 LLM 最常见的是自回归语言模型。利用概率链式法则：
 
-\[
+$$
 P_\theta(x)
 =
 \prod_{t=1}^{L}P_\theta(x_t\mid x_{<t})
-\]
+$$
 
 其中：
 
-- \(x_{<t}\)：当前位置之前的 token；
-- \(\theta\)：模型参数；
-- \(P_\theta(x_t\mid x_{<t})\)：给定历史前缀后的 next-token distribution。
+- $x_{<t}$：当前位置之前的 token；
+- $\theta$：模型参数；
+- $P_\theta(x_t\mid x_{<t})$：给定历史前缀后的 next-token distribution。
 
 ### 2.2 条件生成
 
-实际应用通常给定 prompt \(x\)，要求模型生成 response \(y\)：
+实际应用通常给定 prompt $x$，要求模型生成 response $y$：
 
-\[
+$$
 P_\theta(y\mid x)
 =
 \prod_{t=1}^{|y|}
 P_\theta(y_t\mid x,y_{<t})
-\]
+$$
 
 Prompt 是 prefix/query，response 是 completion。改变 prompt 会改变条件分布，但不改变模型参数。
 
@@ -71,11 +71,11 @@ Prompt 是 prefix/query，response 是 completion。改变 prompt 会改变条�
 
 完整序列概率是多个小于 1 的条件概率之积。使用 log probability 时：
 
-\[
+$$
 \log P_\theta(y\mid x)
 =
 \sum_t\log P_\theta(y_t\mid x,y_{<t})
-\]
+$$
 
 序列越长，累积 log probability 通常越负。因此，直接最大化未经校正的完整序列概率容易偏向短而普通的输出。
 
@@ -87,9 +87,9 @@ Prompt 是 prefix/query，response 是 completion。改变 prompt 会改变条�
 
 语言模型需要实现：
 
-\[
+$$
 P_\theta(x_t\mid x_{<t})
-\]
+$$
 
 当前主流实现是 decoder-only Transformer。每个 block 主要包含：
 
@@ -102,30 +102,30 @@ P_\theta(x_t\mid x_{<t})
 
 ### 3.1 讲义中的计算规律
 
-对于完整长度为 \(L\) 的序列：
+对于完整长度为 $L$ 的序列：
 
-- Q/K/V/O projections 随 \(L\) 线性增长；
-- FFN 随 \(L\) 线性增长，但矩阵通常很宽；
-- 完整 attention 的 \(QK^T\) 与 \(AV\) 包含 \(L^2\) 项；
-- 总成本随 Transformer 层数 \(N\) 近似线性增长。
+- Q/K/V/O projections 随 $L$ 线性增长；
+- FFN 随 $L$ 线性增长，但矩阵通常很宽；
+- 完整 attention 的 $QK^T$ 与 $AV$ 包含 $L^2$ 项；
+- 总成本随 Transformer 层数 $N$ 近似线性增长。
 
-因此短上下文中 FFN 常占据主要 FLOPs；上下文足够长时，attention 的 \(L^2\) 项逐渐变得显著。
+因此短上下文中 FFN 常占据主要 FLOPs；上下文足够长时，attention 的 $L^2$ 项逐渐变得显著。
 
 ### 3.2 Infra 补充：Prefill 与 Decode
 
-讲义中的完整 \(L\times L\) attention costing 主要对应 full-sequence forward/prefill。
+讲义中的完整 $L\times L$ attention costing 主要对应 full-sequence forward/prefill。
 
 使用 KV Cache 的自回归 decode 中，每一步只有一个新 Query：
 
-\[
+$$
 Q_{new}:[B,H_q,1,d_h]
-\]
+$$
 
-它读取长度为 \(L\) 的历史 K/V：
+它读取长度为 $L$ 的历史 K/V：
 
-\[
+$$
 K_{cache},V_{cache}:[B,H_{kv},L,d_h]
-\]
+$$
 
 因此单步 attention 随历史长度近似线性增长。但 decode 具有串行依赖、矩阵较瘦，并且反复读取权重和 KV Cache，通常更容易受到显存带宽与调度效率限制。
 
@@ -133,14 +133,14 @@ K_{cache},V_{cache}:[B,H_{kv},L,d_h]
 
 ### 4.1 训练
 
-训练希望学习参数 \(\theta\)，使模型分布逼近数据分布。典型目标是最大似然估计：
+训练希望学习参数 $\theta$，使模型分布逼近数据分布。典型目标是最大似然估计：
 
-\[
+$$
 \theta^*
 =
 \arg\max_\theta
 \sum_{x\in\mathcal D}\log P_\theta(x)
-\]
+$$
 
 工程实现通常最小化 negative log-likelihood/cross-entropy，包括：
 
@@ -152,7 +152,7 @@ K_{cache},V_{cache}:[B,H_{kv},L,d_h]
 
 ### 4.2 推理
 
-推理假定参数基本固定，目标是根据输入 \(x\) 产生输出 \(y\)。它可能包括：
+推理假定参数基本固定，目标是根据输入 $x$ 产生输出 $y$。它可能包括：
 
 - 多次调用语言模型；
 - 维护生成状态与 KV Cache；
@@ -169,15 +169,15 @@ K_{cache},V_{cache}:[B,H_{kv},L,d_h]
 
 从模型分布中采样：
 
-\[
+$$
 y\sim P_\theta(y\mid x)
-\]
+$$
 
 逐 token 表示为：
 
-\[
+$$
 y_t\sim P_\theta(\cdot\mid x,y_{<t})
-\]
+$$
 
 特点：
 
@@ -191,13 +191,13 @@ Temperature、top-k 和 top-p 都是在调整或截断采样分布。
 
 近似寻找某个评分函数下的最优输出：
 
-\[
+$$
 \hat y
 \approx
 \arg\max_y s_\theta(y\mid x)
-\]
+$$
 
-评分函数 \(s_\theta\) 不一定等于语言模型概率，还可以包含：
+评分函数 $s_\theta$ 不一定等于语言模型概率，还可以包含：
 
 - length penalty；
 - reward/verifier 分数；
@@ -230,15 +230,15 @@ Meta-generation 将“生成部分或完整 token 序列”作为子程序，再
 
 典型的 generate-and-rerank：
 
-\[
+$$
 y^{(1)},\ldots,y^{(N)}\sim P_\theta(y\mid x)
-\]
+$$
 
-\[
+$$
 \hat y
 =
 \arg\max_{y^{(i)}}r(x,y^{(i)})
-\]
+$$
 
 常见方法包括：
 
@@ -253,15 +253,15 @@ Meta-generation 体现了 inference-time compute 的核心思想：固定模型�
 
 ## 7. 中间变量与推理轨迹
 
-最终答案 \(y\) 之外，模型可能生成中间推理过程 \(z\)：
+最终答案 $y$ 之外，模型可能生成中间推理过程 $z$：
 
-\[
+$$
 P(y\mid x)
 =
 \sum_zP(y,z\mid x)
-\]
+$$
 
-其中 \(z\) 可以是：
+其中 $z$ 可以是：
 
 - Chain of Thought；
 - scratchpad；
@@ -269,7 +269,7 @@ P(y\mid x)
 - 工具调用记录；
 - agent 的中间状态。
 
-实际系统通常无法枚举并严格边缘化所有 \(z\)，而是采样或搜索少量轨迹。这引出：
+实际系统通常无法枚举并严格边缘化所有 $z$，而是采样或搜索少量轨迹。这引出：
 
 - reasoning token budget；
 - 多分支搜索；
@@ -281,15 +281,15 @@ P(y\mid x)
 
 分析 inference 时需要分开三个层次：
 
-1. **模型分布** \(P_\theta(y\mid x)\)：模型认为不同输出的概率；
-2. **推理算法** \(A(\theta,x,C)\)：在计算预算 \(C\) 下产生输出或样本；
-3. **外部任务目标** \(r(y\mid x)\)：应用真正关心的质量。
+1. **模型分布** $P_\theta(y\mid x)$：模型认为不同输出的概率；
+2. **推理算法** $A(\theta,x,C)$：在计算预算 $C$ 下产生输出或样本；
+3. **外部任务目标** $r(y\mid x)$：应用真正关心的质量。
 
 语言模型提供概率或模型分数，但应用真正关心外部任务价值：
 
-\[
+$$
 r(y\mid x)
-\]
+$$
 
 评价信号可能来自：
 
@@ -301,7 +301,7 @@ r(y\mid x)
 - 数学 verifier；
 - 安全、格式与业务规则。
 
-理想情况下 \(s_\theta(y\mid x)\) 与 \(r(y\mid x)\) 一致，但实际中经常错位。
+理想情况下 $s_\theta(y\mid x)$ 与 $r(y\mid x)$ 一致，但实际中经常错位。
 
 因此推理优化的完整目标不是“更快找到最高概率序列”，而是：
 
@@ -313,25 +313,25 @@ r(y\mid x)
 
 先定义模型评分下的最优输出：
 
-\[
+$$
 y_s=\arg\max_y s_\theta(y\mid x)
-\]
+$$
 
-如果实际算法返回 \(y_{alg}\)，但没有找到这个最高分输出：
+如果实际算法返回 $y_{alg}$，但没有找到这个最高分输出：
 
-\[
+$$
 s_\theta(y_{alg}\mid x)
 <
 s_\theta(y_s\mid x)
-\]
+$$
 
 那么存在 search error。可以定义 search regret：
 
-\[
+$$
 R_{search}
 =
 s_\theta(y_s\mid x)-s_\theta(y_{alg}\mid x)
-\]
+$$
 
 可能原因：
 
@@ -359,15 +359,15 @@ Greedy 第一步选择 A，但全局 MAP 序列是 B1。更大的 beam、best-fi
 
 即使找到模型评分最高的输出，它也不是外部指标下最好的输出：
 
-\[
+$$
 \hat y=\arg\max_y s_\theta(y\mid x)
-\]
+$$
 
 但：
 
-\[
+$$
 r(\hat y\mid x)<\max_y r(y\mid x)
-\]
+$$
 
 主要改进方向包括：
 
@@ -393,7 +393,7 @@ r(\hat y\mid x)<\max_y r(y\mid x)
 
 假设：
 
-| 输出 | 模型分数 \(s\) | 外部奖励 \(r\) |
+| 输出 | 模型分数 $s$ | 外部奖励 $r$ |
 | --- | ---: | ---: |
 | 错误答案 | -1.0 | 0 |
 | 正确答案 | -2.0 | 1 |
@@ -406,7 +406,7 @@ r(\hat y\mid x)<\max_y r(y\mid x)
 
 因此：
 
-> 减少 search error 只保证更好地优化 \(s_\theta\)，不保证提高 \(r\)。
+> 减少 search error 只保证更好地优化 $s_\theta$，不保证提高 $r$。
 
 当增加搜索预算使模型分数提高、但外部指标停滞或下降时，主要瓶颈是 score/reward mismatch，而不是搜索能力。
 
@@ -418,23 +418,23 @@ Inference 是上位概念，没有规定必须 sampling 或 optimization。目�
 
 如果目标是：
 
-\[
+$$
 y\sim P_\theta(y\mid x)
-\]
+$$
 
 那么算法需要产生符合目标分布的样本，而不是寻找最高概率输出。样本的分数低于 argmax 是正常现象，不构成 search error。
 
-此时更合适的问题是：算法实际产生的分布 \(q\) 与目标分布是否一致，以及 diversity、calibration 和 sample efficiency 如何。
+此时更合适的问题是：算法实际产生的分布 $q$ 与目标分布是否一致，以及 diversity、calibration 和 sample efficiency 如何。
 
-Temperature、top-k 和 top-p 通常从经过修改或截断的分布 \(q\) 采样。只要目标就是这个 \(q\)，没有抽到最高概率 token 不是错误。
+Temperature、top-k 和 top-p 通常从经过修改或截断的分布 $q$ 采样。只要目标就是这个 $q$，没有抽到最高概率 token 不是错误。
 
 ### 10.2 优化模型分数
 
 如果目标是：
 
-\[
+$$
 \hat y=\arg\max_y\log P_\theta(y\mid x)
-\]
+$$
 
 那么这是 MAP decoding，属于组合搜索问题。此时可以讨论 greedy、beam、A* 是否找到目标，以及是否存在 search error。
 
@@ -444,9 +444,9 @@ Temperature、top-k 和 top-p 通常从经过修改或截断的分布 \(q\) 采�
 
 很多应用真正希望：
 
-\[
+$$
 \hat y=\arg\max_y r(y\mid x)
-\]
+$$
 
 例如代码通过测试、数学答案正确或输出满足 schema。由于外部奖励往往只能在完整生成后计算，常见策略是先生成候选，再使用 verifier/reward 选择。
 
@@ -456,24 +456,24 @@ Sampling 可以负责探索，optimization/aggregation 负责最终决策。
 
 **Best-of-N：**
 
-\[
+$$
 y_1,\ldots,y_N\sim P_\theta(y\mid x)
-\]
+$$
 
-\[
+$$
 \hat y=\arg\max_i r(y_i\mid x)
-\]
+$$
 
 **Self-consistency：**采样多个 reasoning paths，再对最终答案聚合或投票。
 
 **Minimum Bayes Risk：**使用 samples 近似期望风险，再选择期望损失最低的输出：
 
-\[
+$$
 \hat y
 \approx
 \arg\min_{y_i}
 \frac1N\sum_{j=1}^{N}\Delta(y_i,y_j)
-\]
+$$
 
 因此，视频中学生问题的准确结论是：
 
