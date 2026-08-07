@@ -1,0 +1,20 @@
+{
+  "types": {
+    "aliases": "aliases",
+    "area": "text",
+    "course": "text",
+    "cssclasses": "multitext",
+    "last_reviewed": "date",
+    "lecture": "number",
+    "lecture_date": "date",
+    "mastery": "text",
+    "phase": "text",
+    "result": "text",
+    "run_date": "date",
+    "status": "text",
+    "tags": "tags",
+    "topics": "multitext",
+    "type": "text",
+    "video_url": "text"
+  }
+}

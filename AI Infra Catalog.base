@@ -1,0 +1,91 @@
+filters:
+  and:
+    - file.ext == "md"
+    - type != null
+    - not:
+        - file.inFolder("templates")
+properties:
+  file.name:
+    displayName: 笔记
+  file.mtime:
+    displayName: 最近修改
+  type:
+    displayName: 类型
+  status:
+    displayName: 状态
+  area:
+    displayName: 领域
+  mastery:
+    displayName: 掌握程度
+  course:
+    displayName: 课程
+  lecture:
+    displayName: 讲次
+  topics:
+    displayName: 主题
+  video_url:
+    displayName: 视频
+  phase:
+    displayName: 实验阶段
+  result:
+    displayName: 实验结果
+views:
+  - type: table
+    name: 正在学习
+    filters:
+      and:
+        - status != null
+        - status != "stable"
+        - type != "dashboard"
+        - type != "template"
+        - type != "course"
+        - type != "lab-index"
+    order:
+      - file.name
+      - type
+      - area
+      - status
+      - mastery
+      - file.mtime
+    columnSize:
+      file.name: 576
+  - type: table
+    name: 课程进度
+    filters:
+      and:
+        - type == "course-note"
+    groupBy:
+      property: course
+      direction: ASC
+    order:
+      - file.name
+      - lecture
+      - status
+      - topics
+      - video_url
+      - file.mtime
+  - type: table
+    name: 主题成熟度
+    filters:
+      and:
+        - type == "topic"
+    groupBy:
+      property: area
+      direction: ASC
+    order:
+      - file.name
+      - status
+      - mastery
+      - topics
+      - file.mtime
+  - type: table
+    name: 实验
+    filters:
+      and:
+        - type == "experiment"
+    order:
+      - file.name
+      - phase
+      - result
+      - topics
+      - run_date

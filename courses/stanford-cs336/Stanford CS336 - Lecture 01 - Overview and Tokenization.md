@@ -37,20 +37,20 @@ video_url: https://www.youtube.com/watch?v=JuoVZkPBiKk
 
 | 时间 | 视频内容 | 对应笔记 |
 | --- | --- | --- |
-| [00:00](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=0s) | Course introduction | [1. 为什么要从零构建](#1-为什么要从零构建) |
-| [02:22](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=142s) | Course philosophy and goals | [1. 为什么要从零构建](#1-为什么要从零构建) |
-| [03:24](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=204s) | The research landscape | [1. 为什么要从零构建](#1-为什么要从零构建) |
-| [07:10](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=430s) | Efficiency and scaling | [2. 课程的统一视角：效率](#2-课程的统一视角效率) |
-| [11:37](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=697s) | Language model history | [3. Language Model 的发展脉络](#3-language-model-的发展脉络) |
-| [19:27](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=1167s) | Executable lecture format | [4. 课程如何学习](#4-课程如何学习) |
-| [20:14](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=1214s) | Logistics and syllabus | [4. 课程如何学习](#4-课程如何学习) |
-| [27:24](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=1644s) | The “Basics” unit | [5. 五个课程模块](#5-五个课程模块) |
-| [35:53](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=2153s) | Systems and hardware | [5.2 Systems](#52-systems) |
-| [45:11](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=2711s) | Scaling laws | [5.3 Scaling Laws](#53-scaling-laws) |
-| [53:42](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=3222s) | Data engineering | [5.4 Data](#54-data) |
-| [1:00:22](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=3622s) | Alignment and future units | [5.5 Alignment](#55-alignment) |
-| [1:05:06](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=3906s) | Tokenization deep dive | [6. Tokenizer 的问题定义](#6-tokenizer-的问题定义) |
-| [1:12:03](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=4323s) | BPE algorithm | [9. Byte Pair Encoding](#9-byte-pair-encoding) |
+| [00:00](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=0s) | Course introduction | [[#1. 为什么要从零构建\|1. 为什么要从零构建]] |
+| [02:22](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=142s) | Course philosophy and goals | [[#1. 为什么要从零构建\|1. 为什么要从零构建]] |
+| [03:24](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=204s) | The research landscape | [[#1. 为什么要从零构建\|1. 为什么要从零构建]] |
+| [07:10](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=430s) | Efficiency and scaling | [[#2. 课程的统一视角：效率\|2. 课程的统一视角：效率]] |
+| [11:37](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=697s) | Language model history | [[#3. Language Model 的发展脉络\|3. Language Model 的发展脉络]] |
+| [19:27](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=1167s) | Executable lecture format | [[#4. 课程如何学习\|4. 课程如何学习]] |
+| [20:14](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=1214s) | Logistics and syllabus | [[#4. 课程如何学习\|4. 课程如何学习]] |
+| [27:24](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=1644s) | The “Basics” unit | [[#5. 五个课程模块\|5. 五个课程模块]] |
+| [35:53](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=2153s) | Systems and hardware | [[#5.2 Systems\|5.2 Systems]] |
+| [45:11](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=2711s) | Scaling laws | [[#5.3 Scaling Laws\|5.3 Scaling Laws]] |
+| [53:42](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=3222s) | Data engineering | [[#5.4 Data\|5.4 Data]] |
+| [1:00:22](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=3622s) | Alignment and future units | [[#5.5 Alignment\|5.5 Alignment]] |
+| [1:05:06](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=3906s) | Tokenization deep dive | [[#6. Tokenizer 的问题定义\|6. Tokenizer 的问题定义]] |
+| [1:12:03](https://www.youtube.com/watch?v=JuoVZkPBiKk&t=4323s) | BPE algorithm | [[#9. Byte Pair Encoding\|9. Byte Pair Encoding]] |
 
 ## 1. 为什么要从零构建
 
@@ -244,11 +244,11 @@ Assignment 1 要求从头实现：
 
 所有 architecture/training choice 都在平衡：
 
-| 目标 | 问题 |
-| --- | --- |
-| Expressivity | 能否表示数据中的复杂依赖？ |
-| Stability | 参数和梯度的数值是否处于可训练区间？ |
-| Efficiency | 训练和推理时能否高效使用硬件？ |
+| 目标           | 问题                 |
+| ------------ | ------------------ |
+| Expressivity | 能否表示数据中的复杂依赖？      |
+| Stability    | 参数和梯度的数值是否处于可训练区间？ |
+| Efficiency   | 训练和推理时能否高效使用硬件？    |
 
 ### 5.2 Systems
 

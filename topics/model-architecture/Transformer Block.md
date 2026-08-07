@@ -1,9 +1,23 @@
-# Transformer Block 深入理解：Attention、FFN、Norm 与 Residual
+---
+type: topic
+status: developing
+area: model-architecture
+mastery: derive
+aliases:
+  - Transformer Block 深入理解
+  - Transformer 块
+topics:
+  - "[[Transformer Architecture]]"
+  - "[[LLM Inference]]"
+---
+
+# Transformer Block
+
+Attention、FFN、Norm 与 Residual 的数据流、tensor shape、资源开销及 prefill/decode 行为。
 
 ## 1. 核心心智模型
 
-Transformer block 反复完成两件事：
-
+> [!abstract] 核心心智模型
 > **Attention 在 token 之间传递信息；FFN 在单个 token 内加工信息。**
 
 Norm 负责稳定模块输入的数值尺度，Residual 则保存并累积每个模块产生的更新。
@@ -31,6 +45,8 @@ $$
 $$
 X_2=X_1+\operatorname{FFN}(\operatorname{Norm}(X_1))
 $$
+
+对应 CS336 Lecture 3：[视频 07:27：Pre-vs-Post Norm](https://www.youtube.com/watch?v=lVynu4bo1rY&t=447s) 展示公式与 residual path；[视频 10:45](https://www.youtube.com/watch?v=lVynu4bo1rY&t=645s) 解释 gradient attenuation、gradient spikes 与训练稳定性。更完整的采用原因见：[Transformer Architecture §3.1](Transformer%20Architecture.md#31-normalization-与-residual)。
 
 整个 block 的主干形状始终保持为：
 
@@ -564,6 +580,8 @@ $$
 
 RMSNorm 不减均值，只控制均方根尺度：
 
+视频对应：[CS336 Lecture 3 14:10：LayerNorm vs RMSNorm](https://www.youtube.com/watch?v=lVynu4bo1rY&t=850s)；[14:35：Why RMSNorm?](https://www.youtube.com/watch?v=lVynu4bo1rY&t=875s)。
+
 $$
 \operatorname{RMS}(x)
 =
@@ -576,7 +594,19 @@ $$
 \gamma\odot\frac{x}{\operatorname{RMS}(x)}
 $$
 
-其计算复杂度约为 $O(BLd)$，远低于大型矩阵乘法。但实际 GPU 上仍可能受到 HBM 读写和 kernel launch 影响，因此 FLOPs 少不代表 latency 可以完全忽略。
+与 LayerNorm 相比，RMSNorm：
+
+- 不计算或减去 mean；
+- 通常不使用 additive bias $\beta$；
+- 保留可学习缩放参数 $\gamma$；
+- 在许多现代 LLM 中取得与 LayerNorm 相近的效果，同时减少操作与需要搬运的参数。
+
+其计算复杂度约为 $O(BLd)$，远低于大型矩阵乘法。但实际 GPU 上仍可能受到 HBM 读写和 kernel launch 影响，因此 RMSNorm 的价值不能只用 FLOPs 解释：Norm 的 FLOPs 占比虽小，低算术强度的数据移动仍可能贡献明显 wall-clock time。
+
+> [!note] 两个选择不要混为一谈
+> - **Pre-Norm** 回答“在 residual addition 的前面还是后面做 Norm”；
+> - **RMSNorm** 回答“Norm 内部是否减均值、使用哪些参数”；
+> - Llama-style 公式 $x_{l+1}=x_l+F(\operatorname{RMSNorm}(x_l))$ 同时采用了 Pre-Norm 的位置和 RMSNorm 的计算方式。
 
 ## 11. Residual 的作用
 
@@ -860,3 +890,10 @@ $$
 - [LLaMA: Open and Efficient Foundation Language Models](https://arxiv.org/abs/2302.13971)
 - [Meta Llama 3 官方实现](https://github.com/meta-llama/llama3/blob/main/llama/model.py)
 - [CMU 11-763 Lecture 01 讲义](https://www.phontron.com/class/lminference-fall2025/assets/slides/2025-08-26-lm-intro/index.html)
+
+## 18. 关联内容
+
+- 架构总览：[Transformer Architecture](Transformer%20Architecture.md)
+- 学习路线：[AI Infra Learning Roadmap](../../roadmaps/AI%20Infra%20Learning%20Roadmap.md)
+- 推理主题：[LLM Inference](../inference/LLM%20Inference.md)
+- 课程来源：[CMU 11-763 Lecture 01](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2001%20-%20Introduction%20to%20Language%20Models%20and%20Inference.md)

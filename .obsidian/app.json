@@ -1,0 +1,6 @@
+{
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "assets/_inbox",
+  "newLinkFormat": "relative",
+  "useMarkdownLinks": true
+}

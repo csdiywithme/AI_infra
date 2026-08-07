@@ -37,23 +37,23 @@ video_url: https://www.youtube.com/watch?v=kuYAsz7zspQ
 
 | 时间 | 视频内容 | 对应笔记 |
 | --- | --- | --- |
-| [00:00](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=0s) | Course update and overview | [1. 为什么先学资源核算](#1-为什么先学资源核算) |
-| [01:57](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=117s) | Resource accounting questions | [2. 两个数量级估算](#2-两个数量级估算) |
-| [04:49](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=289s) | Tensors and memory | [3. Tensor 的四个基本属性](#3-tensor-的四个基本属性) |
-| [09:03](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=543s) | FP32, FP16 and BF16 | [4. Dtype 与数值表示](#4-dtype-与数值表示) |
-| [11:27](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=687s) | Mixed precision | [4.3 Mixed precision](#43-mixed-precision) |
-| [15:15](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=915s) | Low-bit formats and quantization | [4.4 FP8、FP4 与量化](#44-fp8fp4-与量化) |
-| [17:03](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=1023s) | CPU and GPU tensors | [5. Device 与异步执行](#5-device-与异步执行) |
-| [17:59](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=1079s) | Einops | [6. 用 einops 表达 tensor 变换](#6-用-einops-表达-tensor-变换) |
-| [27:20](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=1640s) | FLOPs | [7. FLOPs：计算量的账本](#7-flops计算量的账本) |
-| [35:07](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=2107s) | Benchmarking and MFU | [8. Benchmark 与 MFU](#8-benchmark-与-mfu) |
-| [40:27](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=2427s) | Arithmetic intensity | [9. Arithmetic intensity 与 roofline](#9-arithmetic-intensity-与-roofline) |
-| [57:11](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=3431s) | Deep-network resource accounting | [10. 深层网络的资源账本](#10-深层网络的资源账本) |
-| [59:16](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=3556s) | Gradient FLOPs | [11. Autograd 与训练 FLOPs](#11-autograd-与训练-flops) |
-| [1:06:48](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=4008s) | Optimizers and AdaGrad | [12. Optimizer 与最小训练循环](#12-optimizer-与最小训练循环) |
-| [1:11:42](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=4302s) | Gradient accumulation | [13. Gradient accumulation](#13-gradient-accumulation) |
-| [1:14:38](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=4478s) | Activation checkpointing | [14. Activation checkpointing](#14-activation-checkpointing) |
-| [1:16:16](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=4576s) | Summary | [17. 本讲结论](#17-本讲结论) |
+| [00:00](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=0s) | Course update and overview | [[#1. 为什么先学资源核算\|1. 为什么先学资源核算]] |
+| [01:57](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=117s) | Resource accounting questions | [[#2. 两个数量级估算\|2. 两个数量级估算]] |
+| [04:49](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=289s) | Tensors and memory | [[#3. Tensor 的四个基本属性\|3. Tensor 的四个基本属性]] |
+| [09:03](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=543s) | FP32, FP16 and BF16 | [[#4. Dtype 与数值表示\|4. Dtype 与数值表示]] |
+| [11:27](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=687s) | Mixed precision | [[#4.3 Mixed precision\|4.3 Mixed precision]] |
+| [15:15](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=915s) | Low-bit formats and quantization | [[#4.4 FP8、FP4 与量化\|4.4 FP8、FP4 与量化]] |
+| [17:03](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=1023s) | CPU and GPU tensors | [[#5. Device 与异步执行\|5. Device 与异步执行]] |
+| [17:59](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=1079s) | Einops | [[#6. 用 einops 表达 tensor 变换\|6. 用 einops 表达 tensor 变换]] |
+| [27:20](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=1640s) | FLOPs | [[#7. FLOPs：计算量的账本\|7. FLOPs：计算量的账本]] |
+| [35:07](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=2107s) | Benchmarking and MFU | [[#8. Benchmark 与 MFU\|8. Benchmark 与 MFU]] |
+| [40:27](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=2427s) | Arithmetic intensity | [[#9. Arithmetic intensity 与 roofline\|9. Arithmetic intensity 与 roofline]] |
+| [57:11](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=3431s) | Deep-network resource accounting | [[#10. 深层网络的资源账本\|10. 深层网络的资源账本]] |
+| [59:16](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=3556s) | Gradient FLOPs | [[#11. Autograd 与训练 FLOPs\|11. Autograd 与训练 FLOPs]] |
+| [1:06:48](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=4008s) | Optimizers and AdaGrad | [[#12. Optimizer 与最小训练循环\|12. Optimizer 与最小训练循环]] |
+| [1:11:42](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=4302s) | Gradient accumulation | [[#13. Gradient accumulation\|13. Gradient accumulation]] |
+| [1:14:38](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=4478s) | Activation checkpointing | [[#14. Activation checkpointing\|14. Activation checkpointing]] |
+| [1:16:16](https://www.youtube.com/watch?v=kuYAsz7zspQ&t=4576s) | Summary | [[#17. 本讲结论\|17. 本讲结论]] |
 
 ## 1. 为什么先学资源核算
 

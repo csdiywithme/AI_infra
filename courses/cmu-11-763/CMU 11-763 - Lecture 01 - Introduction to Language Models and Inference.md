@@ -1,3 +1,18 @@
+---
+type: course-note
+status: developing
+course: "[[CMU 11-763]]"
+lecture: 1
+lecture_date: 2025-08-26
+area: inference
+topics:
+  - "[[LLM Inference]]"
+  - "[[Transformer Block]]"
+aliases:
+  - CMU 11-763 Lecture 01
+video_url: https://www.youtube.com/watch?v=F-mduXzNcRQ
+---
+
 # Lecture 01：Introduction to Language Models and Inference
 
 ## 课程信息
@@ -8,6 +23,19 @@
 - [课程视频](https://www.youtube.com/watch?v=F-mduXzNcRQ)
 - [课程讲义](https://www.phontron.com/class/lminference-fall2025/assets/slides/2025-08-26-lm-intro/index.html)
 - 指定阅读：[From Decoding to Meta-Generation: Inference-time Algorithms for Large Language Models](https://arxiv.org/abs/2406.16838)，Sections 1–2
+
+## 视频索引
+
+| 时间 | 视频内容 | 对应笔记 |
+| --- | --- | --- |
+| [00:00](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=0s) | Introduction and modeling | [本讲目标](#1-本讲目标)、[语言模型](#2-语言模型) |
+| [23:20](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=1400s) | Hardware for inference | [Transformer 建模与计算成本](#3-transformer-建模与计算成本) |
+| [30:21](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=1821s) | Training vs. inference | [训练与推理](#4-训练与推理) |
+| [37:55](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2275s) | Generation algorithms | [两类基本生成方法](#5-两类基本生成方法)、[Basic Generation 与 Meta-generation](#6-basic-generation-与-meta-generation) |
+| [41:52](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2512s) | Latent variables | [中间变量与推理轨迹](#7-中间变量与推理轨迹) |
+| [44:51](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2691s) | Evaluation and errors | [模型概率与任务质量](#8-模型概率与任务质量)、[Search Error 与 Model Error](#9-search-error-与-model-error) |
+| [51:28](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=3088s) | 学生提问：Inference 的目标是 sampling 还是 optimization？ | [Inference 的 Goal](#10-inference-的-goalsample-还是-optimize) |
+| [56:04](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=3364s) | Diversity, course goals, and Q&A | [推理的多目标权衡](#11-推理的多目标权衡) |
 
 ## 1. 本讲目标
 
@@ -20,8 +48,7 @@
 5. 如何区分 search error 与 model error？
 6. 推理算法如何权衡质量、延迟、吞吐、多样性和成本？
 
-核心心智模型：
-
+> [!abstract] 核心心智模型
 > 语言模型定义一个 token 序列上的概率分布；推理算法负责在有限计算预算下使用这个模型产生符合应用目标的输出。
 
 ## 2. 语言模型
@@ -98,7 +125,7 @@ $$
 - Norm：稳定模块输入尺度；
 - Residual：保存并累积各模块的更新。
 
-详细的 tensor shape、MHA/GQA、SwiGLU、KV Cache 和 FLOPs 推导见：[Transformer Block 深入理解](../transformer/transformer-block-deep-dive.md)。
+详细的 tensor shape、MHA/GQA、SwiGLU、KV Cache 和 FLOPs 推导见：[Transformer Block](../../topics/model-architecture/Transformer%20Block.md)。
 
 ### 3.1 讲义中的计算规律
 
@@ -414,6 +441,14 @@ $$
 
 Inference 是上位概念，没有规定必须 sampling 或 optimization。目标取决于应用。
 
+> [!question] Q-CMU763-L01-5128：Inference 的目标是 sampling 还是 optimization？
+> - [x] #question 纯 sampling 没有找到 argmax，是否应该被视为 search error？
+> - 来源：[视频 51:28](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=3088s)
+> - 课堂语境：学生追问 inference 究竟是从分布中采样，还是寻找分布的 mode，以及 sampling 结果为何不应直接套用 search error。
+> - 处理结果：需要先声明 inference 的目标；纯 sampling 应评价分布匹配，而不是是否找到 argmax。完整结论见本节。
+
+^q-cmu763-l01-5128-sample-optimize
+
 ### 10.1 忠实采样
 
 如果目标是：
@@ -475,7 +510,7 @@ $$
 \frac1N\sum_{j=1}^{N}\Delta(y_i,y_j)
 $$
 
-因此，视频中学生问题的准确结论是：
+因此，对[视频 51:28](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=3088s)学生问题的准确结论是：
 
 > Sampling 和 optimization 不是互斥答案。Inference 可以只做其中一种，也可以用 sampling 探索输出空间，再用 optimization、reranking 或 aggregation 做决策。Search/model error 的定义主要适用于已经指定 sequence-level 优化目标的场景，不能直接套在纯 sampling 上。
 
@@ -513,20 +548,25 @@ $$
 7. Sampling 与 optimization 是不同目标，也可以组成 sample-then-optimize 系统。
 8. Search error 的减少不保证外部任务质量提高。
 
-面向 AI Infra 的进一步理解：
-
+> [!tip] 面向 AI Infra 的进一步理解
 > LLM inference optimization 不只是优化一次 Transformer forward，而是联合优化模型执行、缓存、内存流量、请求调度、搜索策略、候选管理与任务级评价目标。
 
 ## 13. 自测问题
 
-1. 为什么完整序列的最大模型概率可能偏向短输出？
-2. Sampling 与 search 分别在优化或近似什么？
-3. 为什么搜索分数不一定等于语言模型概率？
-4. Generation 与 meta-generation 的边界是什么？
-5. 为什么 Chain of Thought 可以视为中间变量？
-6. 如何通过候选集判断 search error 与 model error？
-7. 为什么扩大 inference-time compute 不一定提高质量？
-8. Prefill 与使用 KV Cache 的 decode 在计算形态上有何差异？
-9. 为什么纯 sampling 不应按“是否找到 argmax”判断 search error？
-10. 什么情况下扩大 beam 可能降低外部任务质量？
-11. Best-of-N 中 sampling 和 optimization 分别承担什么职责？
+1. 为什么完整序列的最大模型概率可能偏向短输出？— 视频起点：[00:00 Introduction and modeling](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=0s)
+2. Sampling 与 search 分别在优化或近似什么？— 视频：[32:44 Sampling 与 Search](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=1964s)
+3. 为什么搜索分数不一定等于语言模型概率？— 视频起点：[37:55 Generation algorithms](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2275s)
+4. Generation 与 meta-generation 的边界是什么？— 视频起点：[37:55 Generation algorithms](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2275s)
+5. 为什么 Chain of Thought 可以视为中间变量？— 视频：[41:52 Latent variables](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2512s)
+6. 如何通过候选集判断 search error 与 model error？— 视频：[54:46 课堂追问](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=3286s)
+7. 为什么扩大 inference-time compute 不一定提高质量？— 视频起点：[44:51 Evaluation and errors](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2691s)
+8. Prefill 与使用 KV Cache 的 decode 在计算形态上有何差异？— 课程背景：[23:20 Hardware for inference](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=1400s)；具体回答属于 Infra 延伸
+9. 为什么纯 sampling 不应按“是否找到 argmax”判断 search error？— 视频：[51:28 学生提问](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=3088s)
+10. 什么情况下扩大 beam 可能降低外部任务质量？— 视频起点：[44:51 Evaluation and errors](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2691s)；结论包含扩展推导
+11. Best-of-N 中 sampling 和 optimization 分别承担什么职责？— 视频起点：[37:55 Generation algorithms](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2275s)
+
+## 14. 关联内容
+
+- 课程索引：[CMU 11-763](CMU%2011-763.md)
+- 主题入口：[LLM Inference](../../topics/inference/LLM%20Inference.md)
+- 模型执行：[Transformer Block](../../topics/model-architecture/Transformer%20Block.md)
