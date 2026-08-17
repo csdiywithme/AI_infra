@@ -7,11 +7,12 @@ aliases:
 # AI Infra Home
 
 > [!abstract] 当前目标
-> 以 Stanford CS336 建立从模型、数据、训练到系统实现的基础，以 CMU 11-763 深入学习 LLM 推理算法，并通过推导、实现和性能实验形成可复用的 AI Infra 知识体系。
+> 以 Stanford CS336 建立模型与训练基础，以 Stanford CS149 建立并行计算和性能工程基础，以 CMU 11-763 深入学习 LLM 推理算法，并通过推导、实现和性能实验形成可复用的 AI Infra 知识体系。
 
 ## 从这里开始
 
 - 学习计划：[AI Infra Learning Roadmap](roadmaps/AI%20Infra%20Learning%20Roadmap.md)
+- 并行计算：[Stanford CS149](courses/stanford-cs149/Stanford%20CS149.md)
 - 课程主线：[CMU 11-763](courses/cmu-11-763/CMU%2011-763.md)
 - 架构主题：[Transformer Architecture](topics/model-architecture/Transformer%20Architecture.md)
 - 推理主题：[LLM Inference](topics/inference/LLM%20Inference.md)

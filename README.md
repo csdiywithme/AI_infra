@@ -13,6 +13,7 @@
 ## 课程主线
 
 - **Stanford CS336 — Language Modeling from Scratch**：建立从模型、数据、训练到系统实现的完整基础；对应课程笔记将在学习时逐步建立。
+- [Stanford CS149 — Parallel Computing](courses/stanford-cs149/Stanford%20CS149.md)：建立 multi-core、SIMD/SIMT、memory hierarchy、GPU 与并行性能优化基础。
 - [CMU 11-763 — Inference Algorithms for Language Modeling](courses/cmu-11-763/CMU%2011-763.md)：学习生成算法、质量与延迟权衡、可控生成及 inference-time scaling。
 
 ## 主题笔记
