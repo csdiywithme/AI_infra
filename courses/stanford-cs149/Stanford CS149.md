@@ -36,9 +36,9 @@ aliases:
 1. [x] [Lecture 01：Why Parallelism? Why Efficiency?](Stanford%20CS149%20-%20Lecture%2001%20-%20Why%20Parallelism%20Why%20Efficiency.md)
 2. [x] [Lecture 02：A Modern Multi-Core Processor](Stanford%20CS149%20-%20Lecture%2002%20-%20A%20Modern%20Multi-Core%20Processor.md)
 3. [x] [Lecture 03：Multi-Core Architecture Part II + ISPC](Stanford%20CS149%20-%20Lecture%2003%20-%20Multi-Core%20Architecture%20Part%20II%20and%20ISPC.md)
-4. [ ] Lecture 04：Parallel Programming Basics
-5. [ ] Lecture 05：Performance Optimization I — Work Distribution and Scheduling
-6. [ ] Lecture 06：Performance Optimization II — Locality, Communication, and Contention
+4. [x] [Lecture 04：Parallel Programming Basics](Stanford%20CS149%20-%20Lecture%2004%20-%20Parallel%20Programming%20Basics.md)
+5. [x] [Lecture 05：Performance Optimization I — Work Distribution and Scheduling](Stanford%20CS149%20-%20Lecture%2005%20-%20Performance%20Optimization%20I%20Work%20Distribution%20and%20Scheduling.md)
+6. [x] [Lecture 06：Performance Optimization II — Locality, Communication, and Contention](Stanford%20CS149%20-%20Lecture%2006%20-%20Performance%20Optimization%20II%20Locality%20Communication%20and%20Contention.md)
 7. [ ] Lecture 07：GPU Architecture and CUDA Programming
 8. [ ] Lecture 08：Data-Parallel Thinking
 9. [ ] Lecture 09：Distributed Data-Parallel Computing Using Spark
