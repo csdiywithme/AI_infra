@@ -1,6 +1,10 @@
 # macOS
 .DS_Store
 
+# Windows
+Thumbs.db
+Desktop.ini
+
 # Editors
 .idea/
 .vscode/
@@ -8,9 +12,11 @@
 *.swo
 
 # Obsidian local workspace state
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
+.obsidian/workspace*.json
 .obsidian/cache/
+.obsidian/sync.json
+.obsidian/plugins/
+.trash/
 
 # Python
 __pycache__/
@@ -30,3 +36,8 @@ venv/
 build/
 dist/
 *.egg-info/
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.orig

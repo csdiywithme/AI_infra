@@ -191,14 +191,14 @@ neighbor 完成 send buffer
 
 ### 4.3 Message passing 仍然会有哪些并发问题
 
-| 情形 | 仍需解决的问题 |
-|---|---|
-| 两边都 blocking send | circular wait / deadlock |
-| async send 后修改 buffer | 传输读到混合或新数据 |
-| 多条消息无序到达 | sequence number、tag、matching |
+| 情形                             | 仍需解决的问题                                     |
+| ------------------------------ | ------------------------------------------- |
+| 两边都 blocking send              | circular wait / deadlock                    |
+| async send 后修改 buffer          | 传输读到混合或新数据                                  |
+| 多条消息无序到达                       | sequence number、tag、matching                |
 | 多个本地 threads 共用一个 rank/runtime | 本地锁、thread-safe queue 或 serialized MPI mode |
-| 多个 senders 汇聚到一个 root | network/root contention，虽然没有 data race |
-| RDMA write 到同一远端位置 | 远端原子操作、ownership 或更高层协议 |
+| 多个 senders 汇聚到一个 root          | network/root contention，虽然没有 data race      |
+| RDMA write 到同一远端位置             | 远端原子操作、ownership 或更高层协议                     |
 
 所以更完整的结论是：
 

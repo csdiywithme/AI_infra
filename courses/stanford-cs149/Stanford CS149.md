@@ -39,10 +39,10 @@ aliases:
 4. [x] [Lecture 04：Parallel Programming Basics](Stanford%20CS149%20-%20Lecture%2004%20-%20Parallel%20Programming%20Basics.md)
 5. [x] [Lecture 05：Performance Optimization I — Work Distribution and Scheduling](Stanford%20CS149%20-%20Lecture%2005%20-%20Performance%20Optimization%20I%20Work%20Distribution%20and%20Scheduling.md)
 6. [x] [Lecture 06：Performance Optimization II — Locality, Communication, and Contention](Stanford%20CS149%20-%20Lecture%2006%20-%20Performance%20Optimization%20II%20Locality%20Communication%20and%20Contention.md)
-7. [ ] Lecture 07：GPU Architecture and CUDA Programming
-8. [ ] Lecture 08：Data-Parallel Thinking
-9. [ ] Lecture 09：Distributed Data-Parallel Computing Using Spark
-10. [ ] Lecture 10：Efficiently Evaluating DNNs on GPUs
+7. [x] [Lecture 07：GPU Architecture and CUDA Programming](Stanford%20CS149%20-%20Lecture%2007%20-%20GPU%20Architecture%20and%20CUDA%20Programming.md)
+8. [x] [Lecture 08：Data-Parallel Thinking](Stanford%20CS149%20-%20Lecture%2008%20-%20Data-Parallel%20Thinking.md)
+9. [x] [Lecture 09：Distributed Data-Parallel Computing Using Spark](Stanford%20CS149%20-%20Lecture%2009%20-%20Distributed%20Data-Parallel%20Computing%20Using%20Spark.md)
+10. [x] [Lecture 10：Efficiently Evaluating DNNs on GPUs](Stanford%20CS149%20-%20Lecture%2010%20-%20Efficiently%20Evaluating%20DNNs%20on%20GPUs.md)
 11. [ ] Lecture 11：Cache Coherence
 12. [ ] Lecture 12：Memory Consistency
 13. [ ] Lecture 13：Fine-Grained Synchronization and Lock-Free Programming

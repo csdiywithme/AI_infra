@@ -28,6 +28,10 @@ topics:
 - [CMU Lecture 01：Basic Generation 与 Meta-generation](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2001%20-%20Introduction%20to%20Language%20Models%20and%20Inference.md#6-basic-generation-与-meta-generation)
 - [Sampling 与 Search](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2001%20-%20Introduction%20to%20Language%20Models%20and%20Inference.md#5-两类基本生成方法)
 - [Search Error 与 Model Error](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2001%20-%20Introduction%20to%20Language%20Models%20and%20Inference.md#9-search-error-与-model-error)
+- [Temperature 与 Sampling Distribution](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2002%20-%20Probability%20Review%20and%20Code%20Examples.md#4-temperature-改变的是采样分布)
+- [Sampling-based Estimation 与 Bias](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2002%20-%20Probability%20Review%20and%20Code%20Examples.md#5-sampling-based-estimation)
+- [Reasoning Trace、Marginalization 与 Self-consistency](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2002%20-%20Probability%20Review%20and%20Code%20Examples.md#7-reasoning-trace-是-latent-variable)
+- [Reranking、Meta-generation 与 Speculative Decoding 的边界](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2002%20-%20Probability%20Review%20and%20Code%20Examples.md#14-reranking-与-speculative-decoding-的边界)
 
 ### Serving 与系统优化
 
@@ -57,4 +61,4 @@ topics:
 ## 来源课程
 
 - [CMU 11-763](../../courses/cmu-11-763/CMU%2011-763.md)
-- Stanford CS336：待添加对应课程笔记。
+- [Stanford CS336](../../courses/stanford-cs336/Stanford%20CS336.md)

@@ -29,6 +29,7 @@ video_url: https://www.youtube.com/watch?v=EfM546A79aM
 - [课程主页](https://cs336.stanford.edu/)
 - [官方 Lecture 10 可执行讲义](https://cs336.stanford.edu/lectures/?trace=lecture_10)
 - 延伸教材：[How to Scale Your Model — Inference](https://jax-ml.github.io/scaling-book/inference/)
+- 本次专题拓展：[All the Transformer Math You Need to Know](https://jax-ml.github.io/scaling-book/transformers/)
 - 本讲覆盖：prefill/decode、arithmetic intensity、KV cache、latency/throughput、GQA/MLA/CLA/local attention、quantization、pruning/distillation、speculative sampling、continuous batching 和 PagedAttention
 - 本讲不展开：tensor/pipeline parallel serving 的完整通信模型、admission control、prefix-aware routing 和多租户隔离
 
@@ -306,7 +307,7 @@ $$
 
 ### 5.2 FlashAttention 视角下的 Attention
 
-考虑 $T$ 个 query positions 读取 $S$ 个历史 K/V：
+先采用 MHA 简化口径 $K=N,G=1,NH=D$，考虑 $T$ 个 query positions 读取 $S$ 个历史 K/V：
 
 $$
 \text{FLOPs}_{\mathrm{attn}}
@@ -351,6 +352,8 @@ I_{\mathrm{decode,attn}}
 $$
 
 Attention decode 几乎是极端 memory-bound。
+
+GQA/MQA 时更一般的结果是 $I_{\text{decode}}\rightarrow G=N/K$，见 [[#13.7 Self-attention arithmetic intensity：prefill 与 decode 的统一式|13.7]]；共享 KV 能增加复用，但通常仍远低于 compute roofline。
 
 为什么增加 $B$ 不提升这个理想 intensity？
 
@@ -745,19 +748,530 @@ $$
 > - 把 speculative decoding 当近似采样；正确算法可保持 target 分布；
 > - 把 PagedAttention 误解成一种新的 attention 数学公式；它首先是 KV memory-management 方法。
 
-## 13. 本讲结论
+## 13. Scaling Book 专题：Transformer 全量数学账本
+
+这一节详记 Google DeepMind/JAX 团队的 [All the Transformer Math You Need to Know](https://jax-ml.github.io/scaling-book/transformers/)（核对日期：2026-08-10），并把训练视角的 Transformer accounting 接回本讲的 inference 分析。原项目采用 [MIT License](https://github.com/jax-ml/scaling-book/blob/main/LICENSE)；下面四张图保存自官方仓库，文字为重新组织的中文推导。MoE 图在原文中另注明来自 Deepgram。
+
+> [!important] 先固定口径
+> 原材料的 FLOPs 约定是“一次乘法 + 一次加法 = 2 FLOPs”；训练 matmul 按 forward、input-gradient、weight-gradient 三个同规模 contraction，共为 forward 的 3 倍。所有常数都依赖 gated MLP、GQA/MHA、是否 tied embedding、causal kernel 和 rematerialization policy，使用公式前必须先声明这些假设。
+
+### 13.1 符号、shape 与完整 decoder block
+
+| 符号 | 含义 |
+| --- | --- |
+| $B$ | batch/sequences 数 |
+| $L$ | Transformer layers |
+| $T$ | query sequence length；self-attention training 时通常 $T=S$，decode 时 $T=1$ |
+| $S$ | key/value sequence length，即已有 context |
+| $V$ | vocabulary size |
+| $D$ | model/embedding dimension |
+| $F$ | MLP hidden dimension |
+| $H$ | attention head dimension |
+| $N$ | query heads |
+| $K$ | key/value heads |
+| $G=N/K$ | 每个 KV head 服务的 query heads 数；要求 $K\mid N$ |
+
+![Scaling Book：带完整 tensor shape 的 pre-norm Transformer decoder layer](../../assets/courses/stanford-cs336/lecture-10/scaling-book-transformer-diagram.png)
+
+图的阅读规则：
+
+- 紫色连线是 parameters；黑色竖线是 activations/residual stream。
+- 红色轴是 contraction dimension：同时出现在两个输入、但不出现在输出，要沿此轴求和。
+- 蓝色轴是 batching dimension：两个输入和输出都保留，表示一组独立子问题。
+- 圆点是 contraction/matmul，圆加号是 residual 或 mask addition，星号是 elementwise gating。
+- 左半 attention 先把 $X[B,T,D]$ 投影为 $Q[B,T,N,H]$、$K/V[B,S,K,H]$；右侧字典给出了全部单字母含义。
+
+图中有三个架构假设：
+
+1. **Gated MLP**：两个 up-projections 得到 $[B,T,F]$，其中一支过 GELU/SiLU 后与另一支逐元素相乘，再由 $W_{\text{out}}[F,D]$ 下投影，所以 MLP 主参数是 $3DF$。非 gated MLP 只有 $2DF$，通常会相应调整 $F$。
+2. **GQA 的统一表示**：MHA 是 $K=N,G=1$；MQA 是 $K=1,G=N$；一般 GQA 是 $1<K<N$。reshape 后 query 可写成 $Q[B,T,K,G,H]$，每组 $G$ 个 query heads 共享一组 K/V。
+3. **Pre-norm**：图中是 $x+\operatorname{Attn}(\operatorname{Norm}(x))$，以及后续 $x+\operatorname{MLP}(\operatorname{Norm}(x))$。原始 Transformer 的 post-norm 则把 norm 放在 residual addition 之后。
+
+### 13.2 Counting dots：如何从 einsum 数 FLOPs
+
+基本矩阵运算：
+
+| Operation | FLOPs | 只计主要输入读取量 |
+| --- | ---: | ---: |
+| $x[P]\cdot y[P]$ | $2P$ | $2P$ elements |
+| $A[N,P]x[P]$ | $2NP$ | $NP+P$ |
+| $A[N,P]B[P,M]$ | $2NPM$ | $NP+PM$ |
+
+对一般 contraction：
+
+$$
+C[\text{batch},\text{left},\text{contract}]
+\times
+D[\text{batch},\text{right},\text{contract}]
+\rightarrow
+E[\text{batch},\text{left},\text{right}],
+$$
+
+FLOPs 等于：
+
+$$
+2\times
+\left(\prod \text{batch axes}\right)
+\left(\prod \text{left-only axes}\right)
+\left(\prod \text{right-only axes}\right)
+\left(\prod \text{contract axes}\right).
+$$
+
+每个共同 batch/contract axis 只乘一次；纯 elementwise product 没有 reduction，不应机械乘 2。
+
+![Scaling Book：矩阵乘法逐 dot-product 形成输出的动画](../../assets/courses/stanford-cs336/lecture-10/scaling-book-matmul-flops.gif)
+
+动画把 $[N,P]\times[P,M]\rightarrow[N,M]$ 展开为 $NM$ 个长度为 $P$ 的 dot products。若三维都按同一尺度 $n$ 增大，compute 为 $O(n^3)$，而输入/输出 data movement 为 $O(n^2)$，arithmetic intensity 随 $n$ 增大。这正是大型 matmul 比大量细碎 elementwise ops 更容易吃满加速器的原因。
+
+### 13.3 为什么训练 matmul 约是 inference 的 3 倍
+
+令：
+
+$$C=A[N,P]B[P,M].$$
+
+三次同量级 contraction：
+
+$$
+\text{forward:}\quad C=AB,\qquad 2NPM,
+$$
+
+$$
+\text{weight grad:}\quad
+\frac{\partial\mathcal L}{\partial B}
+=A^{\mathsf T}\frac{\partial\mathcal L}{\partial C},
+\qquad 2NPM,
+$$
+
+$$
+\text{input grad:}\quad
+\frac{\partial\mathcal L}{\partial A}
+=\frac{\partial\mathcal L}{\partial C}B^{\mathsf T},
+\qquad 2NPM.
+$$
+
+因此：
+
+$$
+F_{\text{forward}}=2NPM,\quad
+F_{\text{backward}}=4NPM,\quad
+F_{\text{train}}=6NPM.
+$$
+
+如果 $PM$ 是这一矩阵的参数量、$N$ 是处理的 token 数，就得到：
+
+$$F_{\text{train}}\approx6\times \text{parameters}\times\text{tokens},$$
+$$F_{\text{inference-forward}}\approx2\times \text{parameters}\times\text{tokens}.$$
+
+这只是 **parameter matmuls** 的一阶近似：attention score/value matmuls、norm、softmax、embedding lookup、routing、稀疏激活以及 rematerialization 都可能增加或改变实际工作。
+
+### 13.4 Gated MLP 的参数与 FLOPs
+
+| Operation | Params | Forward FLOPs | Training FLOPs |
+| --- | ---: | ---: | ---: |
+| $X[B,T,D]W_{\text{in1}}[D,F]$ | $DF$ | $2BTDF$ | $6BTDF$ |
+| $X[B,T,D]W_{\text{in2}}[D,F]$ | $DF$ | $2BTDF$ | $6BTDF$ |
+| $\sigma(XW_{\text{in1}})\odot(XW_{\text{in2}})$ | 0 | $O(BTF)$ | lower order |
+| $U[B,T,F]W_{\text{out}}[F,D]$ | $DF$ | $2BTDF$ | $6BTDF$ |
+| **每层 MLP 合计** | **$3DF$** | **$\approx6BTDF$** | **$\approx18BTDF$** |
+
+当 $F\approx4D$ 时，gated MLP 每层主参数约为 $12D^2$。这也是 dense Transformer 参数/FLOPs 往往主要落在 MLP 的原因。
+
+### 13.5 Attention projection 与 dot-product attention
+
+#### Q/K/V/O projections
+
+| Operation | Params | Forward FLOPs | Training FLOPs |
+| --- | ---: | ---: | ---: |
+| $XW_Q:[B,T,D]\times[D,N,H]$ | $DNH$ | $2BTDNH$ | $6BTDNH$ |
+| $XW_K:[B,T,D]\times[D,K,H]$ | $DKH$ | $2BTDKH$ | $6BTDKH$ |
+| $XW_V:[B,T,D]\times[D,K,H]$ | $DKH$ | $2BTDKH$ | $6BTDKH$ |
+| $AW_O:[B,T,N,H]\times[N,H,D]$ | $DNH$ | $2BTDNH$ | $6BTDNH$ |
+| **Projection 合计** | **$2D(N+K)H$** | **$4BTD(N+K)H$** | **$12BTD(N+K)H$** |
+
+MHA 中 $N=K$ 且 $NH=D$，projection parameters 退化为 $4D^2$。GQA 只缩小 K/V 两项：总量变成 $2D(N+K)H$，不会缩小 Q/O。
+
+#### Attention core
+
+把 query reshape 为 $Q[B,T,K,G,H]$：
+
+$$
+QK^{\mathsf T}:
+[B,T,K,G,H]\times[B,S,K,H]
+\rightarrow[B,T,S,K,G],
+$$
+
+$$F_{QK,\text{forward}}=2BTSKGH=2BTSNH.$$
+
+再做：
+
+$$
+\operatorname{softmax}(QK^{\mathsf T})V
+:\ [B,T,S,K,G]\times[B,S,K,H]
+\rightarrow[B,T,K,G,H],
+$$
+
+同样需要 $2BTSNH$ forward FLOPs。因此忽略 softmax lower-order term：
+
+$$F_{\text{attn-core,forward}}\approx4BTSNH,$$
+$$F_{\text{attn-core,train}}\approx12BTSNH.$$
+
+当 self-attention 有 $S=T$ 时，训练 core 是 $12BT^2NH$。Causal attention 的有效 score 区域只有下三角，理论 useful FLOPs 可约减半，但必须由 causal-aware/FlashAttention kernel 真正跳过上三角，naive dense einsum 不会自动兑现。
+
+### 13.6 全模型参数/FLOPs 与两个长度阈值
+
+每层主要参数：
+
+$$
+P_{\text{layer}}
+\approx
+\underbrace{3DF}_{\text{gated MLP}}
++
+\underbrace{2D(N+K)H}_{\text{QKVO projections}}
++
+\underbrace{2D}_{\text{two norms}}.
+$$
+
+总参数还要加入 vocabulary matrix。若 input embedding 与 unembedding 不 tied，约有 $2DV$；若 tied，则只有一份 $DV$ parameter。Embedding lookup 与输出 logits matmul 的计算口径也不同，应单独声明。
+
+每层训练 FLOPs：
+
+$$
+\begin{aligned}
+F_{\text{layer,train}}
+\approx{}&
+18BTDF\\
+&+12BTD(N+K)H\\
+&+12BTSNH\\
+&+O(BTD+BTF+BTSN).
+\end{aligned}
+$$
+
+若暂时忽略 attention core 和 lower-order ops：
+
+$$
+F_{\text{train}}
+\approx
+6BT\times P_{\text{matmul}},
+$$
+
+这就是 $6PT$ rule。输出 unembedding 单独是约 $6BTDV$ training FLOPs；原材料总结表给出更大的 vocabulary 总口径，实际估算时必须明确是否把 input/output 两侧、weight tying 与 embedding gradient 一并计算。
+
+一页式总账：
+
+| Component | Params | Training FLOPs |
+| --- | ---: | ---: |
+| Gated MLP / layer | $3DF$ | $18BTDF$ |
+| GQA attention / layer | $2D(N+K)H$ | $12BTD(N+K)H+12BTSNH$ |
+| MHA attention / layer | $4D^2$ | $24BTD^2+12BT^2D$ |
+| Two norms / layer | $2D$ | $O(BTD)$ |
+| Output unembedding | $DV$ | $6BTDV$ |
+| Optional separate input embedding | $DV$ | lookup/scatter，不是同口径 dense matmul |
+
+原材料给出两个看似相近、实际比较对象不同的阈值：
+
+1. **Attention core 与 QKVO projection 相等**（MHA）：
+
+$$12BT^2NH=24BTDNH\quad\Rightarrow\quad T=2D.$$
+
+2. **Attention core 与整层所有主要 matmuls 相比**，取 $F=4D,NH=D,N=K$：
+
+$$
+\frac{F_{\text{attn core}}}{F_{\text{MLP+QKVO}}}
+=\frac{T}{8D}.
+$$
+
+因此 attention core 超过其余主 matmuls 要到 $T>8D$。例如 $D=8192$ 时约为 65K tokens；$D=4608$ 时约为 37K。它不表示长上下文“免费”：activation/KV capacity、HBM IO、通信和 kernel efficiency 可能更早成为瓶颈。
+
+### 13.7 Self-attention arithmetic intensity：prefill 与 decode 的统一式
+
+忽略 Q/K/V/O projections，只分析 FlashAttention-style attention core。BF16 下，不把完整 score matrix 写回 HBM，主要读写量近似为：
+
+$$
+\begin{aligned}
+\text{Bytes}
+&\approx 2\,\operatorname{sizeof}(Q)
++2\,\operatorname{sizeof}(K\text{ or }V)\\
+&=4BTNH+4BSKH\\
+&=4BHK(TG+S).
+\end{aligned}
+$$
+
+这里第一个系数 2 表示 BF16 每元素 2 bytes；另一组 2 来自 input read/output write 或 K/V 两个张量的合并口径。结合：
+
+$$\text{FLOPs}\approx4BTSKGH,$$
+
+得到：
+
+$$
+I_{\text{attn}}
+\approx
+\frac{TSG}{TG+S}
+\quad\text{FLOP/byte}.
+$$
+
+Prefill/self-attention 取 $S=T$：
+
+$$
+I_{\text{prefill}}
+=\frac{TG}{G+1}
+=O(T).
+$$
+
+Decode 取 $T=1$：
+
+$$
+I_{\text{decode}}
+=\frac{SG}{G+S}
+\xrightarrow[S\gg G]{}G.
+$$
+
+这比前文 MHA 简化式 $ST/(S+T)$ 更一般：
+
+- MHA 有 $G=1$，decode intensity 逼近 1，极端 memory-bound。
+- GQA/MQA 有 $G>1$，一份 KV 被更多 query heads 复用，decode intensity 上界提高到 $G$；但常仍远低于加速器数百 FLOP/byte 的 compute roofline。
+- Batch $B$ 在分子分母同时消去，因为每条 sequence 有自己的 KV；普通 batching 不能像共享 weights 那样复用不同请求的 KV cache。
+
+原材料练习以 TPU 约 240 FLOP/byte 的 knee 为例：不做 sequence sharding 的 prefill 在 $T$ 达到数百后可能 compute-bound；decode 的上界由 $G$ 决定，通常仍不可能靠拉长 context 进入 compute-bound。
+
+### 13.8 KV cache：shape、dtype 与算例
+
+单条 sequence 的 cache shape：
+
+$$[2,S,L,K,H],$$
+
+其中 2 是 key/value。若每元素 $b_{\text{KV}}$ bytes：
+
+$$
+M_{\text{KV,seq}}
+=2SLKH\,b_{\text{KV}},
+$$
+
+batch $B$：
+
+$$
+M_{\text{KV,total}}
+=2BSLKH\,b_{\text{KV}}.
+$$
+
+- INT8：$b_{\text{KV}}=1$，原材料简写为 $2SLKH$ bytes。
+- BF16：$b_{\text{KV}}=2$，即前文的 $4SLKH$ bytes/sequence。
+- MHA：$KH=NH=D$；GQA/MQA 把 $K$ 从 $N$ 降低，cache 按 $K/N$ 等比例缩小。
+
+原材料算例：$S=8192,L=64,KH=D=8192$，INT8 KV：
+
+$$
+2\times8192\times64\times8192
+=2^{33}\text{ bytes}
+=8\text{ GiB/sequence}.
+$$
+
+另一个练习取 $D=4096,L=64$、MHA、INT8：
+
+$$
+M_{\text{KV/token}}
+=2LNH
+=2\times64\times4096
+=512\text{ KiB/token}.
+$$
+
+因此 KV cache 不是“小附属状态”：长 context 乘上 continuous-batching 并发后，它既占容量，又在每次 decode 中形成持续 HBM read traffic。
+
+### 13.9 Sparsity 与 Mixture-of-Experts
+
+![Scaling Book：router 从 n 个 experts 中为 token 选择 k 个并加权合并](../../assets/courses/stanford-cs336/lecture-10/scaling-book-moe-routing.png)
+
+原图中 router/gating network 产生 expert weights，只执行被选中的 $k$ 个 experts，再做加权求和。若每个 expert 是一套 gated MLP：
+
+$$
+P_{\text{expert,total}}\approx3EDF,
+$$
+
+每 token 激活：
+
+$$
+P_{\text{expert,active/token}}\approx3kDF.
+$$
+
+其中 $E/k$ 常被称为 sparsity ratio：它描述“总 expert 容量”相对“每 token 激活 experts”的倍率。它带来三个必须分开的账本：
+
+- **参数容量**随 $E$ 增长；
+- **每 token matmul FLOPs**随 $k$ 增长；
+- **跨设备 routing**通常引入 dispatch 与 combine 两次 all-to-all。
+
+只有当 experts 与 tokens 被放在不同的 device axis 上时才需要跨设备 all-to-all；若相关数据本就在同一设备，逻辑 routing 不必等同于网络通信。
+
+原材料在其 **bidirectional-ring、同 payload** 的简化模型中，把单次 all-to-all 估为可比 all-gather 成本的约 $1/4$。这个常数不是跨硬件定律：fat-tree/mesh 拓扑、endpoint 数、message size、routing contention 与 collective implementation 都会改变它；真正容量规划仍要使用目标集群 benchmark。
+
+原材料练习还给出 MoE decode 难以 compute-bound 的量级。INT8 expert weights、BF16 compute、硬件 knee 约 240 FLOP/byte 时：
+
+$$
+I_{\text{expert}}
+\approx
+\frac{2kBDF}{EDF}
+=\frac{2kB}{E}.
+$$
+
+要超过 240：
+
+$$B>120\frac{E}{k}.$$
+
+取 $E=256,k=8$：
+
+$$B>3840\text{ tokens/step}.$$
+
+这只是理想 roofline：实际 expert imbalance、padding、grouped GEMM shape、quantization metadata 与 all-to-all 会让所需 batch 更苛刻。它解释了为什么 MoE generation 即使 active FLOPs 较低，也可能严重受 weight IO 和 routing 限制。
+
+> [!note] 图源边界
+> 图片文件随 MIT 项目保存；Scaling Book 原图注另指向 [Deepgram 的 MoE 介绍](https://deepgram.com/learn/mixture-of-experts-ml-model-guide)。这里保留两层出处，不把该图误标成课程原创。
+
+### 13.10 Gradient checkpointing / rematerialization
+
+标准 reverse-mode autodiff 若完全避免重算，需要保存 forward 中 backward 会用到的 intermediates。原材料用粗略系数 20 表示一层 Transformer 的主要 activation nodes；BF16、$BT=4$M、$L=64,D=8192$：
+
+$$
+M_{\text{all activations}}
+\approx
+2\times20\times BTDL
+\approx84\text{ TB}.
+$$
+
+这不是通用精确显存公式，而是用来说明“保存所有中间量”不可行。两个 policy：
+
+| Policy | 保存什么 | 该算例粗略内存 | 额外 compute |
+| --- | --- | ---: | --- |
+| Block remat | 每层只保存 block input | 约 4.2 TB | backward 前几乎重跑整层 forward；$6PT\rightarrow8PT$ |
+| Big-matmuls-only | 保存 7 个主 matmul outputs | 粗略从每层 20 份降到约 7 份 | 重算 norm/activation/attention 等，但避免重跑大 projection/MLP matmuls |
+
+若只保存 Q/K/V/O 和三次 MLP matmul outputs，attention backward 仍需重算：
+
+$$QK^{\mathsf T},\qquad
+\operatorname{softmax}(QK^{\mathsf T})V,$$
+
+额外主 FLOPs：
+
+$$4BT^2NH,$$
+
+再加 $O(BTD)$、$O(BTF)$ 的 pointwise/lower-order work。最优 checkpoint policy 取决于 activation bytes、各算子重算 FLOPs、pipeline in-flight 数和 sharding layout，不是“checkpoint 越多越好”。
+
+### 13.11 FlashAttention：online softmax 为什么不需要完整 $T\times S$
+
+![Scaling Book 保存的 FlashAttention Algorithm 1](../../assets/courses/stanford-cs336/lecture-10/scaling-book-flashattention-algorithm.png)
+
+Attention scores 有 $[B,T,S,N]$，但输出只需要每行 softmax-weighted value：
+
+$$
+O_i
+=
+\frac{\sum_j e^{z_{ij}}V_j}
+{\sum_j e^{z_{ij}}},
+\qquad z_{ij}=Q_iK_j^{\mathsf T}.
+$$
+
+FlashAttention 的关键不是减少 exact-attention 的二次 FLOPs，而是把 Q/K/V 分块，在 SRAM/VMEM 内计算局部 score，始终只把每个 query row 的三个 running states 带到下一块：
+
+- $m$：目前看过的 scores 最大值；
+- $\ell$：减去 running max 后的指数和；
+- $u$：未归一化的 weighted-value numerator，最终 $O=u/\ell$。
+
+对新 K/V block，局部计算：
+
+$$
+m_b=\max_j z_j,\qquad
+\ell_b=\sum_j e^{z_j-m_b},\qquad
+u_b=\sum_j e^{z_j-m_b}V_j.
+$$
+
+与旧状态合并：
+
+$$m'=\max(m,m_b),$$
+
+$$
+\ell'
+=e^{m-m'}\ell+e^{m_b-m'}\ell_b,
+$$
+
+$$
+u'
+=e^{m-m'}u+e^{m_b-m'}u_b,
+\qquad
+O'=\frac{u'}{\ell'}.
+$$
+
+指数重标定保证 old/new block 使用同一个 global running max，因此组合是 exact 且数值稳定的。图中算法按 K/V outer loop、Q inner loop加载 tiles，把 score/softmax 和 $PV$ 保留在 on-chip SRAM，只把更新后的 $O,\ell,m$ 写回 HBM，避免 materialize 完整 score/probability matrices。
+
+> [!important] FlashAttention 改变 IO complexity，不改变数学
+> 它仍计算 exact softmax attention，主要收益来自 fusion、tiling 和减少 HBM round trips。对 causal mask、GQA、不同 block size、GPU/TPU SRAM 容量，具体 kernel schedule 会不同。
+
+#### Backward/VJP 中的局部化恒等式
+
+定义：
+
+$$
+S_{ij}
+=
+\frac{e^{q_i\cdot k_j}}
+{\sum_l e^{q_i\cdot k_l}},
+\qquad
+O_{id}=\sum_j S_{ij}V_{jd}.
+$$
+
+由 output cotangent 得到：
+
+$$
+dS_{ij}
+=\sum_d dO_{id}V_{jd}.
+$$
+
+Softmax backward 需要每个 query row 的：
+
+$$
+\sum_j S_{ij}dS_{ij}.
+$$
+
+交换 $j,d$ 的求和次序：
+
+$$
+\begin{aligned}
+\sum_j S_{ij}dS_{ij}
+&=\sum_j S_{ij}\sum_d dO_{id}V_{jd}\\
+&=\sum_d dO_{id}\sum_j S_{ij}V_{jd}\\
+&=\sum_d dO_{id}O_{id}.
+\end{aligned}
+$$
+
+右边只沿较小的 head dimension $d$ 收缩，不需要保存/遍历一个额外的全长 $S$ intermediate。这个 identity 让 backward 也能按 sequence blocks 局部计算，并为 ring attention 一类 sequence sharding 奠定基础。
+
+### 13.12 原材料八道练习：答案与边界
+
+| 题目 | 结果 | 关键边界 |
+| --- | --- | --- |
+| $D=4096,F=4D,V=32K,L=64$ 的参数量 | 约 16B；MHA attention 约占主 block 参数 $1/4$；INT8 KV 为 512 KiB/token | 原答案按两份 vocabulary matrices 近似；tied embedding 会少一份 |
+| $A[B_X,D_Y]W[D_Y,F]$ 在 $X=4,Y=8,Z=4$ mesh | 理论 FLOPs $2BDF$；因 $Z$ 轴复制，集群实际执行 $2BDFZ$；每 device 约 $2BDF/(XY)$ | 区分 algorithmic FLOPs 与因 replication 产生的 executed FLOPs |
+| $A[I,J,K,L]B[I,J,M,N,O]$ 收缩 $I,J$ | $2IJKLMNO$ | 若共同轴保留在输出，它是 batch axis，不是 contract axis |
+| Self-attention intensity | $TSG/(TG+S)$；prefill 为 $TG/(G+1)$；decode 趋近 $G$ | 约 240 FLOP/byte 的阈值只对应书中 TPU/precision 假设 |
+| Attention core = QKVO projection | $T=2D$ | 与 core 超过“MLP+QKVO”的 $T=8D$ 不是同一问题 |
+| 只保存 7 个主 matmul outputs 的重算 | 主额外 FLOPs $4BT^2NH$ | 还存在 $O(BTD)$、$O(BTF)$ lower-order ops |
+| DeepSeek-V3 训练利用率反推 | 书中按 37B active params、14.8T tokens、2.79M H800-hours、dense FP8 peak 得约 21.7% | 对 peak spec、sparsity 标称、active FLOPs 和系统 overhead 极敏感，只是 ballpark |
+| INT8 MoE 在 TPU v5e 上 compute-bound 的 batch | $B>120E/k$；$E=256,k=8$ 时 $B>3840$ | 未计 routing、imbalance 与通信，真实要求不会更低 |
+
+这一组练习的共同训练目标是：始终区分 **参数量、理论 FLOPs、设备实际执行 FLOPs、HBM bytes、通信 bytes 和 wall-clock utilization**。把其中任意两个混为一谈，都会得到看似精确但无法预测系统的答案。
+
+## 14. 本讲结论
 
 1. Prefill 可在 sequence 维并行，decode 必须自回归，二者应该分别建模和调度。
 2. KV cache 避免重复计算，但把 decode 转化成 memory-capacity 和 bandwidth 问题。
-3. MLP decode 的 arithmetic intensity 约随 batch 增长；attention decode 的理想 intensity 小于 1。
+3. MLP decode 的 arithmetic intensity 约随 batch 增长；MHA attention decode 的理想 intensity 小于 1，GQA 的上界提高到 $G=N/K$，但通常仍受 bandwidth 限制。
 4. 大 batch 提高 throughput，却可能恶化 TTFT、TPOT 和显存占用。
 5. GQA、MLA、CLA 与 local attention 从架构上减少 KV cache。
 6. Quantization 和 pruning 只有配合硬件、kernel 与质量校准才会产生真实收益。
 7. Speculative sampling 利用“并行验证比逐 token 生成更高效”的不对称性，并可保持 target 分布。
 8. Continuous batching 和 PagedAttention 让动态、ragged 请求更高效地共享计算和显存。
 9. Serving 优化必须以 workload、SLO 和 tail latency 为目标，而非只看理论 FLOPs。
+10. Gated MLP 每层主参数为 $3DF$；GQA attention projections 为 $2D(N+K)H$。
+11. $6PT$ 是忽略 attention core/lower-order ops 的训练近似；长 context 下应显式加入 $12BTSNH$。
+12. FlashAttention 不改变 exact attention 的二次 FLOPs，而是用 tiling 与 online softmax 避免完整 $T\times S$ HBM materialization。
 
-## 14. 自测问题
+## 15. 自测问题
 
 1. TTFT、TPOT 和 throughput 分别由哪些阶段决定？
 2. 为什么没有 KV cache 时，自回归生成的 attention 可能达到 $O(T^3)$？
@@ -771,13 +1285,26 @@ $$
 10. Continuous batching 解决了 static batching 的什么浪费？
 11. PagedAttention 的 internal fragmentation、external fragmentation 和 copy-on-write 分别是什么？
 12. 如果一个优化降低理论 FLOPs 却增加 all-to-all 或 kernel overhead，应该用什么指标判断是否值得？
+13. 对一个 einsum，如何区分 batching axes 与 contracting axes，并从 shape 直接数 FLOPs？
+14. 为什么一个 parameter matmul 的 training FLOPs 通常是 forward 的 3 倍？
+15. 推导 gated MLP 和 GQA QKVO projections 的参数量。
+16. $T=2D$ 与 $T=8D$ 两个 attention 阈值各自在比较什么？
+17. 推导 GQA attention core 的 $I_{\text{prefill}}=TG/(G+1)$ 与 $I_{\text{decode}}\rightarrow G$。
+18. FlashAttention 合并两个 K/V blocks 时，为什么 running max 改变后必须同时重标定 $\ell$ 和 numerator？
 
 ## 参考资料
 
 - [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)
 - [Official Lecture 10 executable notes](https://cs336.stanford.edu/lectures/?trace=lecture_10)
 - [How to Scale Your Model — Inference](https://jax-ml.github.io/scaling-book/inference/)
+- [How to Scale Your Model — All the Transformer Math You Need to Know](https://jax-ml.github.io/scaling-book/transformers/)
+- [JAX Scaling Book source repository](https://github.com/jax-ml/scaling-book)
+- [JAX Scaling Book MIT License](https://github.com/jax-ml/scaling-book/blob/main/LICENSE)
+- [Shazeer, GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202)
+- [Shazeer, Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150)
 - [Ainslie et al., GQA: Training Generalized Multi-Query Transformer Models](https://arxiv.org/abs/2305.13245)
+- [Rabe & Staats, Self-attention Does Not Need $O(n^2)$ Memory](https://arxiv.org/abs/2112.05682)
+- [Dao et al., FlashAttention](https://arxiv.org/abs/2205.14135)
 - [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434)
 - [Brandon et al., Reducing Transformer Key-Value Cache Size with Cross-Layer Attention](https://arxiv.org/abs/2405.12981)
 - [Leviathan et al., Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192)
