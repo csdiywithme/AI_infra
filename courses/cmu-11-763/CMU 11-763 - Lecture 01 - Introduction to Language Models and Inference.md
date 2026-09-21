@@ -554,16 +554,49 @@ $$
 ## 13. 自测问题
 
 1. 为什么完整序列的最大模型概率可能偏向短输出？— 视频起点：[00:00 Introduction and modeling](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=0s)
+
+    **面试回答：** 完整序列概率是逐 token 条件概率连乘，logprob 则累加非正数，所以直接最大化它常带来长度偏好，尤其模型过早给 EOS 高概率时。比较不同完整序列还要计入 EOS，不能说短文本必然概率更高；长度归一化能缓解偏好，但已改变搜索目标。
+
 2. Sampling 与 search 分别在优化或近似什么？— 视频：[32:44 Sampling 与 Search](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=1964s)
+
+    **面试回答：** Sampling 的目标是按指定分布产生样本，用样本近似分布、期望或答案边缘概率；search 则试图找到指定评分函数的高分或最优输出。评分可取模型概率，也可取 reward；采到的输出不是 argmax，并不意味着 sampling 出错。
+
 3. 为什么搜索分数不一定等于语言模型概率？— 视频起点：[37:55 Generation algorithms](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2275s)
+
+    **面试回答：** 语言模型概率描述模型如何给序列分配概率质量，而搜索分数可以额外加入长度惩罚、约束、reward model 或 verifier 结果。例如平均 token logprob 与总 logprob 的排序可能不同；评价 search error 前必须先说清实际优化哪一个分数。
+
 4. Generation 与 meta-generation 的边界是什么？— 视频起点：[37:55 Generation algorithms](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2275s)
+
+    **面试回答：** Basic generation 是用模型和解码规则产生一条候选，例如 greedy、sampling 或 beam search。Meta-generation 在其外层组织多次生成、评分、选择、投票或改写，例如 best-of-N、自一致性和生成—验证循环；边界在于是否额外编排候选与反馈。
+
 5. 为什么 Chain of Thought 可以视为中间变量？— 视频：[41:52 Latent variables](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2512s)
+
+    **面试回答：** 把推理轨迹记作 z、最终答案记作 y，就有 $P(y\mid x)=\sum_z P(z\mid x)P(y\mid x,z)$。轨迹帮助模型生成答案，但最终任务通常只关心 y，因此 z 可作为被边缘化的中间变量；选最可能的一条轨迹不等于选边缘概率最大的答案。
+
 6. 如何通过候选集判断 search error 与 model error？— 视频：[54:46 课堂追问](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=3286s)
+
+    **面试回答：** 先比较候选的模型分数与外部质量：若存在比返回答案模型分数更高的候选，说明搜索未优化好指定分数；若高质量候选被评分器排低，说明 scoring/model mismatch。候选全差只能说明覆盖或模型能力有问题，有限候选集不能证明全局最优或排除 search error。
+
 7. 为什么扩大 inference-time compute 不一定提高质量？— 视频起点：[44:51 Evaluation and errors](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2691s)
+
+    **面试回答：** 更多计算可能扩大候选覆盖，却无法自动修正错误的评分目标或 verifier。候选高度相关、评分器偏差或过度优化代理分数，都可能让质量停滞甚至下降；要看预算增加后的外部任务质量、延迟与成本，而不是只看模型分数。
+
 8. Prefill 与使用 KV Cache 的 decode 在计算形态上有何差异？— 课程背景：[23:20 Hardware for inference](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=1400s)；具体回答属于 Infra 延伸
+
+    **面试回答：** Prefill 一次处理多个 prompt token，线性层是较大 GEMM，权重复用充分，dense attention 的总计算随长度平方增长。使用 KV cache 的普通 decode 每请求只处理一个新 token，用它的 Q 读历史 K/V；小 batch 下计算少、反复读权重和 KV，更易受带宽与 launch 开销限制。
+
 9. 为什么纯 sampling 不应按“是否找到 argmax”判断 search error？— 视频：[51:28 学生提问](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=3088s)
+
+    **面试回答：** 纯 sampling 的正确性标准是样本分布是否等于目标分布，而不是每次是否得到 mode。低概率样本本来就应偶尔出现；只有事先定义了最大化某个分数的目标，才适合用未找到 argmax 来讨论 search error。
+
 10. 什么情况下扩大 beam 可能降低外部任务质量？— 视频起点：[44:51 Evaluation and errors](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2691s)；结论包含扩展推导
+
+    **面试回答：** 当模型分数与外部质量不一致时，扩大 beam 可能更准确地找到模型偏好的短、空泛或错误答案。此时 search error 下降而任务质量下降；应调整评分、约束或模型，而不是继续单纯增加搜索宽度。
+
 11. Best-of-N 中 sampling 和 optimization 分别承担什么职责？— 视频起点：[37:55 Generation algorithms](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=2275s)
+
+    **面试回答：** Sampling 负责生成有一定多样性的候选集，决定搜索覆盖；optimization 负责用 scorer/verifier 从有限集合中选择高分答案。最终质量同时受 generator 的覆盖和 scorer 的排序能力限制，best-of-N 也会改变原始生成分布。
+
 
 ## 14. 关联内容
 

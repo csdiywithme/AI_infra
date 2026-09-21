@@ -43,15 +43,18 @@ aliases:
 8. [x] [Lecture 08：Data-Parallel Thinking](Stanford%20CS149%20-%20Lecture%2008%20-%20Data-Parallel%20Thinking.md)
 9. [x] [Lecture 09：Distributed Data-Parallel Computing Using Spark](Stanford%20CS149%20-%20Lecture%2009%20-%20Distributed%20Data-Parallel%20Computing%20Using%20Spark.md)
 10. [x] [Lecture 10：Efficiently Evaluating DNNs on GPUs](Stanford%20CS149%20-%20Lecture%2010%20-%20Efficiently%20Evaluating%20DNNs%20on%20GPUs.md)
-11. [ ] Lecture 11：Cache Coherence
-12. [ ] Lecture 12：Memory Consistency
-13. [ ] Lecture 13：Fine-Grained Synchronization and Lock-Free Programming
-14. [ ] Lecture 14：Midterm Review
-15. [ ] Lecture 15：Domain-Specific Programming Languages
-16. [ ] Lecture 16：Transactional Memory I
-17. [ ] Lecture 17：Transactional Memory II
-18. [ ] Lecture 18：Hardware Specialization
-19. [ ] Lecture 19：Accessing Memory + Course Wrap-Up
+11. [x] [Lecture 11：Cache Coherence](Stanford%20CS149%20-%20Lecture%2011%20-%20Cache%20Coherence.md)
+12. [x] [Lecture 12：Memory Consistency](Stanford%20CS149%20-%20Lecture%2012%20-%20Memory%20Consistency.md)
+13. [x] [Lecture 13：Fine-Grained Synchronization and Lock-Free Programming](Stanford%20CS149%20-%20Lecture%2013%20-%20Fine-Grained%20Synchronization%20and%20Lock-Free%20Programming.md)
+14. [x] [Lecture 14：Midterm Review](Stanford%20CS149%20-%20Lecture%2014%20-%20Midterm%20Review.md)
+15. [x] [Lecture 15：Domain-Specific Programming Languages](Stanford%20CS149%20-%20Lecture%2015%20-%20Domain-Specific%20Programming%20Languages.md)
+16. [x] [Lecture 16：Transactional Memory I](Stanford%20CS149%20-%20Lecture%2016%20-%20Transactional%20Memory%20I.md)
+17. [x] [Lecture 17：Transactional Memory II](Stanford%20CS149%20-%20Lecture%2017%20-%20Transactional%20Memory%20II.md)
+18. [x] [Lecture 18：Hardware Specialization](Stanford%20CS149%20-%20Lecture%2018%20-%20Hardware%20Specialization.md)
+19. [x] [Lecture 19：Accessing Memory + Course Wrap-Up](Stanford%20CS149%20-%20Lecture%2019%20-%20Accessing%20Memory%20and%20Course%20Wrap-Up.md)
+
+> [!note] 编号说明
+> 本目录按 YouTube 播放列表编号，包含 Lecture 14 Midterm Review；官方课程网页与课件 PDF 跳过该 review 编号，因此后续课件编号比这里少 1。
 
 ## 延伸阅读
 

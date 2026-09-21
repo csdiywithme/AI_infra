@@ -1274,23 +1274,77 @@ $$
 ## 15. 自测问题
 
 1. TTFT、TPOT 和 throughput 分别由哪些阶段决定？
+
+    **面试回答：** TTFT 主要由排队、调度和 prompt prefill 决定；TPOT 主要由连续 decode step 的计算、权重/KV 读取和通信决定。Throughput 是整个服务单位时间处理的 token 数，还受并发、batch、显存容量和请求长度分布影响；增大 batch 可能提高吞吐，却恶化 TTFT 或 TPOT。
+
 2. 为什么没有 KV cache 时，自回归生成的 attention 可能达到 $O(T^3)$？
+
+    **面试回答：** 在每一步都重新对完整 prefix 做 dense attention 的朴素实现中，长度为 $t$ 的 forward 需要 $O(t^2)$，累计到 $T$ 是 $\sum_{t=1}^T O(t^2)=O(T^3)$。KV cache 复用历史 K/V，每步只算新 query 对历史的 attention，累计 attention 工作降为 $O(T^2)$；这里比较的是随序列增长的 attention 成本。
+
 3. 推导 gated MLP 在 $BT\ll D,F$ 时 arithmetic intensity 约为 $BT$。
+
+    **面试回答：** Gated MLP 有两个 $D\to F$ 和一个 $F\to D$ 投影，forward 主计算为 $6BTDF$ FLOPs。BF16 理想读写量为 $4BTD+4BTF+6DF$ bytes；当 $BT\ll D,F$ 时权重项 $6DF$ 占主导，所以 $I\approx6BTDF/(6DF)=BT$ FLOP/byte，忽略激活函数和实际 kernel 额外 IO。
+
 4. 为什么 attention decode 的 arithmetic intensity 不随 batch size 提高？
+
+    **面试回答：** 不同请求通常有各自独立的 KV cache，因此 batch 扩大时 attention 的 FLOPs 与 KV bytes 都按 $B$ 增长，二者相除后 $B$ 消去。BF16、上下文长 S 时，MHA attention core 的理想强度为 $S/(S+1)<1$ FLOP/byte；GQA 可通过组内共享在长上下文下提高到约 G，G 是 query heads 与 KV heads 数的比值，但普通 batching 不提供这种复用。
+
 5. 写出 BF16 GQA KV cache 的 shape 与 bytes。
+
+    **面试回答：** 单条序列可表示为 $[2,S,L,K,H]$，batch 后为 $[B,2,S,L,K,H]$，其中 2 表示 K/V，$K$ 是 KV heads 数。BF16 每元素 2 bytes，因此总容量为 $4BSLKH$ bytes；实际还需考虑块尾碎片、元数据和对齐开销。
+
 6. 为什么增大 decode batch 最终会出现 throughput 饱和？
+
+    **面试回答：** 理想带宽模型下，令每条序列 KV 为 $m$、参数大小为 $W$，则 $t_{step}\gtrsim(W+Bm)/BW$，吞吐上界约为 $B\cdot BW/(W+Bm)$。小 batch 时增大 $B$ 能摊薄权重读取，KV 主导后上界趋向 $BW/m$；实际还可能更早遇到算力、显存或延迟 SLO 限制。
+
 7. MHA、GQA、MQA 和 MLA 分别缓存什么？
+
+    **面试回答：** MHA 为每个 query head 缓存独立 K/V；GQA 让若干 query heads 共用一组 K/V；MQA 让全部 query heads 共用一组 K/V。MLA 主要缓存压缩后的低维 KV latent，并保留其位置编码设计所需的分支，按需恢复或通过吸收投影完成计算，不能只按普通 KV heads 数估算它。
+
 8. QAT、PTQ、AWQ 的目标和成本有何不同？
+
+    **面试回答：** 三者都希望降低低比特量化误差：QAT 在训练中模拟量化并更新权重，适应能力强但训练成本高；PTQ 在训练后校准，成本较低。AWQ 属于 PTQ，用 activation 统计寻找重要通道并做等价缩放来保护它们，不必将这些权重单独保留为高精度；实际加速仍依赖低比特 kernel。[AWQ 论文](https://arxiv.org/abs/2306.00978)
+
 9. Speculative sampling 被拒绝时，为什么不能直接从 target $q$ 重新采样？
+
+    **面试回答：** 接受阶段已贡献 $p(x)\min(1,q(x)/p(x))=\min(p(x),q(x))$ 的概率质量，因此拒绝后的缺口是 $q(x)-\min(p(x),q(x))=[q(x)-p(x)]_+$。拒绝时必须从这个缺口归一化后的 residual 分布采样；直接再从 $q$ 采样会重复分配已接受部分，使最终分布偏离 target。
+
 10. Continuous batching 解决了 static batching 的什么浪费？
+
+    **面试回答：** Static batching 常需等最长请求结束，导致短请求完成后的槽位空闲、新请求等待，并产生 padding 浪费。Continuous batching 在每轮迭代移出完成请求、补入新请求，以 token/KV budget 动态组织 batch，提高利用率；代价是需要支持变长序列的 kernel、内存管理和更细的调度。
+
 11. PagedAttention 的 internal fragmentation、external fragmentation 和 copy-on-write 分别是什么？
+
+    **面试回答：** Internal fragmentation 是已分配块内部没有用满；external fragmentation 是空闲空间分散，无法满足连续大块分配。PagedAttention 用固定块映射消除对连续大块的要求，仍可能有尾块内部碎片；copy-on-write 让多个请求先共享 prefix KV，只有写入共享块时才复制，避免提前重复保存。
+
 12. 如果一个优化降低理论 FLOPs 却增加 all-to-all 或 kernel overhead，应该用什么指标判断是否值得？
+
+    **面试回答：** 应在同等质量、硬件和目标流量下比较端到端 wall-clock、TTFT/TPOT 的尾延迟、满足 SLO 的 goodput 及每 token 成本。理论 FLOPs 只是解释变量，还要核算通信、kernel launch、负载不均和内存开销；只有服务指标在所需约束下改善，优化才有部署价值。
+
 13. 对一个 einsum，如何区分 batching axes 与 contracting axes，并从 shape 直接数 FLOPs？
+
+    **面试回答：** 共同出现在输入且保留到输出的轴是 batching axes；同时出现在两输入却从输出消失的轴通常是 contracting axes，需沿它求和。两输入 contraction 的主 FLOPs 约为 $2\times$ 输出元素数 $\times$ 收缩维度乘积，各 batch 轴只计一次；如 $A[B,M,K]W[B,K,N]$ 为 $2BMNK$，纯逐元素乘法不套这个乘 2 规则。
+
 14. 为什么一个 parameter matmul 的 training FLOPs 通常是 forward 的 3 倍？
+
+    **面试回答：** 对 $Y=XW$，forward 是一次矩阵乘法，backward 还计算 $dX=dYW^\top$ 和 $dW=X^\top dY$，三个 contraction 的主 FLOPs 相同，所以训练约为 forward 的 3 倍。该近似假设同时需要输入梯度和权重梯度，且不计 activation checkpoint 重算、优化器及其他算子。
+
 15. 推导 gated MLP 和 GQA QKVO projections 的参数量。
+
+    **面试回答：** Gated MLP 包含两份 $D\times F$ 上投影和一份 $F\times D$ 下投影，所以主参数为 $3DF$。GQA 的 Q/O 各有 $DNH$，K/V 各有 $DKH$，合计 $2D(N+K)H$；当 $NH=D,K=N$ 时退化为 MHA 的 $4D^2$，这里忽略 bias 和 norm。
+
 16. $T=2D$ 与 $T=8D$ 两个 attention 阈值各自在比较什么？
+
+    **面试回答：** 在 MHA、$NH=D$、不折半 causal 上三角的训练 FLOPs 口径下，attention core 为 $12BT^2D$，QKVO 为 $24BTD^2$，两者相等得到 $T=2D$。若再计 gated MLP 且 $F=4D$，其余主 matmul 合计 $96BTD^2$，相等得到 $T=8D$；二者比较对象不同，均不代表实际系统瓶颈必在此发生。
+
 17. 推导 GQA attention core 的 $I_{\text{prefill}}=TG/(G+1)$ 与 $I_{\text{decode}}\rightarrow G$。
+
+    **面试回答：** 令 $G=N/K$，BF16、忽略 projections 且不落盘完整 scores 时，attention core 为 $4BTSKGH$ FLOPs，理想 IO 为 $4BHK(TG+S)$ bytes，因此 $I=TSG/(TG+S)$。Prefill 取 $S=T$ 得 $TG/(G+1)$；decode 取 $T=1$ 得 $SG/(G+S)$，在 $S\gg G$ 时趋近 $G$。
+
 18. FlashAttention 合并两个 K/V blocks 时，为什么 running max 改变后必须同时重标定 $\ell$ 和 numerator？
+
+    **面试回答：** 旧块的 $\ell=\sum e^{z-m}$ 和 $u=\sum e^{z-m}V$ 都以旧 max 为尺度，合并后必须统一到 $m'=\max(m,m_b)$。因此 $\ell'=e^{m-m'}\ell+e^{m_b-m'}\ell_b$，$u'=e^{m-m'}u+e^{m_b-m'}u_b$，最终 $O=u'/\ell'$；只重标定一项会改变 softmax 权重和输出。
+
 
 ## 参考资料
 

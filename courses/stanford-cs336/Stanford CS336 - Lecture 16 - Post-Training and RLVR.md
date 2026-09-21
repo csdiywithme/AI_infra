@@ -486,15 +486,45 @@ $$
 
 ## 12. 自测问题
 1. RLVR 相比 RLHF 减少了什么误差，又保留了哪些 reward-hacking 风险？
+
+    **面试回答：** RLVR 用答案判定、测试或 proof checker 等直接验证结果，减少 learned preference model 的主观偏好、风格偏差和误判。它仍会受 verifier 规格影响，例如测试覆盖不足、答案解析漏洞、可修改测试或泄漏隐藏答案；因此可验证 reward 更接近任务目标，但仍需隔离环境并审计验证器。
+
 2. 为什么 on-policy rollout 要记录 policy version？
+
+    **面试回答：** Policy version 说明轨迹究竟由哪组权重生成，是 old log-probs、importance ratio 和数据 freshness 的依据。异步 rollout/training 中若混入过旧样本却按新 policy 处理，会使训练偏离预期并损害稳定性；记录版本才能限制 staleness、复现问题并关联正确的生成配置。
+
 3. GRPO 如何从一组 rewards 计算 advantage？
+
+    **面试回答：** 同一 prompt 采样 $G$ 个回答，计算 $\mu=G^{-1}\sum_jr_j$、$\sigma=\sqrt{G^{-1}\sum_j(r_j-\mu)^2+\epsilon}$，再取 $A_j=(r_j-\mu)/\sigma$。Vanilla GRPO 把该序列 advantage 广播到有效 response tokens，用 PPO-like clipping 更新，不需要额外 value model；组内 reward 全相同时相对 reward 信号为零。
+
 4. 为什么除以 group standard deviation 可能改变梯度 weighting？
+
+    **面试回答：** 除以组内标准差，相当于让各 prompt 的梯度乘上不同且由采样结果决定的权重。低方差组中罕见的 reward 差异可能被放大，完全同分组仍为零，因此题目难度和随机采样会改变贡献；这不是只减去一个与动作无关的 baseline，不能默认仍是原始期望 reward 的无偏梯度。
+
 5. 推导 binary reward 下 $p^G+(1-p)^G$。
+
+    **面试回答：** 假设同一题的 $G$ 次回答条件独立，单次 binary reward 为 1 的概率是 $p$，则全对概率为 $p^G$、全错概率为 $(1-p)^G$。两事件互斥，相加得到 $P_{同分}=p^G+(1-p)^G$；这些组没有组内相对信号，若样本相关，则不能直接用该公式。
+
 6. Long-CoT 变长为什么不能自动解释为“涌现新推理”？
+
+    **面试回答：** 平均 CoT 变长可能来自模型已有长推理模式被激活，也可能来自 token/sequence 归一化、格式奖励、截断规则或 sampling 的变化。要支持推理能力增强，应同时看到受控评测中的正确率与泛化改善，并在相同生成预算下做消融；长度只是行为指标，不能单独证明出现了新算法。
+
 7. Outcome reward 与 process reward 的 trade-off 是什么？
+
+    **面试回答：** Outcome reward 只验证最终结果，成本较低、目标清晰，但反馈稀疏，很难分辨哪一步造成成功或失败。Process reward 对中间步骤给密集反馈，有助于 credit assignment，却需要更贵的标注或模型，并可能奖励看似合理的推理模板；选择取决于任务的可验证性、监督成本和错误风险。
+
 8. 为什么 reasoning SFT、RLVR 和 general RLHF 常按阶段组合？
+
+    **面试回答：** Reasoning SFT 提供可读格式、初始策略和较稳定的起点；RLVR 在可验证任务上通过当前 policy 的探索提升正确率；general RLHF 再调整日常帮助性、安全性和交互行为。目标之间可能相互干扰，所以每阶段都要做能力回归检查，必要时混合 reward 或 replay 推理数据。
+
 9. Colocated 与 disaggregated RL architecture 各有什么瓶颈？
+
+    **面试回答：** Colocated 共用 GPU，减少权重跨池传输，却面临 rollout KV 与训练 optimizer states 的显存冲突，以及 phase 切换、offload 和等待。Disaggregated 允许推理训练分别优化与流水化，但增加权重广播、网络开销、队列失衡和 policy staleness；两者还都可能被长尾 rollout 或 verifier 卡住。
+
 10. Expert iteration 与 policy gradient 的关键训练信号差别是什么？
+
+    **面试回答：** Expert iteration 先采样、验证、筛出正例，再以 SFT 增加这些示范的 likelihood，负例通常被丢弃而不产生直接负梯度。Policy gradient 按 advantage 对当前采样加权，优于 baseline 的轨迹提高概率、低于 baseline 的降低概率；比较两者需统一采样预算、verifier 和训练算力。
+
 
 ## 参考资料
 - [Lecture 16 官方课件](https://github.com/stanford-cs336/lectures/blob/main/lecture_16.pdf)

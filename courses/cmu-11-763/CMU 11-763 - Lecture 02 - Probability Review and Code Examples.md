@@ -747,18 +747,57 @@ for _ in range(max_length):
 ## 19. 自测问题
 
 1. 为什么 $P(y\mid x)$ 与 $P(x,y)$ 不是同一个概率对象？— [03:43](https://www.youtube.com/watch?v=UKuPCxozypU&t=223s)
+
+    **面试回答：** $P(y\mid x)$ 是已经给定 x 后 y 的条件概率，固定 x 时对 y 求和为 1；$P(x,y)$ 是 x、y 同时出现的联合概率，对全部 x、y 求和为 1。二者满足 $P(x,y)=P(x)P(y\mid x)$，因此联合频率还受 x 本身出现频率影响。
+
 2. Bigram model 的 Markov assumption 丢弃了哪些上下文？— [09:32](https://www.youtube.com/watch?v=UKuPCxozypU&t=572s)
+
+    **面试回答：** Bigram 用 $P(x_t\mid x_{<t})\approx P(x_t\mid x_{t-1})$，只保留紧邻的前一个 token。更早的主题、句法、实体指代和长期依赖都被忽略，所以它能展示局部概率与采样，却很难表达长程语言结构。
+
 3. 为什么生成必须同时设置 EOS 与 max length？— [12:16](https://www.youtube.com/watch?v=UKuPCxozypU&t=736s)
+
+    **面试回答：** EOS 表示模型认为序列自然结束，max length 则是系统对时间、显存和费用的硬上限。模型不保证在合理长度内生成 EOS，只靠 EOS 可能运行过久；只靠长度上限又会截断自然输出，评测时应区分自然结束与强制截断。
+
 4. 推导 $T\to0^+$、$T=1$、$T\to\infty$ 时的 temperature distribution。— [12:34](https://www.youtube.com/watch?v=UKuPCxozypU&t=754s)
+
+    **面试回答：** 令 $P_T(i)=e^{z_i/T}/\sum_j e^{z_j/T}$。$T=1$ 恢复原分布；$T\to0^+$ 时质量集中到最大 logit，若并列则极限在并列项间均分，而 greedy 实现可另有 tie-break；$T\to\infty$ 时有限 logits 对应项趋于均匀，被永久 mask 的项仍为零。
+
 5. 为什么 $T=0.5$ 上无限采样也不能恢复 $P_\theta$？— [25:29](https://www.youtube.com/watch?v=UKuPCxozypU&t=1529s)
+
+    **面试回答：** 在 $T=0.5$ 时，每一步采样的是 $P_{0.5}(i)\propto P_\theta(i)^2$，经验频率随样本增多收敛到被锐化的分布。更多样本降低方差，却不消除目标分布不匹配的偏差；若要估计原分布，需恢复 T=1 或做满足支持集条件的 importance weighting。
+
 6. 如何用采样估计模型生成 toxic content 的概率，并给出置信区间？— [20:54](https://www.youtube.com/watch?v=UKuPCxozypU&t=1254s)
+
+    **面试回答：** 固定 prompt 和解码契约，从目标分布独立采样 N 条，令 $f(y)$ 为有害内容指示，估计 $\hat p=\sum_i f(y_i)/N$。Hoeffding 给出至少 $1-\alpha$ 覆盖的区间 $\hat p\pm\sqrt{\log(2/\alpha)/(2N)}$，截到 [0,1]；该区间只计采样误差，不包含判定器错误或 prompt 选择偏差。
+
 7. Self-consistency 在边缘化哪个变量？— [33:53](https://www.youtube.com/watch?v=UKuPCxozypU&t=2033s)
+
+    **面试回答：** Self-consistency 边缘化的是推理轨迹 z，聚合不同轨迹最后得到同一答案的概率质量。按目标生成分布采样多条轨迹，再对规范化后的答案计数，近似 $P(y\mid x)=\sum_zP(y,z\mid x)$；多数投票选的是答案层面的高频结果，不是最可能的单条轨迹。
+
 8. 什么时候 inference 应忠实采样，什么时候应主动改变分布？— [40:32](https://www.youtube.com/watch?v=UKuPCxozypU&t=2432s)
+
+    **面试回答：** 研究模型分布、估计某类输出概率或做 Monte Carlo 分析时，应按明确定义的目标分布忠实采样。交互问答、代码正确性或格式约束更关注任务效用时，可主动用温度、截断、约束或 reranking 改变分布，但评测对象应相应改成整个生成系统。
+
 9. 为什么 `temperature=0` 的 API 仍可能返回不同文本？— [47:19](https://www.youtube.com/watch?v=UKuPCxozypU&t=2839s)
+
+    **面试回答：** Temperature=0 通常只关闭 token 采样随机性，不保证整套计算和服务确定。浮点归约顺序、动态 batch、kernel/硬件差异或模型版本变化可能改变接近并列的 logits，首个 token 差异又会沿自回归过程放大；复现需固定相关配置。
+
 10. LLM-as-a-judge 的 capability ceiling 和 self-preference 分别是什么？— [59:27](https://www.youtube.com/watch?v=UKuPCxozypU&t=3567s)
+
+    **面试回答：** Capability ceiling 指 judge 在自己缺乏可靠判断能力的任务上也容易误判，并不意味着“不会解就一定不会验”；self-preference 指它偏好自身模型家族或熟悉的表达风格。应结合盲评、交换顺序、人工或可验证指标校准，避免把单一 judge 分数当作真实质量。
+
 11. 为什么总 logprob 偏向短文本，per-token logprob 又仍不完全 length-neutral？— [1:05:00](https://www.youtube.com/watch?v=UKuPCxozypU&t=3900s)
+
+    **面试回答：** 总 logprob 随更多 token 累加负数，通常带有短文本偏好；除以长度能缓解这一效应，却仍受 EOS、tokenizer 和文本可预测性影响。追加一段容易预测的套话甚至可能抬高平均分，所以 per-token normalization 不是严格的长度中立或质量保证。
+
 12. Reranking 与 speculative decoding 虽然都使用 small/large model，为什么目标不同？— [1:01:54](https://www.youtube.com/watch?v=UKuPCxozypU&t=3714s)
+
+    **面试回答：** Reranking 用大模型或 verifier 给完整候选评分并选择，目标是提升指定质量指标，通常改变输出分布。标准 speculative decoding 用 draft 提议未来 token，再由 target 按正确接受/拒绝与纠偏规则验证，目标是在保持 target 分布或 greedy 语义的同时加速。
+
 13. 若 expensive verifier 是一个检索 agent，怎样设计候选数、并行度与 latency budget？— [1:10:25](https://www.youtube.com/watch?v=UKuPCxozypU&t=4225s)
+
+    **面试回答：** 先用便宜 generator 生成 N 个候选，经中等成本 scorer 筛成 k 个，再限制并发 c 做检索验证，预留聚合和超时预算。粗估时间为生成/筛选时间加 $\lceil k/c\rceil T_{verify}$，实际按尾延迟、工具限流和共享资源调整；候选数由额外正确率收益与预算共同决定。
+
 
 ## 20. 课件代码地图
 

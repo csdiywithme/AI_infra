@@ -735,15 +735,45 @@ Cross-entropy 是密集、连续指标，每个 token 都贡献信号。Benchmar
 ## 13. 自测问题
 
 1. 为什么幂律在 log-log 图上是直线？加入 $L_\infty$ 后还严格成立吗？
+
+    **面试回答：** 若 $L=AD^{-\alpha}$，取对数得到 $\log L=\log A-\alpha\log D$，所以 log-log 图是斜率 $-\alpha$ 的直线。加入不可忽略的 $L_\infty$ 后，严格线性的是 $\log(L-L_\infty)$ 对 $\log D$，直接画 $\log L$ 会在接近渐近项时变平；有限区间的近似直线不证明无限外推有效。
+
 2. 均值估计的 MSE scaling exponent 是多少？它为什么不能直接解释语言模型的 exponent？
+
+    **面试回答：** 独立同分布、有限方差样本的均值是无偏估计，MSE=Var(x)/n，所以衰减指数为 1；若看 RMSE 则是 1/2。语言模型还受函数逼近偏差、模型容量、优化误差、相关异质数据和 loss 定义影响，不能把这个简单估计问题的指数直接套到 LM scaling。
+
 3. 为什么 small-scale winner 可能不是 large-scale winner？
+
+    **面试回答：** 不同方案可能有不同 scaling 斜率、截距和渐近 loss，小规模优势会随着预算增加被更陡的下降曲线反超。规模也会改变训练稳定性、最优超参数和硬件利用率，因此应比较多个预算点并外推到目标区间，不能用一次小模型实验确定大模型赢家。
+
 4. total parameters、non-embedding parameters 和 active parameters 分别适合核算什么？
+
+    **面试回答：** Total parameters 适合核算完整权重、checkpoint 和训练状态容量；non-embedding parameters 常用于统一 dense 主干的 scaling 与粗略 6ND 计算口径。MoE 的 active parameters/token 更接近逐 token 的主要参数矩阵乘成本；三者都不能单独涵盖 attention mixing、router、通信和参数共享等额外因素。
+
 5. Critical batch size 与显存能容纳的最大 batch 有什么区别？
+
+    **面试回答：** Critical batch 是达到某个目标 loss 时，减少更新步数与增加样本消耗之间的统计效率转折点，正文用 B_crit=E_min/S_min 定义。最大可容纳 batch 是硬件显存约束，受 dtype、长度、checkpointing 和分片影响；两者可相差很大，也都不必等于 wall-clock 最优 batch。
+
 6. 从 $L(N,D)=L_\infty+AN^{-\alpha}+BD^{-\beta}$ 和 $C=6ND$ 推导 $N_{\mathrm{opt}}$ 的指数。
+
+    **面试回答：** 代入 $D=C/(6N)$，得到 $L=L_\infty+AN^{-\alpha}+B(6N/C)^\beta$。令对 $N$ 的导数为零：$\alpha AN^{-\alpha}=\beta B(6N/C)^\beta$，于是 $N_{\mathrm{opt}}=[\alpha A/(\beta B\,6^\beta)]^{1/(\alpha+\beta)}C^{\beta/(\alpha+\beta)}$，故指数为 $\beta/(\alpha+\beta)$，$D_{\mathrm{opt}}$ 的指数为 $\alpha/(\alpha+\beta)$。该结果假设正系数、连续可选规模和 $6ND$ 成本模型成立。
+
 7. Chinchilla 的三种拟合方法分别使用什么实验数据？
+
+    **面试回答：** 方法一使用不同模型大小与训练时长的完整 loss-compute 轨迹，在各预算处取最优包络；方法二在多个固定 FLOPs 预算内扫描 N 与对应 D，利用每条 IsoFLOPs 曲线的最低点拟合 N_opt、D_opt。方法三使用多组 (N,D,loss) 终点，直接拟合联合参数化 loss，再解析求最优分配。
+
 8. 为什么 low-compute points 上的 warmup 设置会改变外推结果？
+
+    **面试回答：** 低 compute run 的总步数少，若沿用固定且过长的 warmup，相当于让小模型大部分预算都处在过低学习率区间，测到的是 schedule 不合适造成的优化误差。它会抬高或扭曲低预算点、移动 IsoFLOPs 最低点，进而改变拟合斜率和远端预测，应按训练长度合理调节并检查收敛。
+
 9. 为什么固定训练 compute 的最优配置可能不是固定总生命周期成本的最优配置？
+
+    **面试回答：** 训练最优只在 C_train≈6ND 的预算内分配参数与数据，生命周期目标还包括累计请求量 Q 带来的 Q·C_inference(N)。高调用量下，较小模型每次推理更省资源，值得用更多训练 token 提升其能力，因此“更小、训练更久”可能降低总成本；具体最优还取决于质量、延迟和数据约束。
+
 10. 如果 slope 的估计误差不变，外推 10 倍和外推 10,000 倍哪个风险更大？为什么？
+
+    **面试回答：** 外推 10,000 倍风险更大，因为同样斜率误差 δα 引起的 log-loss 误差约为 −δα·log(D₁/D₀)。log 10,000=4 log 10，所以仅这一误差项就是外推 10 倍时的 4 倍，原始 loss 上表现为乘法误差；更远外推还更容易遇到数据耗尽或训练机制改变等 regime shift。
+
 
 ## 参考资料
 

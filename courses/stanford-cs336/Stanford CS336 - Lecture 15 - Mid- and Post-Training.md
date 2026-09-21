@@ -492,15 +492,45 @@ SFT 对 chosen 的每个 target token给正向 likelihood；DPO 只关心 chosen
 
 ## 12. 自测问题
 1. SFT loss mask 为什么通常只覆盖 assistant tokens？
+
+    **面试回答：** SFT 的目标是学习 $\pi(y\mid x)$：system、user 和 tool observation 构成输入条件，assistant response 才是要模仿的输出。通常只对 assistant target tokens 计算交叉熵，可避免把有限训练预算用于预测用户话语或环境观察；具体也可采用混合目标，但必须显式定义角色和 loss mask。
+
 2. SFT 更适合 behavior elicitation 而非 tail knowledge 写入，这句话的理由是什么？
+
+    **面试回答：** 少量 SFT 示范能快速教会已有 base model 何时回答、使用什么格式和工具协议，因为这些行为可复用预训练能力。罕见知识若只出现少数次，监督覆盖不足，模型可能学到引用或确信语气而没有稳定掌握事实；SFT 也能学新知识，但大规模知识扩展通常更依赖 pre/mid-training 或 retrieval。
+
 3. Mid-training 与 SFT 的 loss、数据量和 mixture 有何区别？
+
+    **面试回答：** 两者通常都用 next-token 交叉熵；mid-training 主要差在更大的 token 预算、精选能力数据与预训练数据的 mixture，并可能对完整序列算 loss。SFT 更集中于指令对话、数据量较小，常只监督 assistant tokens；阶段边界是训练配方和目标上的区别，不是一个全新的 loss 名称。
+
 4. Pairwise preference 为什么不提供绝对质量？
+
+    **面试回答：** Pairwise 标签只告诉模型在同一 prompt 下哪个回答更好，即使 winner 仍然错误，也可能被选中。Bradley–Terry 概率只依赖 reward 差，给同一 prompt 的所有 reward 加常数不会改变比较；因此需要绝对 rubric、两者皆差选项或 correctness verifier 来补充可接受性信息。
+
 5. 推导 Bradley–Terry reward-model loss。
+
+    **面试回答：** 设两回答的正效用为 $e^{r_w}$ 与 $e^{r_l}$，Bradley–Terry 给出 $P(w\succ l)=e^{r_w}/(e^{r_w}+e^{r_l})=\sigma(r_w-r_l)$。对观察到 winner 的标签做最大似然，取负对数并对数据平均，得到 $\mathcal L_{RM}=-\mathbb E\log\sigma(r_\phi(x,y_w)-r_\phi(x,y_l))$。
+
 6. PPO 为什么需要 old policy ratio 与 clipping？
+
+    **面试回答：** Rollout 来自旧 policy，更新后动作概率已改变，所以用 $\rho_t=\pi_\theta(a_t\mid s_t)/\pi_{old}(a_t\mid s_t)$ 调整代理目标。Clipping 用 $\min(\rho_tA_t,\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)A_t)$ 限制某些过大更新带来的收益，提升数据复用稳定性；它不是严格 KL 保证，也不能补救无限陈旧的 rollout。
+
 7. 从 KL-regularized optimum 推导 DPO objective 的关键消元是什么？
+
+    **面试回答：** KL 正则最优解满足 $\pi^*(y\mid x)=\pi_{ref}(y\mid x)e^{r(x,y)/\beta}/Z(x)$，故 $r=\beta\log(\pi^*/\pi_{ref})+\beta\log Z(x)$。代入同一 prompt 的 Bradley–Terry reward 差，$\log Z(x)$ 抵消；令 $\Delta_\theta(y)=\log\pi_\theta(y\mid x)-\log\pi_{ref}(y\mid x)$，得到 $\mathcal L_{DPO}=-\mathbb E\log\sigma(\beta[\Delta_\theta(y_w)-\Delta_\theta(y_l)])$。
+
 8. DPO 不使用在线 rollout，为什么仍属于 preference/RLHF 思路？
+
+    **面试回答：** DPO 的监督来自 chosen/rejected 偏好对，目标是学习偏好对应的隐式 reward 排序，并通过 reference log-ratio 表达 KL 正则的政策改进。它把 RLHF 的偏好优化问题改写成离线监督损失，省去在线 rollout 和显式 reward/value model，但仍继承偏好数据偏差与分布覆盖限制。
+
 9. Length bias 会通过哪些数据和 loss 细节进入 policy？
+
+    **面试回答：** Length bias 先可能进入数据：人类或 judge 偏好更长回答，chosen/rejected 长度长期失衡。它还会经 sequence log-prob 的求和/平均、按样本或 token 归一化、截断、EOS 与格式奖励改变梯度权重；应审计长度分布并做长度控制评测，不能把变长自动解释为质量提升。
+
 10. Reward model 分数持续上升时，真实质量为什么可能下降？
+
+    **面试回答：** Reward model 是真实质量的代理，policy 强化优化后可能进入其未覆盖的分布，学会利用误差、冗长风格或其他评分捷径。若 $\hat r=r^*+\epsilon$，优化越来越依赖提高 $\epsilon$，就可能出现 $\hat r$ 上升而 $r^*$ 下降；需结合独立正确性评测、人类抽查、KL 和早停控制过度优化。
+
 
 ## 参考资料
 - [Lecture 15 官方课件](https://github.com/stanford-cs336/lectures/blob/main/lecture_15.pdf)

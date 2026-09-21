@@ -12,9 +12,21 @@
 
 ## 课程主线
 
-- **Stanford CS336 — Language Modeling from Scratch**：建立从模型、数据、训练到系统实现的完整基础；对应课程笔记将在学习时逐步建立。
+- [Stanford CS336 — Language Modeling from Scratch](courses/stanford-cs336/Stanford%20CS336.md)：建立从模型、数据、训练到系统实现的完整基础。
 - [Stanford CS149 — Parallel Computing](courses/stanford-cs149/Stanford%20CS149.md)：建立 multi-core、SIMD/SIMT、memory hierarchy、GPU 与并行性能优化基础。
 - [CMU 11-763 — Inference Algorithms for Language Modeling](courses/cmu-11-763/CMU%2011-763.md)：学习生成算法、质量与延迟权衡、可控生成及 inference-time scaling。
+- [LCPU AI Infra Seminars](courses/lcpu-ai-infra-seminars/LCPU%20AI%20Infra%20Seminars%20-%20整理进度与来源.md)：围绕 GEMM、Tensor Core、流水线、TileLang、通信与 LLM Serving 整理课程笔记和精编字幕。
+- [HPCGame 2026 — MLSys 知识地图](courses/hpcgame/HPCGame%202026%20MLSys/HPCGame%202026%20-%2000%20MLSys%20知识地图.md)：串联训练、推理、通信、Kernel、后训练与集群效率，并保留前沿追踪和证据记录。
+
+## 最新进展（2026-09-21）
+
+以下按资料与笔记整理进度记录，学习掌握程度与实验结果以各笔记中的记录为准。
+
+- **CS149**：新增第 11–19 讲，现已覆盖第 1–19 讲及 ISPC 阅读笔记；补充自测参考回答与课程编号说明。
+- **CS336**：扩充第 1–18 讲的自测参考回答，覆盖资源核算、模型架构、GPU、并行、推理、数据与后训练。
+- **CMU 11-763**：新增 15 篇，累计整理 17 讲；覆盖采样与搜索、推理链、工具与智能体、推理时扩展、KV Cache 和稀疏/线性注意力。课程索引标注各讲资料来源及仍缺授课材料的讲次。
+- **LCPU**：纳入 FP32 GEMM、Tensor Core、Pipeline、TileLang、AI Communication Stack、Inference & LLM Serving 六部分的笔记与精编字幕；第 5 讲保留课件草稿状态。
+- **HPCGame 与主题笔记**：新增 MLSys 总览、知识地图、九个专题和追踪记录；补充 LLM Inference 的课程入口与 Transformer Block 自测参考回答。
 
 ## 主题笔记
 

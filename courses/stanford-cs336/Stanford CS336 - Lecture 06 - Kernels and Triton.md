@@ -537,19 +537,61 @@ $$\text{shared bytes} \propto (B_MB_K+B_KB_N)b$$
 ## 14. 自测问题
 
 1. PyTorch operator、GPU kernel、PTX 和 SM 的关系是什么？
+
+    **面试回答：** PyTorch operator 表达张量级语义，执行时由库或编译器映射为一个或多个 GPU kernels；融合时多个 operator 也可能共用一个 kernel。PTX 是 NVIDIA 的虚拟指令层，进一步编译为机器指令，kernel 的 blocks/warps 最终由物理 SM 调度执行。
+
 2. 为什么 HBM kernel boundary 会让 intermediate tensor 昂贵？
+
+    **面试回答：** 分开的 kernels 通常不能直接共享彼此线程的寄存器或 block-local shared memory，中间张量往往要写入全局内存，再由后续 kernel 读回。它因此带来读写流量、临时分配和 launch 成本；缓存可能缓解实际 HBM 访问，但不能假定中间 tensor 免费。
+
 3. Benchmark 为什么需要 warmup、CUDA events 和 synchronize？
+
+    **面试回答：** Warmup 排除首次编译、初始化及缓存建立的开销；CUDA events 在 GPU 时间线上标记执行区间，避免只量到 CPU 提交时间。读取结果前 synchronize 或等待结束 event，才能保证被测工作完成；多 stream 时还必须显式表达依赖，并保持计时口径一致。
+
 4. Benchmark 与 profiler 分别回答什么问题？
+
+    **面试回答：** Benchmark 回答固定 workload 下到底多快、波动多大、改动是否产生收益；profiler 回答时间花在哪些 kernels、通信、数据搬运或空闲间隙。先建立基线，再 profile 定位瓶颈并形成假设，修改后用低干扰 benchmark 验证，不能直接把 profiler 的扰动耗时当最终性能。
+
 5. Naive GeLU 为什么会比 fused GeLU 慢？
+
+    **面试回答：** Naive eager GeLU 的乘法、加法和 tanh 可能各自启动 kernel，并多次把中间 tensor 写回再读出。Fused GeLU 在一次 kernel 内完成整个表达式，通常接近一次输入读取和输出写入，主要省的是 HBM 流量与 launch，而不是改变数学公式的主要计算量。
+
 6. Triton 的 `program_id`、`tl.arange`、mask 和 `tl.constexpr` 各有什么作用？
+
+    **面试回答：** program_id 标识当前 program instance，决定它处理哪块数据；tl.arange 生成 tile 内的逻辑偏移向量。Mask 防止越界 load/store，并可给无效元素填 reduction 的中性值；tl.constexpr 声明编译期常量，用于 shape、展开和特化，但不同配置可能产生新的编译版本。
+
 7. 为什么 softmax padding lanes 应该 load 为 $-\infty$？
+
+    **面试回答：** 有效行至少有一个有限值时，填 −∞ 不会改变行最大值，减去最大值后 exp(−∞)=0，也不会改变归一化分母。若填 0，就可能抬高负值行的 max 并给 padding 分配概率；写回还需 mask，整行全被屏蔽时则要另行处理以避免 −∞−(−∞) 产生 NaN。
+
 8. 一行放不进一个 program 时，row reduction 如何分两级完成？
+
+    **面试回答：** 以 row sum 为例，一个 program 可以循环读取多个列 tile，每个 lane 先把不同 tile 同一偏移位置的值累加到 FP32 accumulator。遍历完成后，再对这些 lane accumulators 做一次归约；若进一步拆到多个 programs，则先写 partial sums，再由后续阶段归约它们。
+
 9. Matmul 的 grid 为什么通常沿 $M,N$，而 $K$ 放进 loop？
+
+    **面试回答：** C 的不同 M×N 输出 tiles 可以独立并行，每个 tile 内沿 K 归约，因此 grid 通常覆盖 M、N，K 在 program 内循环，partial sum 留在寄存器。这样避免多个 programs 争写同一输出及额外归约；小 M/N、大 K 时也可用 split-K，但需承担合并 partial results 的成本。
+
 10. Stride 如何参与二维 tensor 的地址计算？
+
+    **面试回答：** 若 strides 以元素为单位，A[i,j] 的偏移是 i·s₀+j·s₁，实际 byte 地址再乘 element_size；若 strides 本身以 bytes 表示则不再乘。Transpose view 可保持相同 storage 而改变 strides，所以 kernel 必须按传入 stride 寻址，不能从 shape 自动推定 contiguous layout。
+
 11. 为什么 tiled matmul 的 arithmetic intensity 随 tile size 增长？
+
+    **面试回答：** 一个 B_M×B_N×B_K phase 做约 2B_MB_NB_K FLOPs，只读取 B_MB_K+B_KB_N 个输入元素。若 B_M=B_N=T、每元素 s bytes，并忽略输出流量，AI≈T/s，因此增大输出 tile 边长提高复用；单独增大 B_K 不会在这个近似式中提高 AI。
+
 12. 增大 tile 会受到哪些硬件资源限制？
+
+    **面试回答：** 更大 tile 需要更多 shared memory 保存输入、更多 registers 保存 accumulator，还可能增加线程数与同步开销，降低同时驻留的 blocks。还要匹配 Tensor Core 指令 shape、地址对齐及总 grid 并行度；边界 padding、寄存器 spill 和尾波都可能抵消复用收益。
+
 13. XLA/`torch.compile` 自动 fusion 的收益和风险分别是什么？
+
+    **面试回答：** 自动 fusion 能从计算图发现跨算子优化，减少中间 tensor、HBM 流量和 launch，并做布局与 buffer 复用。风险是首次编译成本、动态 shape 触发特化或重编译、图切分，以及融合后资源压力过高；应分别测首次调用与稳态，自动生成代码不保证优于成熟手写 kernel。
+
 14. FlashAttention 用到了本讲的哪些 kernel 技巧？
+
+    **面试回答：** FlashAttention 用 tiling 分块加载 Q/K/V，融合 score、scale、mask、softmax 与 PV，通过 online reduction 维护逐行归一化统计。它再结合片上累加、coalesced 访存、causal/bounds mask 和 backward recomputation，避免完整 attention matrix 落入 HBM，并按 head dimension 与 dtype 选择配置。
+
 ## 参考资料
 
 - [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)

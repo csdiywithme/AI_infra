@@ -446,15 +446,45 @@ Dataset card 能说明总体构建方式，但 takedown、审计和 bias analysi
 
 ## 13. 自测问题
 1. 为什么模型不能直接在 live web server 上训练？
+
+    **面试回答：** Live web 的内容、URL 和权限会变化，下载延迟与站点限流也无法满足 GPU 稳定供数，训练过程中实时抓取还难以复现数据版本。实际应先按采集政策抓取或使用 dump，保存可追溯快照，再做解析、过滤、去重和分片，把不稳定的在线服务变成可重复读取的训练样本。
+
 2. WARC 与 WET 的取舍是什么？为什么 extractor 会影响下游 accuracy？
+
+    **面试回答：** WARC 保留原始 HTTP 内容，方便重新解析和审计，但体积大、处理贵；WET 是已抽取文本，更轻便，却无法恢复被错误删除的结构。Extractor 决定正文、代码、表格和段落是否保留，也决定广告与导航是否混入，直接改变模型收到的训练信号及下游 accuracy。
+
 3. `robots.txt`、ToS、copyright 和 license 分别约束什么？
+
+    **面试回答：** `robots.txt` 描述爬虫访问规则，并不授予内容使用权；ToS 规定服务使用条件；copyright 保护作品表达；license 由有权授权者规定允许哪些使用及其条件。工程上应分开记录抓取许可与内容权利，不能用“允许访问”代替“允许训练”，具体适用还取决于司法辖区和使用方式。[RFC 9309](https://www.rfc-editor.org/rfc/rfc9309.html#section-1)、[版权概述](https://www.copyright.gov/help/faq/faq-general.html)
+
 4. 为什么 public repository 不等于 permissively licensed code？
+
+    **面试回答：** Public 只表示可见，仓库可能没有 license，也可能采用附带较强义务的许可；缺少明确许可不能自动按 MIT/Apache 处理。还要检查文件级声明、vendored dependencies 和上游权利链，因为仓库首页的 license 未必覆盖全部内容；GitHub 允许查看或 fork 也不等于授予所有其他用途。[GitHub 许可说明](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)
+
 5. WebText 的 Reddit karma proxy 带来什么优点和 selection bias？
+
+    **面试回答：** Reddit karma 相当于低成本的人类推荐信号，比随机抓网页更容易筛到有信息量、读者愿意分享的内容。它同时偏向 Reddit 用户的人口结构、语言、兴趣与流行话题，冷门专业内容和未被链接的高质量页面容易漏掉；所以“受欢迎”只是质量代理，不能代表全网分布。
+
 6. CCNet 的 Wikipedia perplexity filter 与 C4 手工规则分别会偏向什么文本？
+
+    **面试回答：** CCNet 用 Wikipedia 训练的语言模型打 perplexity，会偏好类似百科的规范表达、主题与语言分布，不等于衡量通用真实性。C4 的长度、标点、坏词和代码规则偏向完整自然语言散文，可能过滤代码、口语，以及讨论身份、健康等主题的正常文本；二者都把过滤器偏好写入训练集。
+
 7. The Pile 的 domain mixture 与 RefinedWeb 的 web-only 路线有什么不同？
+
+    **面试回答：** The Pile 显式混合多个领域来源，借助书籍、论文、代码和问答等互补覆盖能力，但需要管理来源许可、混合权重和跨源重复。RefinedWeb 主要依靠大规模网页的重新抽取、规则清洗和去重证明 web-only 路线的潜力；关键区别是靠来源配方补齐覆盖，还是优先把网页原料处理好。
+
 8. 为什么 quality threshold 越高不一定越好？
+
+    **面试回答：** 提高阈值能提升平均代理分数，却会缩小 unique-token pool、删去长尾领域，固定训练预算下还可能迫使数据反复使用。最优点取决于模型规模、训练 tokens 和目标任务，应比较实际训练后的能力及各领域保留率，而不是只追求过滤后数据的平均质量分数。
+
 9. Dataset/collection license 为什么不必然覆盖单条 document？
+
+    **面试回答：** 数据集发布者可能只拥有汇编、整理或自身新增内容的权利，不能仅靠给 collection 标注宽松许可就改变原文档的许可。单篇内容仍可能属于不同作者或包含第三方材料，因此要保留 document-level 来源和授权证据；例如 CC 明确说明，汇编许可不改变所收录作品的原许可。[Creative Commons FAQ](https://creativecommons.org/faq/#if-i-create-a-collection-that-includes-a-work-offered-under-a-cc-license-which-licenses-may-i-choose-for-the-collection)
+
 10. 若收到数据删除请求，一条合格 lineage 应让你回答哪些问题？
+
+    **面试回答：** 应能定位请求对应的 raw objects、抓取时间与来源证据，并追踪它们派生的正文、去重副本、合成变体、token shards 和训练 run/checkpoints。还要说明哪些副本已删除、哪些数据需重建、模型影响如何处理以及后续如何阻止重新摄入；删除原始文件本身不能证明已有模型已忘记该数据。
+
 
 ## 参考资料
 - [Stanford CS336 课程主页与 Schedule](https://cs336.stanford.edu/)

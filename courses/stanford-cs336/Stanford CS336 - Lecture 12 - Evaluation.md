@@ -1000,19 +1000,61 @@ Evaluation 应被视为持续过程，而非一次性 dataset release。
 ## 15. 自测问题
 
 1. NLL 与 perplexity 的关系是什么？
+
+    **面试回答：** 若平均 token NLL 使用自然对数，$L=-\frac1T\sum_t\log p(x_t\mid x_{<t})$，则 perplexity 为 $\mathrm{PPL}=e^L$；若用以 2 为底的对数，则为 $2^L$。PPL 是平均预测不确定性的指数形式，比较时必须统一评测语料、tokenizer 和归一化口径。
+
 2. 为什么跨 tokenizer 直接比较 token PPL 不公平？
+
+    **面试回答：** Tokenizer 不同，同一文本被切成的 token 数与粒度不同，平均每 token NLL 的分母就不同；更长 token 往往承载更多信息，不能因此说其模型更差。跨 tokenizer 可在相同文本上报告 bits-per-byte 或按字符归一化的 log-likelihood，同时统一文本预处理和编码口径。
+
 3. Conditional PPL 比无条件 PPL 更适合什么任务？
+
+    **面试回答：** Conditional PPL 衡量 $p(y\mid x)$，更适合翻译、问答、摘要和指令跟随这类有明确输入条件的任务。它只对目标回答 tokens 计算 NLL，把 prompt 当条件；否则 prompt 本身易不易预测会混入分数，但即便如此，likelihood 仍不能替代生成正确性和任务完成率。
+
 4. MMLU-Pro 如何降低 MMLU 饱和？
+
+    **面试回答：** MMLU-Pro 通过提高题目推理难度、去除部分噪声或过于简单的题，并把选项从 4 个扩至 10 个，降低猜对概率与 ceiling effect。它在明确的 prompting/CoT 协议下拉开能力差异，但仍属于知识与推理考试，需继续检查污染、题目质量及评测协议敏感性。
+
 5. Pairwise preference 相比绝对打分有什么优势和偏差？
+
+    **面试回答：** 同一 prompt 下比较两份回答，通常比给绝对 1–10 分更容易，能减少不同标注者打分尺度不一致的问题。它仍只有相对偏好，两个答案可能都差，而且位置、长度、风格、用户群体和对手分布都会影响胜率；最好配合维度 rubric 与事实核验。
+
 6. LLM judge 的 position、verbosity 和 self-preference bias 分别是什么？
+
+    **面试回答：** Position bias 是判断受答案展示顺序影响；verbosity bias 是把更长、更详尽的表象当作更好；self-preference 是偏爱自身或同模型族的表达风格。可用答案换位复判、长度控制、明确正确性 rubric 和独立专家校准诊断偏差，不能把 judge 分数直接当真值。
+
 7. 为什么 SWE-bench 分数不能直接归因给 base model？
+
+    **面试回答：** SWE-bench 的成绩来自模型、agent scaffold、工具、代码检索、环境、重试次数和 token/time budget 的共同作用。相同 base model 换一个工具链或增加多次尝试都可能明显变分，因此必须公开系统配置并在统一协议下做消融，才能讨论模型本身的贡献。
+
 8. Safety evaluation 为什么必须同时看 harmful compliance 与 over-refusal？
+
+    **面试回答：** 只看 harmful compliance，模型可以通过拒绝所有请求获得表面上的安全高分，但会失去正常帮助能力。应同时统计有害请求的配合率、正常请求的过度拒绝率和越狱鲁棒性，并按风险类别分组；这样才能看到安全性与可用性的实际权衡。
+
 9. Fresh eval 和 private eval 各自解决、引入什么问题？
+
+    **面试回答：** Fresh eval 持续加入新题，降低已知训练截止日期前的直接重叠，但题目可能改写自旧材料，且会随公开使用逐渐污染。Private eval 减少公开泄漏，也能贴近业务，却难以社区复现和审计；两者都需记录版本、模型时间点及已知重叠证据。
+
 10. 为什么同一批题上的模型比较应使用 paired statistics？
+
+    **面试回答：** 同一题对两个模型的难度相关，关心的是每题差值 $d_i=s_i(A)-s_i(B)$ 的均值，而不是两组独立样本的均值差。Paired bootstrap 能保留这种相关性；二元对错还可用 McNemar 检验关注相互胜出的题，通常比忽略配对更有效。
+
 11. Agent evaluation 的方差来自哪些层次？
+
+    **面试回答：** 方差既来自题目与领域差异，也来自生成采样、规划和工具选择、judge 判断，以及网络、容器或环境状态。应固定可控协议、对同一任务重复运行，并按题目和运行层次做分层统计；基础设施失败要单独记录，不能静默丢弃后只算成功样本。
+
 12. Method、model/system 和 agent leaderboard 的规则有何不同？
+
+    **面试回答：** Method leaderboard 通常固定训练数据、算力和指标，以比较算法；model/system leaderboard 允许不同训练配方，比较最终产品能力。Agent leaderboard 还把 scaffold、工具权限、网络、重试和 test-time compute 纳入规则，所以分数解释必须先说明比较对象与允许的预算。
+
 13. 如果一个模型 accuracy 高 1%，但区间高度重叠，应怎样报告？
+
+    **面试回答：** 先报告“本次点估计高 1 个百分点”，同时给出配对差值的置信区间、样本量和协议。两个模型各自区间重叠并不能直接判定差异不显著；应检查差值区间是否跨 0，若证据不足就写“尚不能可靠确认优势”，并结合成本和关键任务切片解释实际意义。
+
 14. 为什么自动 judge 与 Arena 高相关仍不足以证明 judge 有效？
+
+    **面试回答：** 高相关可能来自两者都偏爱长答案或相似风格，也可能只是被测模型差距很大，掩盖了关键细节错误。因此还需看专家标注的正确性、顺序交换一致性、对抗样本和分领域误差；排名相关只能作为辅助证据，不能证明 judge 测到了真正想要的能力。
+
 
 ## 参考资料
 

@@ -1143,23 +1143,77 @@ CPU inference、KV cache 管理和 data loader 若忽略 NUMA placement，逻辑
 ## 20. 自测题
 
 1. shared address space 为什么不代表 uniform memory access？
+
+    **面试回答：** 共享地址空间只统一了寻址方式，没有统一数据的物理位置和访问路径。NUMA 系统中，本地 DRAM、远端 socket 内存以及不同 cache 层的延迟和带宽都不同；线程放置、首次触页和数据分区会直接影响同一条 load 的实际代价。
+
 2. ghost row 解决了什么问题？它付出了什么代价？
+
+    **面试回答：** Ghost row 保存相邻分区的边界副本，使节点能用本地数组完成边界 stencil 计算，无需逐点远程读取。代价是额外边界存储、每轮 halo 传输以及完成同步；副本必须按算法阶段更新，不能把上一轮或尚未接收完成的数据当作本轮输入。
+
 3. 为什么所有节点都先 blocking send 可能死锁？奇偶协议怎样打破等待环？
+
+    **面试回答：** 当 blocking send 必须等匹配 receive 时，所有节点先 send 会形成循环等待，没人能前进到 receive。奇偶协议让一侧先发送、另一侧先接收，再交换角色，为各邻接方向建立可推进的匹配次序；不能依赖小消息偶尔被内部缓冲来证明程序正确。
+
 4. async send 返回后，为什么仍不能立刻修改 send buffer？
+
+    **面试回答：** Async send 返回通常只说明请求已提交，通信层或 NIC 可能稍后才读取原 buffer。立刻修改、释放或复用它可能使接收端得到新旧混合数据；应等 request 的 send completion，确认 API 已归还 buffer 使用权，再进行修改。
+
 5. inherent communication 和 artifactual communication 各举两个例子。
+
+    **面试回答：** 在给定算法和数据归属下，halo exchange 与跨节点归约 partial sums 属于 inherent communication，因为依赖信息必须跨 owner 传递。只使用少量字节却搬整条 cache line，以及数据被容量逐出后再次加载，属于 artifactual communication，可通过布局或分块减少。
+
 6. 对 `N×N` 网格，为什么二维方块分区的 work/communication 比是一维行块的 `√P` 倍量级？
+
+    **面试回答：** 每个 worker 工作量都是 $\Theta(N^2/P)$。一维行块边界为 $\Theta(N)$，所以比值为 $\Theta(N/P)$；二维方块边长为 $N/\sqrt P$，边界为 $\Theta(N/\sqrt P)$，比值为 $\Theta(N/\sqrt P)$，两者相差 $\Theta(\sqrt P)$，前提是均匀分区和固定宽度邻接。
+
 7. cache blocking 改变了算法依赖吗？它实际改变了什么？
+
+    **面试回答：** 合法 cache blocking 不改变算法依赖和所需结果，改变的是满足依赖的遍历顺序、局部工作集大小和复用距离。把相关计算放进 cache 容量可容纳的 tile，能在数据被逐出前反复使用，减少容量缺失及重复传输；有依赖的循环不能任意重排。
+
 8. 分离的三个 elementwise kernel 融合后，memory traffic 为什么减少？
+
+    **面试回答：** 融合让前一个操作的结果直接留在寄存器供后一个消费，省去临时数组写回和再次读取。以 `(A+B)*C+D` 为例，分开执行每元素共 9 次元素读写，融合只需 4 次输入读取和 1 次输出写入；实际 DRAM 节省还取决于原版本的 cache 命中。
+
 9. 某机器内存带宽 1 TB/s，kernel 强度 10 FLOP/byte，带宽 roof 是多少 FLOP/s？
+
+    **面试回答：** 带宽 roof 为 $B I=10^{12}\times10=10^{13}$ FLOP/s，即 10 TFLOP/s，这里 TB 使用十进制单位。实际可达上限还要与计算峰值取较小者，并会受访存效率、并行度和指令开销影响。
+
 10. 为什么 achieved FLOP/s 下降的算法仍可能更快？
+
+    **面试回答：** 完成时间取决于总工作量除以执行速率，即 $T=F/P$。如果新算法把总 FLOPs 减少得更多，即使 achieved FLOP/s 下降仍能更早完成；因此应比较完成同一目标的端到端时间，同时检查计算量和通信量，而非只追求较高的算力利用率。
+
 11. 为什么 message passing 代码没有共享变量 lock，却仍然可能 deadlock 或产生 buffer race？
+
+    **面试回答：** 私有地址空间消除了跨 rank 的普通共享变量竞争，却没有消除协议依赖。两边都等待 blocking send 可死锁，async send 未完成就改 buffer 会与通信层读取冲突，消息匹配或顺序错误也会使接收等待错误数据；这些要靠完成与所有权协议解决。
+
 12. `async_send()` 返回、send completion 和 remote application 已消费数据，三者有什么区别？
+
+    **面试回答：** `async_send()` 返回表示提交完成，send completion 通常表示本地发送 buffer 已可安全复用，两者都不必意味着远端应用已处理消息。远端消费完成是更高一层事件，若业务需要确认，必须等待明确的接收、处理确认或对应协议状态。
+
 13. 为什么 zero-copy buffer 通常必须 registered/pinned，并在 completion 前保持不变？
+
+    **面试回答：** NIC 直接 DMA 访问应用内存，需要稳定的地址映射、访问权限及有效的注册信息；常规 RDMA 路径通过 registered/pinned memory 提供这些保证。Completion 前还要保持 buffer 存活且内容不变，因为设备可能尚未读取；省去软件复制并不会自动保留一份数据快照。
+
 14. memory latency 增加但 bandwidth 不变时，时序图中的哪些部分变长、哪些保持不变？
+
+    **面试回答：** 请求发出到数据开始返回的等待距离变长，首批结果更晚出现；传输条本身的宽度 $S/B$ 不变。若仍有足够独立请求在途，稳态传输可保持连续且吞吐不变；若并发容量不足，就会出现总线空档和更长的计算停顿。
+
 15. 若系统带宽为 `B`、latency 为 `L`、每次传输 `S` bytes，大约需要多少 outstanding requests 才能填满管线？
+
+    **面试回答：** 由带宽延迟积估算，约需 $Q\approx\lceil BL/S\rceil$ 个独立在途请求，其中 L 按请求驻留时间口径计算。若 L 只含首字节前的固定等待，而请求直到整块传完才释放，则估计为 $\lceil B(L+S/B)/S\rceil$；还必须有足够的请求槽和发射能力。
+
 16. 怎样用 ideal-machine test 区分 inherent 与 artifactual communication？
+
+    **面试回答：** 先固定算法、数据归属和输出语义，再假设本地存储无限、可按所需字节精确传输，且数据不会被意外逐出。仍需跨 owner 传递的信息属于 inherent；只因容量、传输粒度或中间结果物化而额外移动的数据属于 artifactual；改变分区会改变判断前提。
+
 17. 在 `d` 维规则网格中，超立方分区的 work/communication ratio 为什么是 `Θ(N/P^(1/d))`？
+
+    **面试回答：** 设每个超立方分区边长为 $l=N/P^{1/d}$。固定维数、固定 halo 宽度时，计算随体积增长为 $\Theta(l^d)$，通信随表面积增长为 $\Theta(l^{d-1})$，故 $W/C=\Theta(l)=\Theta(N/P^{1/d})$；这里比较的是每 worker 每轮的量。
+
 18. 为什么两个 partition 即使传输总 bytes 相同，message count 不同仍可能有明显性能差异？
+
+    **面试回答：** 每条消息除了 payload 传输，还会支付启动、协议处理和匹配成本。用 $T_{comm}\approx m\alpha+V/B$ 估算，V 相同而消息数 m 更大时，启动开销仍可能显著增加；实际还要看并发、打包、拥塞和通信与计算能否重叠。
+
 
 ## 参考资料
 

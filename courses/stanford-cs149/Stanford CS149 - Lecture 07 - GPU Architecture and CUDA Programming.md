@@ -661,15 +661,45 @@ $$
 ## 自测题
 
 1. CUDA thread、warp、thread block、SM 分别属于哪一抽象层？
+
+    **面试回答：** CUDA thread 是 SPMD 逻辑实例，thread block 是程序员定义的协作、共享内存和同步组；warp 是 NVIDIA 把线程组织起来执行和调度的分组，通常含 32 个线程。SM 是实际硬件计算单元，可驻留并调度多个 blocks 和 warps，不能把逻辑线程数当作物理 ALU 数。
+
 2. 为什么 `11×5` matrix 配 `4×3` block 会启动 72 个 threads？多余 threads 应怎样处理？
+
+    **面试回答：** Grid 需向上取整为 $\lceil11/4\rceil\times\lceil5/3\rceil=3\times2$ 个 blocks，每块 12 threads，因此共启动 72 个线程。只有 55 个对应有效元素，应按坐标检查 `x<11 && y<5` 再访问；若有 block barrier，多余线程也要按一致控制流参与所需同步。
+
 3. 为什么 shared-memory convolution 在读取 tile 后需要 `__syncthreads()`？
+
+    **面试回答：** Tile 由不同线程协作加载，而一个线程的卷积会读取其他线程写入的 shared-memory 元素。`__syncthreads()` 保证所有参与线程到齐并使前序写入可见，防止读取未完成的数据；不能仅凭 warp 或线程编号猜测谁先执行。
+
 4. 128-thread block 在 NVIDIA GPU 上通常包含几个 warps？这是否表示它只能在 4 cycles 内完成？
+
+    **面试回答：** 通常是 $128/32=4$ 个 warps。它只说明执行分组数量，整个 kernel 还包含多条指令、依赖和访存等待；单条 warp 指令的吞吐也取决于架构及执行单元，所以不能推出整个 block 在 4 cycles 内完成。
+
 5. GPU 拥有 16 万 live thread contexts，为什么不等于每 cycle 有 16 万条标量指令同时执行？
+
+    **面试回答：** Live contexts 表示寄存器、PC 等状态驻留，供调度器在等待时切换到其他 ready work。每周期真正能发射和执行的指令受 scheduler、各类流水线和 ALU 数量限制，很多线程此时正在等待数据或依赖；上下文容量的主要作用是隐藏延迟。
+
 6. 为什么 block 内 barrier 合法，而在普通 kernel 内用两个 blocks 自制 barrier 可能死锁？
+
+    **面试回答：** Block 的资源必须能整体驻留在一个 SM，合法的 block barrier 因而能等待该组线程推进。普通 kernel 的不同 blocks 不保证同时驻留，自制跨 block barrier 可能让已驻留 blocks 占住资源等待尚未调度者；全局阶段通常用有序的多次 kernel launch 表达。
+
 7. 一个 kernel occupancy 从 50% 提升到 100%，性能为何可能完全不变甚至下降？
+
+    **面试回答：** 50% occupancy 可能已提供足够 ready warps，让计算单元或带宽饱和，继续增加便没有收益。若为提升 occupancy 缩减寄存器或 tile，还可能引起 spill、减少数据复用并增加同步；应优化实际耗时和瓶颈资源，而非把 occupancy 数字本身最大化。
+
 8. Shared-memory tiling 降低 global-load 指令量时，为什么还不能直接断言 DRAM bytes 按同样比例下降？
+
+    **面试回答：** Global-load 指令不等于 DRAM transaction：原版本的重复 load 可能已命中 L1/L2，连续请求也可能合并。Tiling 减少的是显式加载次数，还引入 shared-memory 访问和同步；要判断实际 HBM 节省，应测量 cache 行为、事务量和传输字节。
+
 9. Host 与 device 使用统一虚拟地址后，为什么仍必须关心 data placement？
+
+    **面试回答：** 统一虚拟地址统一的是指针命名，不保证数据位于同一物理存储或具有相同访问成本。GPU 访问 host DRAM 可能跨 PCIe，managed memory 也可能发生迁移和缺页；仍应规划权重与工作集驻留位置、传输批次及计算重叠。
+
 10. 对一个 Transformer kernel，怎样依次检查 divergence、memory access、tiling 和 residency？
+
+    **面试回答：** 先映射 token、head 和 tile 到线程，检查 warp 内分支与尾部 mask；再看相邻 lane 地址、合并访问和 HBM 字节。随后评估 shared/register tiling 的复用与同步成本，最后检查寄存器、shared memory、spill 和驻留 warps 是否足以隐藏延迟，并用实际耗时验证。
+
 
 ## 参考资料
 

@@ -1487,27 +1487,93 @@ per-expert bias 都是在构造容易训练的 proxy。
 ## 17. 自测问题
 
 1. 从 $Q,K,V$ 的 shape 出发，为什么 full attention mixing 是 $O(n^2(d_k+d_v))$？
+
+    **面试回答：** 单头 Q、K 分别为 [n,d_k]，QKᵀ 得到 [n,n]，需约 2n²d_k FLOPs；再与 [n,d_v] 的 V 相乘，需约 2n²d_v FLOPs。因此 mixing 合计 O(n²(d_k+d_v))，未计 Q/K/V projection；causal mask 可减少常数，但不改变二次阶数。
+
 2. 为什么 $(QK^\top)V=Q(K^\top V)$ 不能直接用于普通 softmax attention？
+
+    **面试回答：** 矩阵乘法结合律只适用于中间没有非线性变换的 QKᵀV。普通 attention 是 softmax(QKᵀ)V，逐行指数和归一化依赖整行 score，不能穿过结合律移到 KᵀV 上；linear attention 要改用可分解的 kernel feature map 或另一种规则，不能假定与原 softmax 精确等价。
+
 3. Causal linear attention 的 $S_t$ 和 $z_t$ 分别保存什么？
+
+    **面试回答：** $S_t=\sum_{j\le t}\phi(k_j)v_j^\top$ 保存历史 key-value association 的累积矩阵，$z_t=\sum_{j\le t}\phi(k_j)$ 保存归一化所需的 key 特征和。输出 $y_t=\phi(q_t)^\top S_t/[\phi(q_t)^\top z_t]$；每步只更新这两个前缀状态，无须重读全部历史 K/V。
+
 4. 为什么 linear attention 的 recurrent state 不随 context length 增长，却可能损失精确 retrieval？
+
+    **面试回答：** 它把历史外积加到固定维度的矩阵 S_t，而不为每个 token 保留独立地址，所以状态大小由特征维度决定，与 context length 无关。代价是不同历史可能压缩成相同或近似的状态，关联之间会干扰，后续 query 无法像 full attention 那样精确取回每个历史 token。
+
 5. Parallel–recurrent duality 分别解决训练和 decode 的什么问题？
+
+    **面试回答：** 训练和 prefill 时，已知全部 token，可使用等价的矩阵、分块或 parallel scan 形式，减轻逐步递归的串行依赖并利用 GPU。Decode 时则转为 recurrent update，只读写固定大小状态，避免随历史长度增长的 KV 访问；两种形式服务于同一模型的不同 workload。
+
 6. Mamba-2 的 $\gamma_t$ 与 Gated DeltaNet 的 $\beta_t$ 分别控制什么？
+
+    **面试回答：** 在本讲的简化更新里，Mamba-2 的 γ_t 决定旧状态整体保留多少，相当于控制遗忘速度和记忆时间尺度。Gated DeltaNet 的 β_t 决定当前 key 方向的擦除与新 value 写入强度，γ_t 仍负责全局 decay；β_t=0 时不执行这次定向更新。
+
 7. 怎样从 $(I-\beta_tk_tk_t^\top)S_{t-1}$ 看出定向 erase？
+
+    **面试回答：** 展开可得 $S_{t-1}-\beta_tk_t(k_t^\top S_{t-1})$，也就是先读出沿当前 key 的旧 association，再从同一方向减掉一部分。若 $\lVert k_t\rVert=1$ 且 $\beta_t=1$，该方向的旧分量被清除，正交方向保留；之后加 $\beta_tk_tv_t^\top$ 写入新值，若 key 未归一化则不能直接解释为完全擦除。
+
 8. Learned sparse attention 若仍保存全部 K/V，减少了 compute、bandwidth 和 capacity 中的哪些？
+
+    **面试回答：** 若每个 query 只访问 k≪n 个候选，精确 attention 的计算和所选 KV 的读取量可以下降。但只要全部历史 K/V 仍驻留，cache capacity 仍随 n 增长；总 bandwidth 收益还要扣除 indexer、Top-K 和不规则 gather 的开销，不能只看稀疏矩阵的非零数。
+
 9. 为什么 sparse indexer 如果做完整高维 $QK^\top$ 就失去了主要意义？
+
+    **面试回答：** 因为完整高维 QKᵀ 已经付出了 dense attention 最主要的 O(n²d) 打分成本，再做 Top-K 只省后面的部分计算，还增加选择和 gather 开销。Indexer 应用更低维、分块或其他便宜表示产生候选，并在成本与重要 token 的召回率之间折中。
+
 10. MoE 的 total parameters 与 active parameters 应怎样分别计算？
+
+    **面试回答：** 若 E 个 routed experts 各含 N_e 参数，其余共享部分含 N_s 参数，每 token 激活 K 个 expert，则 N_total≈N_s+EN_e，N_active≈N_s+KN_e。始终激活的 shared experts 和 router 应计入相应共享项；存储和训练状态主要看 total，逐 token 的主要 FFN FLOPs 看 active。
+
 11. 为什么增加 expert 数量、固定 Top-$K$ 时，主要 FFN FLOPs近似不变但部署成本仍会上升？
+
+    **面试回答：** 固定 K 和 expert size 时，每 token 仍只执行 K 个 FFN，因此主要 expert FLOPs 近似不变。但总权重、Adam state 和 checkpoint 随 expert 数增大，router 更大，跨设备路由与负载平衡更复杂；每 expert token 更少还可能使 GEMM 变小、设备利用率下降。
+
 12. Token-choice 与 expert-choice routing 的负载特性有什么不同？
+
+    **面试回答：** Token-choice 让每个 token 选固定 K 个 expert，单 token 计算量可控，但热点 expert 可能过载。Expert-choice 让每个 expert 按 quota 选 token，更容易控制 expert 负载，却允许某 token 被选零次或多次，单 token 计算和服务语义更复杂。
+
 13. Switch balancing loss 中 $f_i$ 与 $P_i$ 的区别是什么？
+
+    **面试回答：** 在 Switch 的 Top-1 定义里，$f_i$ 是实际被 argmax 分到 expert $i$ 的 token 比例，是离散计数；$P_i$ 是所有 token 给 expert $i$ 的平均软概率，可微。辅助项 $\alpha E\sum_i f_iP_i$ 把 $f_i$ 视为常数，通过 $P_i$ 给高负载 expert 更强的下调压力；Top-K 情况需调整派发比例定义。
+
 14. 为什么 balancing coefficient 太大会损害模型质量？
+
+    **面试回答：** Balancing loss 优化的是负载均匀这一系统代理目标，任务 loss 希望 token 进入最适合的 expert，两者并不总一致。系数过大时，router 为满足均匀配额牺牲语义匹配，抑制 specialization，最终损害质量；应结合吞吐、溢出率和验证 loss 联调。
+
 15. Expert parallel MoE 为什么需要 dispatch 和 combine 两次 All-to-All？
+
+    **面试回答：** Token 最初在其所属设备上，选中的 experts 却可能位于其他设备，所以先通过 dispatch All-to-All 把输入送到 expert 所在处。专家计算后，再通过 combine All-to-All 把输出送回原 token 的设备，恢复顺序并按 gate 加权求和；这是 forward 的两次主要交换。
+
 16. 推导 MoE layer 约 $2TKds$ 的 aggregate communication payload。
+
+    **面试回答：** T 个 token 各送给 K 个 expert，每份输入向量含 d 个元素、每元素 s bytes，dispatch payload 为 TKds。若 expert 输出同为 d 维，返回再传 TKds，故 forward 的聚合 payload≈2TKds；该估算忽略本地路由、metadata、padding、链路转发和 backward 通信。
+
 17. Capacity factor、padding 与 token dropping 之间是什么 tradeoff？
+
+    **面试回答：** 每 expert 容量通常设为 C≈⌈capacity factor·TK/E⌉。Capacity factor 大能降低 overflow 和 token dropping，却增加预留显存及 padding 计算；容量小更省资源，但需丢弃或重路由超额 token，可能改变模型函数和质量；动态无丢弃实现仍需处理不规则负载。
+
 18. Router 使用 FP32 和 z-loss 分别在防什么问题？
+
+    **面试回答：** Router 使用 FP32 主要减少低精度舍入、溢出以及临界分数扰动导致的 Top-K 排名不稳定。Router z-loss 约束 (logΣexp r)²，抑制 log-normalizer 和整体 logits 漂移；它不是直接的负载均衡或熵正则，不能单独保证 experts 使用均匀。
+
 19. Upcycling 为什么能保持 dense FFN 的初始函数？为什么 experts 又可能难以分化？
+
+    **面试回答：** 若每个 expert 都复制同一个 dense FFN，且选中 gate 之和为 1，则 $\sum_i g_i\operatorname{FFN}(x)=\operatorname{FFN}(x)$，初始层函数可保持不变。相同初始化也造成对称性，输出缺少差异时 router 分工信号较弱，experts 需要不同路由数据、扰动或继续训练逐步分化；拆分和重初始化不一定严格保函数。
+
 20. MLA 压缩的主要是 KV Cache，为什么它本身不一定消除 dense attention 的二次计算？
+
+    **面试回答：** MLA 把每个历史 token 的 K/V 表示压成较低维 latent，减少的是每个位置的 cache 宽度。只要每个 query 仍与所有历史位置交互，prefill 仍有 O(n²) 对连接、decode 每步仍访问 O(n) 历史，因而不自动具有 linear attention 的固定历史状态和线性总计算。
+
 21. 为什么 RoPE 会妨碍把 MLA 的 key up-projection 完全吸收到 query side？
+
+    **面试回答：** 无位置旋转时 $q^\top W_Kc$ 可改写为 $(W_K^\top q)^\top c$，把 key up-projection 吸收到 query 侧。RoPE 插入位置相关的 $R_s^\top R_t$ 后，一般不能与 $W_K$ 交换，也就无法用一个与历史位置 $t$ 无关的 query 变换完成吸收；decoupled RoPE 用小块独立位置 key 保留该信息。
+
 22. Attention alternatives 与 MoE 为什么都可以视为 conditional computation？
+
+    **面试回答：** 两者都试图按输入把有限计算用于更相关的信息：learned sparse attention 选择历史位置，MoE 选择参数专家，因此分别在上下文和参数维度做条件计算。这个类比对 sparse attention 最直接；linear/state 方法主要通过压缩与门控更新历史提效，并不一定含显式离散选择，不能把所有替代方案都等同于稀疏路由。
+
 
 ## 参考资料
 

@@ -740,23 +740,77 @@ MapReduce 复制 straggler task 与 hedged request 类似：对 tail-sensitive i
 ## 自测题
 
 1. 1000 nodes 扫描数据的 speedup 为什么主要来自 aggregate I/O bandwidth？
+
+    **面试回答：** 扫描通常受存储读取速度限制，增加 CPU 核不一定能让单块磁盘更快。把数据均匀分到 1000 个节点并行读取本地分片，理想聚合 I/O 带宽接近单节点的 1000 倍；实际加速还受分片偏斜、共享网络、调度与后续归约限制。
+
 2. 为什么 cluster 规模扩大后必须把 node failure 当作常态？
+
+    **面试回答：** 若节点故障近似独立、单节点故障率为 λ，则 N 节点的总故障率约为 Nλ，集群平均故障间隔约为单节点的 $1/N$。规模扩大后长作业很容易遭遇局部故障，所以副本、故障检测和任务自动重试必须是常规机制；机架等相关故障还需额外处理。
+
 3. HDFS 的 NameNode 为什么不直接转发所有 file data？
+
+    **面试回答：** NameNode 负责文件目录、块位置等元数据，客户端获取位置后直接与 DataNode 传输内容。把控制路径与大流量数据路径分开，能避免所有文件字节挤在单个 master 上形成带宽瓶颈；NameNode 自身仍需可靠的元数据持久化与高可用机制。
+
 4. Distributed filesystem fault tolerance 为什么不能替代 computation fault tolerance？
+
+    **面试回答：** 文件系统副本只能保证持久化输入等文件仍可读取，不能自动重建故障节点内存中的中间结果、任务进度和尚未提交的输出。计算框架还要记录依赖与完成状态，识别丢失分区，并通过任务重跑、lineage 或 checkpoint 恢复计算。
+
 5. 为什么 MapReduce 应更准确地叫 Map–GroupByKey–Reduce？
+
+    **面试回答：** Map 生成分散在各节点的 key-value 对，reduce 之前必须把同 key 的 values 聚到对应分区，这一步就是 GroupByKey/shuffle。它包含分区、传输和分组，往往比 map/reduce 本身更贵，因此不能在性能分析中把中间的全局重分布省略。
+
 6. Hash partitioner 怎样保证同一 key 到同一 reducer？
+
+    **面试回答：** 所有 mapper 对同一个 key 使用一致的哈希函数、分区数和取模规则，例如 `partition=hash(key) mod R`，就会得到相同 reducer 分区编号。它保证同 key 汇聚，不保证负载均匀；热门 key 仍可能让某个 reducer 成为长尾瓶颈。
+
 7. Work queue 与 data-local mapper scheduling 的 trade-off 是什么？
+
+    **面试回答：** 全局工作队列让空闲 worker 随时领取任务，负载更均衡，但可能需要远程读取大块输入。Data-local 调度优先把计算放到数据副本所在节点，减少网络传输，却可能为等待本地资源而空闲；实践中利用多个副本和有限等待，在 locality 与尾部延迟间折中。
+
 8. Speculative execution 为什么依赖 task 可安全重复执行？
+
+    **面试回答：** Speculative execution 会让原任务和副本同时运行，系统只接受一个有效完成结果，因此任务必须能安全重复执行。确定性、无外部副作用的函数最容易满足；若任务会写外部系统，则需幂等键或提交协议，否则两份执行可能造成重复写入，即使取消慢副本也来不及撤销。
+
 9. PageRank 在经典 MapReduce 上为什么代价高？
+
+    **面试回答：** PageRank 反复使用图结构并更新 rank，而经典 MapReduce 往往每轮重新读取输入、shuffle 贡献并把结果写回分布式文件系统。重复的落盘、复制和序列化使可驻留内存的工作集仍付出较高 I/O 成本；缓存图与迭代状态可减少这些开销，但必要的贡献通信仍存在。
+
 10. RDD 的 immutable/deterministic property 怎样支持 fault recovery？
+
+    **面试回答：** Immutable RDD 不会被原地修改，lineage 因而能清楚描述每个分区由哪些输入和变换产生。若输入稳定、变换可确定性重放，丢失分区就能在健康节点上按依赖重算；Spark 不会自动把任意用户函数变成确定性函数，随机状态与外部副作用仍需管理。
+
 11. Transformation 与 action 有什么不同？为什么 `collect()` 很危险？
+
+    **面试回答：** Transformation 描述从已有 RDD 构造新 RDD 的惰性计算，action 请求实际结果并触发必要执行。`collect()` 是把所有记录送回 driver 的 action，大数据集可能压垮 driver 内存和网络；查看少量结果应限制数量，大结果应留在分布式计算或存储中。
+
 12. 没有 `persist` 的 RDD 再次使用时通常发生什么？
+
+    **面试回答：** 未 persist 的 RDD 通常不会为跨 action 复用而保留全部已算分区，再次使用时会沿 lineage 重算缺失部分，并可能重读上游输入。它不等于自动写入 HDFS，也不保证每次从头重算所有祖先，因为已保留的缓存或 shuffle 输出仍可能被复用。
+
 13. Narrow dependency 的准确定义是什么？为什么不能只记“child 只依赖一个 parent”？
+
+    **面试回答：** 按课程与原论文口径，一个 parent 分区最多被一个 child 分区使用；这不要求 child 只能读取一个 parent，例如同分区 join 要读两侧对应分区。现代 API 更概括地说每个 child 依赖少量 parent，因此面试应说明语境，并抓住无需按 key 全局重分布、可流水执行的特点。[原论文](https://www.usenix.org/system/files/conference/nsdi12/nsdi12-final138.pdf)、[API 定义](https://spark.apache.org/docs/latest/api/java/org/apache/spark/NarrowDependency.html)。
+
 14. `groupByKey` 为什么产生 wide dependency？
+
+    **面试回答：** 通常输入分区中混有多个 key，而同 key 又散落在多个输入分区；groupByKey 必须按 key 重分区，使一个 parent 的记录流向多个 child，形成 wide dependency。若输入已带有与目标完全一致的 partitioner，Spark 可以在分区内分组而不新增 shuffle，不能仅凭算子名断言。[实现](https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/rdd/PairRDDFunctions.scala)。
+
 15. 相同 hash partitioning 怎样把 join 变成 local/narrow operation？
+
+    **面试回答：** 两侧使用相同且被 Spark 识别的 partitioner 后，同 key 都落在对应编号的分区，join 的输出分区 i 只需读取两侧的 i，因而可用 narrow dependencies，避免重新按 key shuffle。但相同分区编号不保证物理上同机，仍可能读取远端缓存分区；“local”应理解为分区内连接。[实现](https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/rdd/CoGroupedRDD.scala)。
+
 16. Lineage recovery 与 checkpoint 各适合什么情况？
+
+    **面试回答：** Lineage recovery 适合依赖链较短、输入稳定、可确定性重放且重算成本可接受的中间结果，只恢复丢失分区即可。Reliable checkpoint 适合长迭代链、昂贵或恢复范围大的结果，用持久化 I/O 换较短恢复路径；persist 主要优化复用，不能替代可靠 checkpoint。
+
 17. 为什么线性 scaling 仍可能有很差的 absolute performance？
+
+    **面试回答：** 线性 scaling 只说明同一实现增加资源时相对加速良好，不说明它的起点足够快。若单节点充满序列化、对象访问、拷贝和调度开销，很多节点可能仍输给优化良好的单线程；应同时报告最佳合理基线、绝对时间和资源成本。
+
 18. MoE token routing 与 MapReduce shuffle 在结构上怎样对应？
+
+    **面试回答：** MapReduce 先为记录确定 key，再按 key 分区、打包和 shuffle，最后对各组计算；MoE 则按 expert ID 路由 token，通过 all-to-all 发到专家节点并执行分组计算。热门 expert 类似 hot reducer，造成负载偏斜；MoE 还需把输出送回原 token 并合并 top-k 路由结果。
+
 
 ## 参考资料
 

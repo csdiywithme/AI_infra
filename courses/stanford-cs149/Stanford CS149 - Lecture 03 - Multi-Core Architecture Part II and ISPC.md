@@ -464,12 +464,33 @@ Tensor Parallel 的抽象是多个 ranks 协同计算；实现可选择 ring/tre
 ## 自测问题
 
 1. 为什么增加 hardware threads 能解决 latency-bound，却不能解决 bandwidth-bound？
+
+    **面试回答：** Latency-bound 时往往是独立请求不足，更多 hardware threads 能在某个线程等待时提供计算和访存，把空闲时段填满。Bandwidth-bound 时传输通道已持续饱和，增加线程只会增加排队；此时需要减少传输量、提高数据复用或增加有效带宽。
+
 2. 一个 pipeline 的单任务 latency 为 20 cycles，steady-state 每 cycle 完成一个任务，二者矛盾吗？
+
+    **面试回答：** 不矛盾：20 cycles 是单个任务从进入到完成的延迟，每 cycle 一个是流水线填满后的吞吐率。若任务独立且各级可以重叠执行，就能同时容纳约 20 个在途任务；首个结果仍要等 20 cycles，之后结果可连续产生。
+
 3. FP32 vector add `C=A+B` 的 arithmetic intensity 大约是多少？忽略 cache 与 write allocate。
+
+    **面试回答：** 每个 FP32 元素读取 A、B 各 4 bytes，再写 C 4 bytes，总计 12 bytes，只做 1 次加法。因此算术强度约为 $I=1/12\approx0.083$ FLOP/byte；这是忽略 cache 复用和 write allocate 的流量口径。
+
 4. ISPC program instance、SIMD lane 和 CPU core 是什么关系？
+
+    **面试回答：** Program instance 是 ISPC 的逻辑 SPMD 执行实例，SIMD lane 是向量执行的数据通道，CPU core 是运行指令流的硬件核心。编译器通常将一个 gang 的实例映射为单核上的 SIMD 操作，实例数也可大于一次物理向量宽度；利用多个 CPU 核还需要任务或线程机制。
+
 5. 为什么 interleaved mapping 常比 blocked mapping 更适合 packed vector loads？
+
+    **面试回答：** Interleaved 分配下，同一步各 instance 访问相邻元素，例如第 k 轮访问 $kW+[0,W)$，容易生成一次 packed load/store。Blocked 分配虽然每个 instance 自己顺序访问，但同一时刻各 lane 的地址相隔一个块，往往需要成本更高的 gather/scatter。
+
 6. 为什么用一个共享 `uniform sum` 直接累加会错？
+
+    **面试回答：** `uniform sum` 只有一个逻辑值，不能隐式代表所有实例的归约结果；直接把 varying 贡献赋给它通常无法通过类型检查，绕过类型限制让实例写同一地址又会产生冲突。正确做法是各实例维护 varying partial sum，最后用 `reduce_add` 显式合并。 参见 [ISPC 类型规则](https://ispc.github.io/ispc.html#uniform-and-varying-qualifiers)。
+
 7. `foreach` 允许编译器改变工作分配，却为什么不能改变程序结果？
+
+    **面试回答：** `foreach` 的契约是整个 gang 完成给定迭代域，程序不能依赖某次迭代落在哪个 instance 或按什么次序执行。只要迭代独立、没有未同步的共享写入，合法分配就应满足同一计算语义；跨迭代依赖或依赖分配顺序的代码违反了这个前提。
+
 
 ## 参考资料
 

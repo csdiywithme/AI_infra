@@ -820,25 +820,85 @@ Training 要保存 activations 用于 backward。Explicit im2col/未融合 inter
 ## 自测题
 
 1. 透明 circle renderer 为什么不能直接 one-thread-per-circle？改变并行轴后怎样保证正确？
+
+    **面试回答：** 多个 circle 可能同时写同一 pixel，既有写竞争，又会打乱透明 alpha blending 所要求的前后顺序；普通原子写也不能自动恢复这个顺序。可改为并行处理 pixels，每个 pixel 由一个线程拥有，并按原 circle 顺序依次混合覆盖它的候选圆，候选列表可先分桶筛选。
+
 2. 写出 `N,P,Q,K,R,S,C` convolution 的七层 loop/reduction 结构。
+
+    **面试回答：** 外层遍历 n∈[0,N)、p∈[0,P)、q∈[0,Q)、k∈[0,K)，先置 `Y[n,p,q,k]=b[k]`；内层遍历 r∈[0,R)、s∈[0,S)、c∈[0,C)，累加 `X[n,p+r,q+s,c]*W[k,r,s,c]`。四个输出轴可并行，r、s、c 为归约轴；此处假设 stride=1，边界 padding 按约定处理。
+
 3. Conv→GEMM 时 A、B、C 三个 matrices 的 dimensions 分别是什么？
+
+    **面试回答：** 按本文把每个输入 patch 展成一行的约定，A 的维度是 $(NPQ)\times(RSC)$，权重 B 是 $(RSC)\times K$，输出矩阵 C 是 $(NPQ)\times K$，满足 $C=AB$。再把输出 reshape 回 $N\times P\times Q\times K$；其他约定可能整体转置，但归约维必须一致。
+
 4. 3×3 explicit im2col 为什么会近似放大 9 倍 input representation？
+
+    **面试回答：** Explicit im2col 为每个输出位置复制一份 $3\times3\times C$ patch，相邻 patch 大量重叠。展开元素数为 $NPQ\cdot9C$，原输入为 $NHWC$，比值为 $9PQ/(HW)$；只有 stride=1 且输出空间与输入近似相等时才约为 9 倍，边界和 stride 会改变比例。
+
 5. Square GEMM 的潜在 arithmetic intensity 为何是 `Θ(N)`，naive loop 又为何可能只有 `Θ(1)`？
+
+    **面试回答：** Square GEMM 做 $\Theta(N^3)$ 运算，而唯一输入输出只占 $\Theta(N^2)$ 元素，理想充分复用下强度为 $\Theta(N)$。Naive loop 在矩阵远大于 cache 时可能不断重载 A/B，实际流量也接近 $\Theta(N^3)$，于是强度退化为 $\Theta(1)$；唯一数据量不等于实际传输量。
+
 6. `B×B` blocked GEMM 为什么有 `Θ(B)` arithmetic intensity？Block size 为什么不能无限增大？
+
+    **面试回答：** 一次 tile 乘法用 $\Theta(B^2)$ 的 A/B/C 数据完成 $\Theta(B^3)$ 运算，因此在 tile 能被复用的前提下，算术强度为 $\Theta(B)$。B 太大会超过 cache/shared memory 或寄存器容量，产生重载、spill 或降低驻留并行度，还会增加边界浪费，所以不能无限增大。
+
 7. CPU cache 与 CUDA shared memory 在管理方式上有什么本质区别？
+
+    **面试回答：** CPU cache 由硬件自动缓存普通地址空间的 cache lines，替换和缺失通常对程序透明。CUDA shared memory 是 block 内显式使用的 scratchpad，程序负责协作加载、数据布局、生命周期和同步；两者都用于复用数据，但控制责任与容量约束的表达不同。
+
 8. GEMM microkernel 为什么要同时保留多个 C accumulators？
+
+    **面试回答：** 多个 C accumulators 提供相互独立的 FMA 依赖链，帮助覆盖一次乘加的延迟、提高指令级并行。同时一份加载的 A/B fragment 能更新多个输出，提高寄存器内复用；accumulators 太多又会增加寄存器压力，可能导致 spill 或降低 occupancy。
+
 9. Implicit GEMM 相比 explicit im2col 节省什么，又增加什么？
+
+    **面试回答：** Implicit GEMM 不在 HBM 中物化完整 im2col 矩阵，而是在加载当前 tile 时从原张量按需取数，省去大辅助存储及展开矩阵的一轮写读。代价是更复杂的地址计算、边界谓词和访存组织，需要精心设计 iterator、布局和合并访问。
+
 10. Batch size 1 为什么可能远低于 GPU peak throughput？
+
+    **面试回答：** Batch=1 可能让矩阵的某个输出维度很小，独立 tiles 不足、权重复用差，launch 开销和尾部 mask 占比也更高，难以填满 GPU。它不是必然低效：卷积仍可通过大量空间位置产生并行度，因此要看完整 shape、算术强度和 tile 数。
+
 11. Direct、FFT、Winograd、implicit GEMM 各适合什么条件？
+
+    **面试回答：** Direct 常适合小规模、分组或特殊形状，避免展开开销；FFT 对较大卷积核可能用变换成本换更少计算。Winograd 常用于小型、stride=1 的卷积核，但受变换和数值精度限制；implicit GEMM 适合能高效映射矩阵 tiles 的密集卷积，最终需结合 shape、dtype 和 workspace 测量选择。
+
 12. 为什么 Conv 后单独执行 scale+bias 很容易 bandwidth-bound？
+
+    **面试回答：** Scale+bias 每元素只有乘法和加法，却要把卷积输出从 HBM 读回再写出；若用 FP32 并忽略可复用参数，约为 2 FLOPs/8 bytes，强度很低。将它融合进卷积或 GEMM 的 epilogue，可在 accumulator 仍驻留片上时完成，省掉这次额外读写。
+
 13. Fusion 可能降低 performance 的三个原因是什么？
+
+    **面试回答：** 第一，寄存器和 shared-memory 占用上升，导致 spill 或不足的驻留 warps；第二，生产者与消费者的最佳 tile/layout 不兼容，降低计算效率或并行度。第三，融合引入额外重计算、同步、控制与更大的指令开销；节省的 HBM 和 launch 时间必须大于这些代价。
+
 14. Naive attention 的 `N²` intermediates 在哪些步骤被读写？
+
+    **面试回答：** 第一个 GEMM 把 $S=QK^T$ 的 $N\times N$ 分数矩阵写到 HBM，softmax 再读取 S 并生成同样大小的 P；若分成多个子步骤，还会额外读写 max/exp/normalize 的中间量。第二个 GEMM 又从 HBM 读取 P 来计算 PV，核心问题是两次矩阵乘之间物化了平方级张量。
+
 15. 怎样用 `(m,ℓ)` 合并两个 softmax chunks？旧 accumulator 为什么要 rescale？
+
+    **面试回答：** 令 $m=\max(m_1,m_2)$，则 $\ell=e^{m_1-m}\ell_1+e^{m_2-m}\ell_2$。若 $a_j=\sum_i e^{x_i-m_j}v_i$ 是未归一化输出累加器，同样合并为 $a=e^{m_1-m}a_1+e^{m_2-m}a_2$，最后输出 $a/\ell$；rescale 是把旧贡献换到共同的最大值尺度。
+
 16. FlashAttention 为什么是 exact reordering，而不是 attention approximation？
+
+    **面试回答：** FlashAttention 仍计算相同的点积、mask、softmax 和对 V 的加权求和，只通过分块与 online softmax 改变运算顺序和数据驻留位置，避免完整 S/P 写入 HBM。它没有用稀疏化或低秩替代 attention 定义；浮点舍入可不同，因此 exact 不代表与朴素实现逐位一致。
+
 17. Tensor Core 的高 peak 为什么不自动转化为任意 DNN op 的高 performance？
+
+    **面试回答：** Tensor Core 的峰值只适用于受支持的矩阵乘加形状、dtype 和布局，并要求足够多的 tiles 与持续供数。DNN 还包含归约、激活、索引和通信等操作，小形状、padding 或带宽瓶颈也会使 MMA 单元闲置；端到端性能取决于整个算子链而非某类单元峰值。
+
 18. 为什么 LLM prefill 更像大 GEMM，而 decode 更容易 memory-bound？
+
+    **面试回答：** Prefill 一次处理多个 prompt tokens，线性层有较大的 M 维，权重能在更多 token 间复用，通常更像高强度 GEMM。小 batch decode 每请求每步只处理一个新 token，线性层接近矩阵向量乘，还需读取 KV cache，因此更易受内存带宽限制；增大有效 batch 会改变这一判断。
+
 19. INT4 weight-only quantization 为什么可能“多做 dequant math 却更快”？
+
+    **面试回答：** INT4 权重相对 FP16 可把纯权重存储压到约四分之一，再加 scale 等元数据；在权重带宽主导的 decode 中，省下的 HBM 传输可能超过解包和反量化开销。前提是融合反量化路径高效、量化精度可接受，且 kernel 没转而受计算、元数据或小形状限制。
+
 20. 对一个 fused Transformer kernel，怎样同时检查 HBM bytes、register pressure、occupancy 与 shape fit？
+
+    **面试回答：** 固定同一 shape 与精度先比较端到端耗时，统计实际 HBM 读写及中间张量是否消失；再查每线程寄存器、spill 和 shared-memory 用量。结合 resident/ready warps 判断延迟隐藏，检查矩阵维度、布局、尾部 mask 与 MMA tile 是否匹配，通过 tile 或融合范围对照实验定位收益和代价。
+
 
 ## 参考资料
 

@@ -38,6 +38,7 @@ dist/
 *.egg-info/
 
 # Temporary and backup files
+/tmp/
 *.tmp
 *.bak
 *.orig

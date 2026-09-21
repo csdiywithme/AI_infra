@@ -449,15 +449,45 @@ $$
 
 ## 12. 自测问题
 1. 为什么 HTML/PDF extraction 会影响模型质量？
+
+    **面试回答：** Extraction 是从 DOM 或页面绘制结构到 token 序列的有损转换，决定标题、阅读顺序、公式、表格和代码是否完整。错误抽取既会混入广告和页眉等噪声，也会破坏事实之间的关系，因此即使原始来源相同，不同 extractor 也会产生不同训练分布和下游模型质量。
+
 2. Generative 与 discriminative filtering score 有何不同？
+
+    **面试回答：** Generative score 衡量文本在目标分布下的概率，如长度归一化的 log-likelihood 或 perplexity；discriminative score 直接预测它属于目标类的概率 $P(y=T\mid x)$。前者容易受目标文风与常见度影响，后者依赖正负例、类别先验和校准，二者都只是目标数据相似度或质量的代理。
+
 3. 为什么不存在独立于训练规模的最优 quality threshold？
+
+    **面试回答：** 阈值越严格，可用 unique tokens $T(\tau)$ 通常越少；固定训练 tokens $D$ 下，有效 epoch 为 $E(\tau)=D/T(\tau)$。短训练可能受益于更精的数据，长训练却可能因重复、过拟合和多样性不足而退化，所以阈值必须与训练 horizon、模型及目标任务联合选择。
+
 4. Jaccard、MinHash、LSH 分别解决哪一步？
+
+    **面试回答：** Jaccard 定义 shingle 集合的相似度 $J=|A\cap B|/|A\cup B|$；MinHash 用短签名及其碰撞比例近似这个相似度。LSH 再利用签名分桶生成少量高相似候选，避免全量 $O(n^2)$ 比较；候选不等于确认重复，还应验证相似度并选择合适的保留代表。
+
 5. 推导 $1-(1-s^r)^b$，并说明 $b,r$ 如何改变候选阈值。
+
+    **面试回答：** 若两个文档的 Jaccard 为 $s$，独立 MinHash 每个位置相同的概率为 $s$，一条含 $r$ 行的 band 全同概率为 $s^r$。$b$ 个独立 bands 都不碰撞的概率是 $(1-s^r)^b$，故至少一次碰撞为 $1-(1-s^r)^b$；固定另一参数时，增大 $b$ 提高召回、阈值左移，增大 $r$ 更严格、阈值右移，转折约为 $b^{-1/r}$。
+
 6. 为什么 exact span dedup 可能破坏文档？
+
+    **面试回答：** Exact span 匹配只说明局部字符串相同，不说明这段内容在当前文档中没有作用。直接切掉重复段可能删去定义、代码依赖或法律说明，使上下文指代和逻辑连接断裂；应按文档结构决定保留代表、整篇删除或局部处理，并检查处理后的连贯性。
+
 7. 已知 $p_s,D,N_s$，怎样计算来源的 effective epochs？
+
+    **面试回答：** 若 $p_s$ 按 token 比例定义，来源 $s$ 预期被使用 $D_s=p_sD$ tokens，因此 effective epochs 为 $E_s=p_sD/N_s$。例如来源仅 10B unique tokens，在 1T-token 训练中占 50%，就是 50 epochs；若权重按文档而非 token 定义，需先按长度换算。
+
 8. UniMax 和 simulated epoching 各解决什么问题？
+
+    **面试回答：** UniMax 在尽量均衡来源的同时施加 $p_sD\le C N_s$，限制小来源被过度重复。Simulated epoching 则用于小规模 mixture 搜索：按 $\rho=D_{small}/D_{large}$ 将各来源可用量缩至 $\rho N_s$，让小实验暴露与大训练相同的重复压力，提高配方迁移可信度。
+
 9. 为什么更强 solver 不一定是更好的 teacher？
+
+    **面试回答：** Solver 排名衡量自己能否做对，teacher 价值还取决于学生能否从它的轨迹学到可迁移方法。过于省略、过长、错误但貌似合理或高度模板化的答案，都可能降低教学价值；应控制任务、样本量与训练预算后比较学生结果，并审计正确性、可学性和多样性。
+
 10. Synthetic code trajectory 的最大 infra 成本通常来自哪里？
+
+    **面试回答：** 除 teacher rollout 的 GPU token 成本外，代码轨迹常在环境准备和执行验证上付出很大 infra 成本：定位 commit、构建镜像、安装依赖、运行 tests、隔离 sandbox，以及处理超时和重试。长尾环境失败会拖住流水线，因此应分别测量生成与执行成本，不能把最大瓶颈一概归为模型推理。
+
 
 ## 参考资料
 - [Lecture 14 官方可执行讲义](https://cs336.stanford.edu/lectures/?trace=lecture_14)

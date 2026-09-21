@@ -756,17 +756,53 @@ $$
 ## 15. 自测问题
 
 1. 为什么 optimization mismatch 会污染 architecture scaling exponent？
+
+    **面试回答：** Scaling exponent 应描述在可比优化条件下，规模增加带来的能力变化。如果某些规模的 LR、batch 或 schedule 不合适，观测 loss 就包含随规模变化的欠优化误差，拟合斜率会把调参不足误认为架构收益递减或增强；所以应先定位各规模的近优区域，再拟合 scaling law。
+
 2. MiniCPM-like 与 DeepSeek-like recipe 的核心区别是什么？
+
+    **面试回答：** MiniCPM-like 路线用 μP 将 width 相关缩放吸收到参数化和参数组规则里，争取迁移小模型的 base LR，再用 WSD 与 envelope/joint fit 研究预算分配。DeepSeek-like 路线直接在小规模搜索并拟合 LR、batch 随规模的变化，再用 IsoFLOPs 选择 $N,D$；二者都依赖实验验证。
+
 3. WSD 怎样从同一 run 产生多个可比较 endpoints？
+
+    **面试回答：** 先共享一次 warmup 和 stable 训练，在不同 stable checkpoints 分叉，各自追加 decay，得到不同 token budget 下的最终 loss。比较时应让每个 endpoint 的总 tokens 包括 decay，并统一数据与终点条件，保存 optimizer、scheduler 和 data position；节省的是重复训练公共前缀的成本。
+
 4. 为什么 WSD endpoints 的误差不是独立的？
+
+    **面试回答：** 同一 run 分叉出的 endpoints 共享初始化、早期数据顺序、优化器状态和很长一段参数轨迹，所以共同受到前缀训练噪声影响。把它们当独立样本会高估有效样本量、低估拟合不确定性；应按独立 run/seed 评估方差，或在拟合中显式考虑相关误差。
+
 5. IsoFLOPs 如何在固定 $C$ 下确定 $D$？
+
+    **面试回答：** 在 dense Transformer 的近似训练账本 $C\approx6ND$ 下，固定预算 $C$ 并选定参数量 $N$ 后，训练 tokens 应取 $D\approx C/(6N)$。因此增大模型就要减少训练 tokens；若长上下文 attention、MoE 或重算开销明显，应改用相应 FLOPs 模型求解。
+
 6. Near-optimal set 为什么比唯一 argmin 更稳健？
+
+    **面试回答：** 平坦的 loss basin 中，多组配置几乎等价，唯一 argmin 很容易因 seed、网格分辨率或测量噪声跳动。保留 $\mathcal H_\epsilon=\{h:L(h)\le L_{min}(1+\epsilon)\}$ 能展示稳定可用区间，外推时还可在近优配置中选择吞吐更高、数值更稳的点。
+
 7. 为什么不同 optimizer 必须分别调 LR、batch 和 weight decay？
+
+    **面试回答：** 不同 optimizer 的梯度归一化、更新尺度和正则化方式不同，因此相同 LR、batch、weight decay 不代表相同优化条件。公平比较应给各方法合理且透明的调参预算，比较各自近优结果，并同时报告训练质量和 wall-clock 成本；否则可能只是在比较谁更适合某个默认配置。
+
 8. μP 的 A1 与 A2 分别约束什么？
+
+    **面试回答：** A1 要求初始化时每个 activation coordinate 保持常数量级，避免模型变宽后激活爆炸或消失；A2 要求单步更新引起的 activation change 也保持常数量级，避免特征学习冻结或失稳。μP 为此联合调整初始化、参数组 LR 和输出缩放，并非只改一条初始化方差。
+
 9. 为什么 individual activation 为 $O(1)$ 时，向量 norm 是 $O(\sqrt n)$？
+
+    **面试回答：** 因为 $\|h\|_2^2=\sum_{i=1}^n h_i^2$，若每个分量都是 $O(1)$，总和为 $O(n)$，所以 norm 为 $O(\sqrt n)$。若还要求平均平方值不趋零，才能进一步写成 $\Theta(\sqrt n)$；仅有上界 $O(1)$ 并不保证等阶增长。
+
 10. Base LR transfer 为什么不等于所有参数实际 LR 相同？
+
+    **面试回答：** μP 把 width 依赖放入不同参数类型的倍率，例如 $\eta_g=\eta_{base}m_g(n)$，并配合初始化和输出缩放。迁移的是调参者选择的 base LR，不是每个 tensor 实际使用的更新系数；input、hidden、output 及不同 optimizer 的规则都可能不同。
+
 11. 哪些现代 Transformer 组件可能破坏 μP 假设？
+
+    **面试回答：** 可学习 RMSNorm gain、tied embedding、attention/softmax 和 gated activation 等会改变简化推导的假设，强 weight decay 或 Lion、Muon 等更新规则也可能改变尺度关系。它们并非必然使 μP 失效，但不能直接沿用旧 multiplier；应做 activation/update 尺度检查和跨 width LR sweep。
+
 12. 怎样判断一条漂亮 scaling curve 是否由欠调的超参数造成？
+
+    **面试回答：** 在多个规模附近补做 LR、batch 和 schedule 的局部 sweep，检查原点是否位于近优 basin，而不是因固定超参数持续欠训。再用独立 seed 与较大 holdout run 验证预测，并检查删点、函数形式和残差的敏感性；曲线平滑本身不能证明它反映了架构规律。
+
 
 ## 参考资料
 

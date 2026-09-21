@@ -754,19 +754,61 @@ $$\text{HBM traffic} \longrightarrow \text{on-chip reuse or recompute}$$
 ## 16. 自测问题
 
 1. 为什么 GPU 适合吞吐型工作，但不一定降低单个小任务的 latency？
+
+    **面试回答：** GPU 用大量较轻量线程并行处理规则工作，并通过切换 ready warps 隐藏访存等待，优势是总吞吐。单个小任务可能并行度不足，却仍承担 launch、调度和数据传输开销；GPU 也不具备 CPU 同样强的复杂控制和单线程优化，所以高峰值算力不保证更低单任务延迟。
+
 2. Thread、warp、block、grid 和 SM 分别是什么关系？
+
+    **面试回答：** Thread 是逻辑执行单元，NVIDIA GPU 通常把 32 个线程组成一个 warp；多个 warps 组成可共享 shared memory 并同步的 block，一次 kernel 的全部 blocks 构成 grid。SM 是实际执行这些 block/warp 的硬件，一个 block 在一个 SM 上驻留，一个 SM 可同时容纳多个 block，数量受资源限制。
+
 3. 什么条件下 `if` 会产生 control divergence？
+
+    **面试回答：** 只有同一 warp 的活跃线程对分支作出不同选择，且生成的指令需要分别执行不同路径时，才产生 control divergence；两条路径执行时其他 lanes 被屏蔽，降低有效吞吐。如果同一 warp 全选同一分支，或不同 warp 各走不同路径，就不能仅因存在 if 判断有该问题。
+
 4. Registers、shared memory、L2、HBM 的作用域和典型用途有何不同？
+
+    **面试回答：** Registers 是线程私有的快速存储，适合局部变量和 accumulator；shared memory 通常供 block 内协作与 tile 复用。L2 是整块 GPU 的共享缓存，承接跨 SM 的数据复用；HBM 是大容量全局存储，用来放权重和主张量，但访问成本更高；寄存器溢出还可能退到显存。
+
 5. 如何由峰值 FLOP/s 和 HBM bandwidth 计算 hardware balance point？
+
+    **面试回答：** 在相同 dtype 与 dense/sparse 口径下，平衡点 I*=峰值 FLOP/s÷HBM bytes/s，单位为 FLOP/byte。例如正文引用的 H100 dense BF16 约 989.5 TFLOP/s÷3.35 TB/s≈295 FLOP/byte；实际 kernel 还会受指令类型、利用率及其他存储层约束。
+
 6. 一个 kernel 的 arithmetic intensity 低于 balance point 时，应该优先优化什么？
+
+    **面试回答：** 在 HBM 确为瓶颈的前提下，应优先减少物理读写并提高每次读入数据的复用，例如 fusion、tiling、coalescing 和低精度。单纯减少少量算术通常收益有限；还应检查是否因小工作量、访存延迟或 launch overhead 而无法达到 roofline 假设的带宽。
+
 7. 为什么降低 dtype 位宽既能降低流量，又可能提高计算峰值？
+
+    **面试回答：** 更低位宽意味着同样元素数的 tensor 占用更少 bytes，一次带宽和片上缓存可以服务更多元素；硬件也常为 BF16、FP8 等提供更高吞吐的矩阵单元。收益依赖具体设备和 kernel，量化的 scale、转换成本及高精度累加都要计入，并验证精度与收敛。
+
 8. Operator fusion 为什么可能降低 HBM traffic？它有什么副作用？
+
+    **面试回答：** Fusion 把相邻算子的中间值留在 registers/shared memory，避免写回 HBM 后又读取，同时减少 launch 和临时分配。副作用是寄存器与 shared memory 压力上升，可能降低 occupancy、引发 spill，甚至损害并行调度；所以应以实际时间而非融合数量评估。
+
 9. Memory coalescing 与 row-major layout 有什么关系？
+
+    **面试回答：** Row-major 矩阵同一行中相邻列连续存储，因此同一 load 指令下让相邻线程访问 A[i,j+t]，更容易合并成少量内存事务。若访问 A[i+t,j]，地址间隔通常为一行长度，容易产生更多事务；关键是 warp 内同时发出的地址分布，而不是单个线程循环的方向。
+
 10. 为什么 tiled matmul 能把同一输入元素复用多次？
+
+    **面试回答：** 一个 block 先把 A 的 T_M×T_K tile 和 B 的 T_K×T_N tile 搬到片上，再计算整个 T_M×T_N 输出块。A 的一个元素可供 T_N 个输出列复用，B 的一个元素可供 T_M 个输出行复用，结果在寄存器累加，减少每个输出独立从 HBM 重读输入。
+
 11. Wave quantization 为什么让相邻的两个 matrix shapes 运行时间突然不同？
+
+    **面试回答：** 若 GPU 可同时容纳 W 个 blocks，总工作 G 个 blocks 的 wave 数近似为 ⌈G/W⌉。矩阵维度稍增可能使边缘 tile 数骤增并跨过 W 的整数倍，需要新增一个利用率很低的尾波；因此 FLOPs 变化很小，执行时间却可能阶跃上涨，实际还取决于 block 资源占用。
+
 12. FlashAttention 如何在不 materialize 完整 score matrix 的情况下计算 softmax？
+
+    **面试回答：** 按 tile 计算 scores，对每行维护最大值 $m$、指数和 $\ell$ 与未归一化输出 $u$。新 tile 到来时令 $m^\prime=\max(m,\max(\mathrm{scores}))$，以 $e^{m-m^\prime}$ 重缩放旧 $\ell,u$，再加新 tile 的 $\exp(\mathrm{scores}-m^\prime)$ 和加权 V，最终输出 $u/\ell$；这样无需保存完整 score matrix，且在舍入误差内等价于原 softmax。
+
 13. FlashAttention 改变了 exact dense attention 的 $O(S^2d)$ FLOPs 吗？
+
+    **面试回答：** 没有。它仍计算 dense query-key 连接和加权 value，主要 matmul 仍是 O(S²d)，causal 只改变常数。FlashAttention 通过分块、融合与 online softmax 降低 HBM IO 和中间存储，backward 还可能增加重计算，实际加速来自数据搬运与硬件利用效率。
+
 14. 什么时候多做 recomputation 反而可能更快？
+
+    **面试回答：** 当工作负载受显存带宽限制、被丢弃的中间量便宜可重算时，额外 FLOPs 可能比保存后再从 HBM 读取更便宜。Checkpointing 还可能释放容量以扩大 batch 或避免 offload；若重算是昂贵 GEMM 且本来已 compute-bound，则通常会变慢，要测端到端效果。
+
 ## 参考资料
 
 - [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)

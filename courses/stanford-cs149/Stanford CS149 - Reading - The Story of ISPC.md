@@ -586,17 +586,53 @@ ISPC 的经验提醒我们：
 ## 自测问题
 
 1. 为什么“auto-vectorization 是优化”而“SPMD-on-SIMD 是变换”？
+
+    **面试回答：** Auto-vectorization 从必须保持顺序语义的 C/C++ 程序出发，要证明依赖、别名和副作用允许并行，证明或收益判断失败就可能不向量化。SPMD-on-SIMD 的并行实例已由语言规定，编译器按规则把 varying 值和控制流变为向量与 mask；映射是语义实现，生成代码是否快才是后续优化问题。
+
 2. `M_then = M & C` 中为什么必须保留父 mask `M`？
+
+    **面试回答：** 父 mask M 表示进入当前分支前仍活跃的实例，条件 C 只决定这些实例中的哪些走 then。若直接令 `M_then=C`，外层分支已屏蔽的 lane 可能因 C 为真而被错误激活，产生不应执行的写入；取交集才能保持嵌套控制流的语义。
+
 3. varying loop 为什么要一直执行到 `any(mask) == false`？
+
+    **面试回答：** 各实例的循环条件和迭代次数可以不同，只有当所有原本参与的实例都退出，整个向量循环才结束。实现每轮更新 active mask，已经完成的 lane 不再产生循环体副作用，但其余 lane 继续；因此性能往往受 gang 中最长的迭代路径限制。
+
 4. `uniform` branch 是否一定意味着当前所有物理 lanes 都 active？为什么？
+
+    **面试回答：** 不一定。Uniform condition 只保证当前参与实例对这个条件作出相同选择，不会产生新的分流；如果外层 varying 分支或尾部已经关闭部分 lane，父 mask 仍有效。Uniform branch 不能自动把这些被屏蔽的实例重新激活。
+
 5. `uniform` base pointer 加 varying index 会生成什么类型的访存？
+
+    **面试回答：** 有效地址是 base 加上每个 lane 的 index 偏移，所以一般会形成 varying 地址，读取对应 gather、写入对应 scatter。若编译器能进一步证明所有 index 相同或连续，就可优化为 scalar load+broadcast 或 packed load/store；仅 base uniform 不足以保证规则访存。
+
 6. 为什么 `foreach` 能同时生成 all-on main loop 和 masked tail？
+
+    **面试回答：** `foreach` 明确给出了整个迭代域，编译器可把完整的 W 元素组放进 all-on 主循环，把不足 W 的余数放进 masked tail。完整组减少反复维护 mask 的成本，尾部抑制越界访问；这种选择来自已知边界和控制流语义，不是对任意循环都强行假设所有 lane 活跃。
+
 7. `cif` 相比普通 `if` 增加了什么运行时成本，换来了什么？
+
+    **面试回答：** `cif` 增加运行时的控制流一致性检查、分支以及可能的代码复制，用于选择 coherent 快路径。当前实例都走同一路时可减少 mask 开销，条件混合时仍执行正确的一般 masked 路径；如果经常发散或分支很短，新增检查可能得不偿失。
+
 8. 为什么 pre-AVX-512 scatter 可能展开成逐 lane 标量代码？
+
+    **面试回答：** 对本文讨论的 SSE/AVX/AVX2 目标，缺少通用原生 scatter 指令，编译器仍必须实现各 lane 独立地址写入。它会逐 lane 检查 mask、提取地址和值，再执行标量 store；连续地址若可证明，仍可能改为 vector store，因此不是所有 varying store 都必然逐 lane 展开。
+
 9. 为什么 AVX2 版本可以更快，却比 SSE4 版本有更低的 SIMD efficiency？
+
+    **面试回答：** AVX2 更宽，绝对吞吐可以提高，但理想峰值的分母也变大；若分歧、访存或标量开销不能同比缩小，效率百分比就下降。例如文中双核结果从 SSE4 的 5.2 倍升到 AVX2 的 7.7 倍，但相对理想 8 倍和 16 倍，效率约从 65% 降到 48%。
+
 10. LLVM 在 ISPC 中负责什么，ISPC 自己的 passes 又负责什么？
+
+    **面试回答：** LLVM 提供通用 IR 优化、目标指令选择、寄存器分配和后端代码生成。ISPC 前端表达 uniform/varying 与 masked SPMD 语义，自定义 passes 再利用这些信息简化 mask、识别 all-on 情况、把 gather/scatter 改为更规则的访存；通用后端并不会自动替代全部领域优化。
+
 11. 将 ISPC 与 CUDA 类比时，哪些是语义层实体，哪些是实现层实体？
+
+    **面试回答：** ISPC program instance、gang 和 CUDA thread、block 都是各自编程模型中的逻辑实体；CPU core、SIMD 执行通道和 GPU SM 是实现资源，warp 是 CUDA 可见的硬件执行分组。Gang 与 warp 只能近似类比，不能把一个实例当作一个物理核心，也不能把 gang 等同于 OS 线程组。
+
 12. 对一个 MoE routing kernel，哪些现象分别对应 varying control flow 和 irregular gather/scatter？
+
+    **面试回答：** 同一组 token 因 expert 选择、容量判断或有效长度不同而走不同分支、循环次数不同，对应 varying control flow 和低 active-lane 比例。按 token/expert 索引从分散位置取输入、写不同专家的 packed buffer，对应 irregular gather/scatter；二者可能同时存在，但需要分别检查控制流与地址分布。
+
 
 ## 参考资料
 

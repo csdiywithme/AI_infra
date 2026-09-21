@@ -889,23 +889,77 @@ $$\frac{kBS}{E}$$
 ## 16. 自测问题
 
 1. 为什么 accelerator domain 不能无限做成全互连？
+
+    **面试回答：** P 个设备若物理 full mesh 直连，每个设备要 P−1 个端口，总链路为 P(P−1)/2，布线和端口成本呈二次增长。交换网络减少直连需求，但仍受 switch radix、层级、带宽、功耗、布线和故障域约束，因此大集群通常采用分层互连，不能视为带宽均匀的一块大 GPU。
+
 2. DDP 的 parameter、gradient、master weight 和 Adam state 各占多少显存？
+
+    **面试回答：** 按本讲 BF16 参数和梯度、FP32 master weights 与 Adam moments 的口径，每参数分别占 2、2、4、8 bytes，总计 16N bytes/rank。DDP 在每个 rank 完整复制这些状态；若不保存 master weights 则为 12N，梯度改 FP32 会再增加，且 activations 和临时缓冲尚未计入。
+
 3. ZeRO-1/2/3 分别 shard 什么？
+
+    **面试回答：** ZeRO-1 只分片 optimizer state；ZeRO-2 进一步分片梯度；ZeRO-3 连参数也分片。设参数、梯度、优化器总 bytes 为 S_p、S_g、S_o，P ranks 的静态占用依次为 S_p+S_g+S_o/P、S_p+(S_g+S_o)/P、(S_p+S_g+S_o)/P，峰值还要另算临时完整张量。
+
 4. 为什么 ZeRO-1 的带宽通信量可以和 DDP 同量级？
+
+    **面试回答：** DDP 的 all-reduce 可分解成 gradient reduce-scatter 加 gradient all-gather。ZeRO-1 在 reduce-scatter 后由各 owner 更新参数 shard，再 all-gather 更新后的参数；当参数和梯度的 payload 相同、使用相近带宽算法时，每 rank 的发送量都约为 $2(P-1)S/P$，接收量相同，但传输对象与 launch 等实际开销不同。
+
 5. 为什么 ZeRO-3/FSDP 的 normalized payload 常近似 $3S$？
+
+    **面试回答：** 若 forward 后释放完整参数，FSDP 在 forward 前和 backward 前各 all-gather 一次参数，再 reduce-scatter 一次梯度，每 rank 发送量约为 $(P-1)(2S_p+S_g)/P$，接收量相同。相同 dtype、$S_p=S_g=S$ 且 P 大时，单向量近似 $3S$；S 是全模型总量，缓存、reshard 策略和重计算可能改变次数。
+
 6. FSDP steady-state memory 与 peak memory 有何不同？
+
+    **面试回答：** Steady state 只保留本 rank 的参数、梯度和 optimizer shards，约是完整状态的 1/P。运行时还会临时 materialize 当前 wrap unit 的完整参数和梯度，并可能预取下一个 unit，再叠加 activations 与通信 buffers，因此 peak memory 不能直接用总状态除以卡数估计。
+
 7. FSDP wrap unit 太大和太小分别有什么问题？
+
+    **面试回答：** Wrap unit 太大时，一次 all-gather 的完整参数与预取 buffer 很大，峰值显存高，第一段通信也较难隐藏。太小时 collective 和调度次数增加，latency 占比高且本地计算不足以覆盖通信；合适粒度要在内存、通信启动成本和 overlap 窗口之间测量选择。
+
 8. Pipeline bubble ratio 如何随 stage 和 microbatch 变化？
+
+    **面试回答：** 简单平衡流水线中，P stages、m microbatches 的 bubble-to-useful ratio≈(P−1)/m，对总时间的 bubble fraction≈(P−1)/(m+P−1)。增加 stages 会加大填充排空气泡，增加 microbatches 可摊薄它；但固定 batch 下 microbatch 过小会降低 GEMM 效率，实际还受 schedule 与 stage imbalance 影响。
+
 9. 为什么 PP 经常比 TP 更适合跨节点？
+
+    **面试回答：** PP 主要在相邻 stage 边界传 activations 和反向梯度，通信频率通常低于 TP 的逐层多次 collectives。模型参数很大、边界张量相对小时，这种粗粒度 P2P 更能容忍跨节点链路；仍需保证 microbatch 数和 stage 平衡，慢网络本身不会让 PP 更快。
+
 10. Column/row TP 如何组合完成一个 MLP？
+
+    **面试回答：** 把 up/gate projection 沿输出列分片，令每个 rank 生成并处理自己的 expanded hidden shard；再把 down projection 按同样 hidden 边界沿输入行分片。每个 rank 得到完整输出宽度上的 partial sum，最后 all-reduce 或 reduce-scatter 合并，无须在两次 GEMM 之间 gather 完整 hidden。
+
 11. 为什么 TP 无法自动线性降低全部 activation memory？
+
+    **面试回答：** TP 只能直接缩小被切分的矩阵乘中间量，residual、Norm 输入输出和部分 pointwise activations 仍可能在每卡复制。因此显存近似是 sharded 项除 TP degree，再加不变的 replicated 项；需要 SP 继续切分逐 token 激活，长序列 attention 中间量则另靠 FlashAttention 或重计算处理。
+
 12. Sequence parallel 和 context parallel 的语义差异是什么？
+
+    **面试回答：** 在本讲术语里，SP 主要与 TP 配合，切分 Norm、dropout、residual 等原本重复保存的逐 token activations，并在布局边界做 gather/scatter。CP 则把长上下文及 attention 的 Q/K/V 分到多卡，还必须解决跨 context shard 的依赖；框架命名可不同，应以实际 tensor layout 和通信范围区分。
+
 13. Ring attention 如何合并不同 K/V shards 的 softmax？
+
+    **面试回答：** 每个 rank 固定本地 Q，让不同 K/V shards 逐轮流过，并对每行维护最大值 $m$、指数和 $\ell$ 与未归一化输出 $u$。合并局部统计 $(m_j,\ell_j,u_j)$ 时，令 $m^\prime=\max(m,m_j)$，再令 $\ell^\prime=e^{m-m^\prime}\ell+e^{m_j-m^\prime}\ell_j$，$u$ 同样重缩放并相加，最终输出 $u/\ell$；必须保留 causal mask，不能直接平均各 shard 的 softmax 输出。
+
 14. Expert parallel 为什么需要两次 all-to-all？
+
+    **面试回答：** Experts 分布在不同设备，router 先按目的 expert 打包 token，用 dispatch all-to-all 把输入送到拥有相应权重的 rank。计算完成后用反向的 combine all-to-all 将输出送回原 token 所在处，再恢复顺序并按 gate 加权；Top-K 会让一个 token 对应多份专家输入和输出。
+
 15. 哪些因素会造成 expert load imbalance？
+
+    **面试回答：** Router 偏好、专家早期强弱的正反馈、batch 的领域或语言集中、token 数太少以及 Top-K 的离散选择都会造成 expert token 数不均。即使每 expert 数量近似均衡，不合理的 expert placement 或每设备专家数也可造成设备负载不均，通信路径拥塞还会进一步放大尾部等待。
+
 16. 如何将总 GPU 数映射到 DP/TP/PP/CP/EP process groups？
+
+    **面试回答：** 先定义独立 rank mesh 轴，例如 dense 模型 P_total=DP×TP×PP×CP；固定其他坐标、沿某一轴变化的 ranks 组成对应通信组，再把高频 TP 映射到高速域。EP 常嵌套或重用原 DP/TP 的 ranks，attention 和 experts 可分别采用 DP/TP/CP 与 EDP/ETP/EP 视图，不能把所有标签盲目相乘；必须核对每层实际组成员与参数所有权。
+
 17. 在选择并行度时，为什么必须检查 local GEMM shape？
+
+    **面试回答：** 增加并行度虽然降低单卡 FLOPs 和状态量，却可能把 GEMM 切成太窄、太小或不对齐的 shape，使 Tensor Core 利用率下降。MoE 还要看每 expert 实际 token 数，PP/DP 要看 microbatch；只有 local compute 仍足够高效，且收益超过 collective 与调度成本，更多卡才会更快。
+
 18. 如何判断某个 collective 能否被 compute overlap？
+
+    **面试回答：** 先画出数据依赖：通信发起后是否还有不消费其结果的计算，以及在结果被使用前能提供多长窗口。若 T_comm≤T_independent_compute，且 streams/events、buffer、collective 顺序正确并无严重资源争用，才可能完全隐藏；async API 只是前提，需用 timeline 验证可见等待和计算是否因争用变慢。
+
 ## 参考资料
 
 - [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)

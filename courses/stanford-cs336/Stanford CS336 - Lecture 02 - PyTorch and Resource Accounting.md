@@ -2307,20 +2307,65 @@ Autoregressive decoding 具有：
 ## 18. 自测问题
 
 1. 为什么 `numel × element_size` 只是 tensor memory 的第一层估算？
+
+    **面试回答：** 它只统计逻辑元素的 payload，不等于实际分配或峰值显存。View 可能共享更大的 storage，stride、padding、allocator 缓存与碎片会改变占用；训练还要加参数梯度、optimizer state、保存的 activations、workspace 和通信缓冲区，并按生命周期看峰值。
+
 2. FP16 与 BF16 都是 2 bytes，为什么 BF16 更不容易 underflow？
+
+    **面试回答：** BF16 有 8 位指数，FP16 只有 5 位，因此 BF16 能表示更小和更大的数量级，例如 10⁻⁸ 转 FP16 可能变成 0，BF16 仍可表示。代价是 BF16 只有 7 位尾数、FP16 有 10 位尾数，所以动态范围更大不代表相近数值的精度更高。
+
 3. 为什么 mixed precision 仍常用 FP32 保存 optimizer states？
+
+    **面试回答：** Adam 的一、二阶 moments 需要跨很多步累计，小梯度及小增量若反复低精度舍入，可能丢失或扭曲更新方向。FP32 state 能提高累计与归一化更新的稳定性，必要时还保存 FP32 master weights；矩阵计算和激活仍可用 BF16 来节省带宽与显存。
+
 4. `einsum("b t d, d k -> b t k")` 的输出 shape 和 FLOPs 分别是什么？
+
+    **面试回答：** 输入分别为 [B,T,D] 和 [D,K]，对 D 维求和后输出为 [B,T,K]。每个输出元素约需 D 次乘法和 D 次加法，按一次乘加计 2 FLOPs 的惯例，总量约为 2BTDK，忽略 bias 和边界常数。
+
 5. 为什么 benchmark CUDA kernel 时需要 synchronize 和 warm-up？
+
+    **面试回答：** CUDA 调用通常只异步提交任务，直接用 CPU 时间可能量到的是 launch 时间；同步或正确使用 CUDA events 才能等到被测工作完成。Warm-up 用于排除首次编译、缓存建立和初始化等开销，重复测量则降低时钟及调度波动的影响。
+
 6. MFU 的分子、分母分别是什么？为什么不同系统报告的 MFU 未必可直接比较？
+
+    **面试回答：** MFU 的分子是按约定模型计算量乘实际吞吐得到的模型 FLOP/s，分母是所有设备在对应 dtype 下的理论峰值，常估为 6N×tokens/s÷(GPU 数×单卡峰值)。不同报告可能使用不同 FLOPs、重计算、padding、dense/sparse 峰值和计时范围，必须统一口径才能比较。
+
 7. H100 的机器平衡点约为 295 FLOP/byte，而一个算子只有 5 FLOP/byte，它大概率受什么限制？
+
+    **面试回答：** 若数据主要来自 HBM 且工作量足够大，它大概率是 memory-bandwidth-bound，因为 5 远低于 295 FLOP/byte，带宽无法喂满算力。应优先减少读写、融合算子或提高数据复用；若张量很小，也可能主要受 kernel launch latency 限制。
+
 8. 为什么孤立的 GELU 即使比 ReLU 多很多 FLOPs，也未必慢很多？
+
+    **面试回答：** 孤立的 GELU 和 ReLU 都要读取输入并写回输出，通常 arithmetic intensity 很低。虽然 GELU 的逐元素运算更多，但若瓶颈仍是 HBM 带宽，多出的计算可被访存时间掩盖；具体差距还取决于特殊函数吞吐、fusion 和张量大小。
+
 9. 从一层 linear 的 backward 中，怎样推导出 dense 训练的 $6ND$？
+
+    **面试回答：** 对 Y=XW，forward 是一次矩阵乘，backward 的 dX=dY·Wᵀ 和 dW=Xᵀ·dY 又各需要同量级矩阵乘，因此训练约为 forward 的 3 倍。把 dense 模型每 token 的参数矩阵乘估为 2N FLOPs，处理 D 个 token 就得到约 6ND；长序列 attention、重计算等要另加。
+
 10. 70B 参数、15T tokens 的模型为什么约需要 $6.3\times10^{24}$ FLOPs？
+
+    **面试回答：** 代入 dense 训练近似 C≈6ND：6×(70×10⁹)×(15×10¹²)=6.3×10²⁴ FLOPs。该值假定 N 是主要参与 dense 矩阵乘的参数量，未完整计入长上下文 attention、activation recomputation、通信与运行开销。
+
 11. BF16 参数、BF16 梯度、两个 FP32 Adam moments 为什么合计为 12 bytes/parameter？
+
+    **面试回答：** BF16 参数 2 bytes，加 BF16 梯度 2 bytes，再加两个各 4 bytes 的 FP32 Adam moments，合计 2+2+4+4=12 bytes/parameter。这不含 activations、临时缓冲和 FP32 master weights；若额外保存 master weights，则再加 4 bytes/parameter。
+
 12. Gradient accumulation 为什么通常要缩放每个 microbatch 的 loss？
+
+    **面试回答：** K 个等大小 microbatch 的 mean loss 梯度直接相加，会得到目标全 batch 平均梯度的 K 倍。因此每个 loss 除以 K，或在更新前等价缩放累计梯度，才能保持学习率含义；microbatch 大小或有效 token 数不同，应按各自占全 batch 的权重缩放。
+
 13. Gradient accumulation、activation checkpointing 和 optimizer sharding 分别减少哪一类显存？
+
+    **面试回答：** Gradient accumulation 用较小 microbatch 降低同时存活的 activation 峰值；activation checkpointing 少存中间激活，在 backward 时重算。Optimizer sharding 则把 moments、master weights 等优化器状态分散到不同设备；前两者不会自动缩小参数和 optimizer state。
+
 14. 为什么训练中的大矩阵乘可能 compute-bound，而逐 token decoding 更容易 memory-bound？
+
+    **面试回答：** 训练时很多 token 共用同一权重，大 GEMM 可把一次权重读取摊到大量乘加上，算术强度较高。逐 token decode 尤其小 batch 时更像矩阵向量乘，每一步都要读大量权重和历史 KV，因此更容易受 HBM 带宽限制；增大 batch 能改善权重复用，但增加 KV 占用。
+
 15. 如果一个优化减少显存却增加 FLOPs，应怎样判断它在当前 workload 上是否值得？
+
+    **面试回答：** 先判断当前限制来自显存容量、带宽还是算力，再比较节省的读写或更大 batch 带来的收益与重计算开销。用 max(FLOPs/算力, bytes/带宽) 估下界，最终在相同质量和有效 batch 条件下测端到端吞吐、延迟及峰值显存；能避免 OOM 本身也可能使方案值得。
+
 
 ## 参考资料
 

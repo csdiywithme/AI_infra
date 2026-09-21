@@ -1117,16 +1117,49 @@ SWA → SWA → SWA → Full → ...
 ## 12. 自测问题
 
 1. 为什么 Pre-Norm 的关键是 Norm 不处于 residual signal path，而不只是“位置靠前”？
+
+    **面试回答：** Pre-Norm 写成 xₗ₊₁=xₗ+F(Norm(xₗ))，主 residual 支路保留直接的 identity path，梯度包含一条不必经过 Norm Jacobian 的通路。Post-Norm 则对相加后的整体归一化，主信号也被变换；关键是计算图里的梯度路径，而不只是 Norm 在代码中的先后位置。
+
 2. RMSNorm 只减少很少的 FLOPs，为什么仍可能明显改善 wall-clock time？
+
+    **面试回答：** Norm 往往是低算术强度算子，时间主要花在 reduction、显存搬运和 kernel launch，FLOPs 占比不能直接代表耗时。RMSNorm 去掉均值中心化、实现更简单，可能减少归约与中间读写并更容易融合；实际收益取决于 kernel 和模型 shape。
+
 3. 为什么普通 FFN 常用 $d_{ff}=4d$，而等参数量 GLU 常用 $d_{ff}\approx8d/3$？
+
+    **面试回答：** 普通 FFN 两个 projection 的参数量约为 2dd_ff，d_ff=4d 时是 8d²；GLU 多一个 gate projection，约为 3dd_ff。要保持相近参数与主要计算量，令 3dd_ff=8d²，得到 d_ff≈8d/3；4d 本身是经验基线，实际还会为硬件对齐调整。
+
 4. 用旋转矩阵说明 RoPE 的 Q/K 点积为何只依赖相对位置。
+
+    **面试回答：** RoPE 在每对坐标上使用按位置旋转的矩阵 R(m)，满足 R(i)ᵀR(j)=R(j−i)。因此 (R(i)q)ᵀ(R(j)k)=qᵀR(j−i)k，位置项只显式依赖相对距离；多频率时各二维块都满足同样性质，但 q、k 的内容仍可能间接包含上下文位置信息。
+
 5. 为什么 $n_{heads}d_{head}=d_{model}$ 是经验约定而不是数学约束？
+
+    **面试回答：** Q/K/V projection 可以把 d_model 映射到任意合理的多头总宽度 H·d_head，最后再用输出 projection 映射回 d_model，残差相加只要求最终维度一致。H·d_head=d_model 是平衡参数量、表达能力和硬件效率的常见默认值，并非 attention 数学定义的限制。
+
 6. 大 vocabulary 如何同时影响序列长度、LM head 计算和 optimizer memory？
+
+    **面试回答：** 在固定原始文本上，大词表通常减少 token 数，从而降低 block、attention 和 KV 的序列长度成本；但 embedding/LM head 参数随 Vd 增加，每个位置的输出 projection 随 dV 增加。新增词表参数还对应梯度和 Adam moments，因此参数与 optimizer memory 一起增长，最终计算取决于 T 和 V 的共同变化。
+
 7. z-loss、QK Norm 和 logit soft-cap 分别控制哪个数值风险？
+
+    **面试回答：** z-loss 用 α(logΣexp u)² 约束输出 softmax 的 log-normalizer 漂移；QK Norm 直接规范 Q/K 尺度，缓解 attention logits 过大。Soft-cap 用 c·tanh(z/c) 限制极端 logits，但可能压低梯度并限制尖锐分布；三者针对的位置不同，不能替代 LR、精度和数据排障。
+
 8. 为什么 GQA 对 decode 的收益通常比对训练 FLOPs 的收益更重要？
+
+    **面试回答：** GQA 让多组 query heads 共享较少的 KV heads，KV Cache 容量与读取量约按 H_kv/H 缩小，直接缓解 decode 的显存和带宽瓶颈。Query heads 及大部分 MLP 计算仍然保留，因此训练 FLOPs 不会同比例下降；KV 不占主要瓶颈时，decode 的收益也会变小。
+
 9. Full/SWA interleave 如何在降低成本的同时保留全局信息路径？
+
+    **面试回答：** 多数层用窗口 W 的局部 attention，把对应 mixing 成本从 O(L²d) 降到 O(LWd)，隔若干层插入 full attention 提供直接的全局信息通道。局部层堆叠也扩大感受野，但这种混合不保证保留全 full attention 的所有能力，仍需评估长距离检索和实际吞吐。
+
 10. Dropout 和 AdamW weight decay 分别作用于激活还是参数？为什么现代 LLM 对二者的取舍不同？
+
+    **面试回答：** Dropout 在训练中随机置零并缩放激活，增加随机正则化；AdamW weight decay 则按 θ←(1−ηλ)θ 持续收缩参数。大数据、近单 epoch 的 LLM 预训练中 dropout 的防过拟合收益可能有限且增加噪声，而适当 weight decay 仍可改善参数尺度和优化动力学，二者都需结合训练场景判断。
+
 11. 从第 $t$ 步读取 $O(btd)$ KV 状态出发，推导 MHA、MQA 和 GQA decode 的 arithmetic intensity。
+
+    **面试回答：** 令 $n$ 为 decode 步数、$h$ 为 query heads、$g$ 为 KV heads、$k=d/h$，按正文假设 $n<d$、忽略常数和 dtype。MHA 累计 KV 读取为 $\sum_{t=1}^nO(btd)=O(bn^2d)$，权重读取为 $O(nd^2)$，计算约 $O(bnd^2)$，故 $\mathrm{AI}\approx(n/d+1/b)^{-1}$；MQA 和 GQA 把 KV 宽度分别改为 $k$ 和 $gk$，保留 $O(bnd)$ 激活项后分别为 $(1/d+n/(dh)+1/b)^{-1}$ 与 $(1/d+gn/(dh)+1/b)^{-1}$。这是 operations/元素访问的数量级，换成 FLOP/byte 还要计入元素字节数。
+
 
 ## 参考资料
 

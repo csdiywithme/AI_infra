@@ -774,25 +774,85 @@ $$\frac{T_{\text{comp}}(1)}{P} \approx \frac{2G}{B}$$
 ## 13. 自测问题
 
 1. Capacity scaling 与 throughput scaling 有何区别？
+
+    **面试回答：** Capacity scaling 是把参数、梯度、optimizer state 或 activations 分散到多卡，使原本单卡装不下的模型能够运行。Throughput scaling 是增加有效并行计算来缩短时间；标准 DDP 能提高吞吐，却仍在每卡复制完整模型状态，说明容量扩展和速度扩展并不是一回事。
+
 2. $\alpha+\beta M$ 模型中的两项分别代表什么？
+
+    **面试回答：** α 是一次消息的固定启动与网络时延，β=1/B 是每传一个 byte 的时间，βM 表示搬运 M bytes 的带宽成本。小消息多时通常受 α 主导，合并 bucket 可摊薄开销；大消息则主要取决于有效带宽，但 collective 还要乘相应通信轮数和流量系数。
+
 3. Broadcast、all-gather、reduce-scatter、all-reduce 和 all-to-all 各自做什么？
+
+    **面试回答：** Broadcast 把一个 rank 的数据复制给全部 ranks；all-gather 收集各 rank 分片，使人人得到完整拼接结果。Reduce-scatter 先聚合各 rank 的贡献，再让每人只保留一片；all-reduce 让每人得到完整聚合结果；all-to-all 则让每个 rank 向每个目标 rank 发送各自对应的数据块。
+
 4. Rank 数量与 element 数量为何不必相等？`scatter` 和不等长 `all_to_all_single` 的 split 约束有何不同？
+
+    **面试回答：** Rank 数 P 是通信参与者数量，tensor 的元素数是每次传输的数据规模，每个 rank 可处理很多元素。PyTorch tensor scatter 由 root 提供 P 个同大小 tensor；all_to_all_single 显式指定不等长 splits 时不要求均分，但每个 source→destination 的发送数量必须与接收端匹配，split 总量也须符合各自 buffer。
+
 5. 为什么说 all-reduce 等于 reduce-scatter 加 all-gather？这个等式在哪些条件下也代表相同成本？
+
+    **面试回答：** Reduce-scatter 后，每个 rank 拥有完整 reduction 结果的一块，再 all-gather 即可让所有 rank 得到完整结果，因此语义等价。若使用相同 ring、chunk、dtype 和拓扑，两阶段的传输轮数与 bytes 也相同；但两个独立 API 的 launch/同步开销、库的算法选择和网络内归约可能让实际成本不同。
+
 6. Ring all-reduce 每 rank 的通信量为什么约为 $2(P-1)M/P$？Tree 可能优化哪一项？
+
+    **面试回答：** 把 M bytes 切成 P 块后，ring reduce-scatter 和 all-gather 各需 P−1 轮，每轮每 rank 发送 M/P bytes，因此发送量共 2(P−1)M/P，接收量相同。Tree 可把串行通信步数从 O(P) 降到 O(log P)，主要改善小消息的 latency 项；带宽和拓扑表现需具体测量。
+
 7. NVLink、PCIe、InfiniBand/RoCE 在 topology 中分别处于哪里？
+
+    **面试回答：** NVLink/NVSwitch 常连接同一高速 scale-up 域内的 GPU；PCIe 连接 GPU、CPU、NIC，也可能承载 GPU 间通信。InfiniBand 或 RoCE 通常组成跨节点 scale-out 网络，RoCE 基于以太网；实际高速域可跨机箱，所以应看物理路径与有效带宽，而不只按“节点内外”标签判断。
+
 8. NCCL 帮用户完成什么，不能帮用户解决什么？
+
+    **面试回答：** NCCL 提供 GPU collectives，并根据拓扑、消息大小等选择传输路径、ring/tree、分块和协议，把发送、接收、归约组织起来。它不能替用户选择合理的并行切分、修正错误 rank-to-device 映射，也不能消除网络过订阅、负载不均或不一致的 collective 调用顺序。
+
 9. `mp.spawn`、`init_process_group` 和 `torchrun` 各自负责什么？local rank 与 global rank 有何区别？
+
+    **面试回答：** mp.spawn 在本机启动多个 Python worker 并传播子进程失败；init_process_group 建立 ranks 之间的通信组；torchrun 是分布式启动器，负责启动与提供 rendezvous、rank 等运行环境。Local rank 是本节点进程编号，global rank 是全局组中唯一编号，多节点时两者通常不同。
+
 10. `torch.cuda.synchronize()` 与 `dist.barrier()` 分别在等待谁？把后置 barrier 放入计时区间会改变什么口径？
+
+    **面试回答：** cuda.synchronize 等当前进程指定本地 GPU 上此前提交的 CUDA 工作完成；dist.barrier 等组内各 rank 都到达该同步点。把后置 barrier 纳入计时，会加入等待较慢 ranks 与 barrier 自身的开销，使结果更接近同步阶段的墙钟时间，不能再解释为单 rank 的纯 collective 延迟。
+
 11. 为什么 DDP 中每个 rank 应只 read/decode 自己的 samples，而不应每个 rank 先加载完整数据？
+
+    **面试回答：** 若每个 rank 先加载完整数据再切片，存储读取、解码、CPU 内存和 host 带宽会重复消耗 P 份，数据管线可能先于 GPU 饱和。应共享必要索引和 metadata，但按 rank/worker 划分 samples，只读取和处理本地训练部分，并协调 shuffle 与流式分片以避免重复消费。
+
 12. 在等大 local batches 与 local mean loss 条件下，为什么 average gradients 等于 global mean-loss gradient？不等大时如何修正？
+
+    **面试回答：** 等大 local batch 时，全局 mean loss 为 $L=\frac1P\sum_rL_r$，求导线性，故 $\nabla L=\frac1P\sum_rg_r$。若各 rank 有效样本数 $n_r$ 不等，应使用 $\sum_rn_rg_r/\sum_rn_r$；若框架仍自动按 $P$ 平均，可把本地 mean loss 乘 $Pn_r/\sum_rn_r$，token loss 则按有效 token 数加权。
+
 13. 标准 DDP 的 model-state memory 为什么不随 GPU 数下降？
+
+    **面试回答：** 标准 DDP 让每个 rank 在不同数据上运行同一完整模型，并各自持有全部参数、梯度和 optimizer state，因此这些状态不随卡数减少。固定 global batch 下，local batch 变小可降低 activations，但要降低 model-state memory，必须再引入 ZeRO/FSDP、TP 或 PP 等分片。
+
 14. Column-parallel 与 row-parallel linear 如何配对？Forward/backward 分别在哪一步需要合并 partial results？
+
+    **面试回答：** 第一层按输出列切 W₁，得到 hidden shards，各 shard 本地做激活；第二层按对应输入行切 W₂，计算 partial output，forward 用 all-reduce 或 reduce-scatter 求和。Backward 中各参数 shard 的梯度留在本地，第一层对公共输入的 partial gradients 需再求和；外层 DP 另同步相同 shard 的数据梯度。
+
 15. 为什么 TP 通常放在高速 node 内互连？
+
+    **面试回答：** TP 几乎每层都交换 activations 或 partial sums，下一步计算通常马上依赖通信结果，频率高且不易全部隐藏。高速低延迟的 NVLink/NVSwitch 域能降低这些等待；跨较慢网络或 TP 过大时，本地 GEMM 变小而 collective 成本突出，加卡可能反而变慢。
+
 16. Pipeline microbatch 与 DP local batch 有何区别？Forward activation 和 backward activation gradient 如何跨 stage 流动？
+
+    **面试回答：** DP local batch 是一个模型副本本次 step 分到的数据，PP microbatch 是把它进一步拆成流水线调度单元，每个 microbatch 仍依次经过所有 stages。Forward 在相邻 stages 间发送 boundary activation，backward 反向发送对应的 activation gradient；各 stage 累计本地参数梯度后再更新。
+
 17. Pipeline bubble 如何随 stages 与 microbatches 变化？GPipe 与 1F1B 的主要 memory 差异是什么？
+
+    **面试回答：** 在平衡 stages、简单 fill/drain 模型下，P 个 stages、m 个 microbatches 的 bubble fraction≈(P−1)/(m+P−1)，因此更多 microbatches 能摊薄气泡。GPipe 先全部 forward 再 backward，保存激活较多；1F1B 提早交替反传并释放激活，主要降低峰值显存，基础版本并不自动消除 bubble。
+
 18. Context parallel 与 expert parallel 分别需要哪类通信？
+
+    **面试回答：** Context parallel 切分长序列，但每个 query 仍可能依赖远端 K/V，因此需要 all-gather、ring 轮转或其他 K/V/局部 attention 结果通信。Expert parallel 则按 router assignment 把 token dispatch 到专家设备，再 combine 返回，通常是两次 all-to-all；二者传输对象和负载特性不同。
+
 19. ZeRO-1/2/3 分别 shard 哪些状态？
+
+    **面试回答：** ZeRO-1 分片 optimizer state，包括实现中的 FP32 master weights 和 Adam moments；ZeRO-2 再分片已聚合的 gradients；ZeRO-3 再分片 parameters。各 rank 仍处理本地数据并走完整模型，按需 all-gather 参数、reduce-scatter 梯度，不应把 state sharding 与按层分工的 PP 混淆。
+
 20. 如何判断继续增加 data-parallel ranks 已经得不偿失？
+
+    **面试回答：** 固定 global batch 时，看增加 ranks 后 tokens/s 与 step time 的边际改善，以及每 token 的 GPU 时间成本。若 local GEMM 过小，或每 rank compute 已降到无法覆盖近乎不降的 all-reduce 时间，扩展效率就会明显衰减；若通过增大全局 batch 扩展，还要检查是否超过 critical batch 而损害统计效率。
+
 ## 参考资料
 
 - [Stanford CS336 Spring 2026](https://cs336.stanford.edu/)

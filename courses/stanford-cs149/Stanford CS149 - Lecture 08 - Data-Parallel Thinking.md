@@ -735,20 +735,65 @@ GPU kernel 的目标不是只最小化 FLOPs。FlashAttention、fused MoE 和 qu
 ## 自测题
 
 1. Sequence 与普通 array 的关键区别是什么？这种限制为什么有助于并行化？
+
+    **面试回答：** 本讲的 Sequence 通过 map、reduce、scan 等规定接口操作元素，限制普通数组那样任意跨元素读写。这样依赖关系体现在已知 primitive 的契约中，编译器和 runtime 更容易安全地分块、重排、向量化和融合；区别主要在接口语义，而不是底层存储形状。
+
 2. `map(f,S)` 要能任意并行执行，`f` 应满足什么条件？
+
+    **面试回答：** 各次 f 调用应彼此独立，输出只取决于当前输入和稳定的只读数据，不修改共享外部状态，也不依赖调用顺序。纯函数是最容易满足这些条件的方式；像共享 `counter++` 并把计数用于结果，会引入跨元素依赖，破坏任意并行执行的语义。
+
 3. Parallel reduction 为什么需要 associativity？为什么不一定需要 commutativity？
+
+    **面试回答：** 并行归约树会改变括号分组，因此需要结合律来保证重组不改变结果。若实现保持元素的相对顺序，就不必交换元素，也不需要交换律，例如字符串拼接；若实现还允许任意重排，则必须另外满足交换律或相应 API 契约。
+
 4. 浮点加法 reduction 为什么可能无法 bitwise 重现 sequential 结果？
+
+    **面试回答：** 有限精度浮点加法每步都会舍入，不严格满足结合律。并行归约改变加法树和舍入位置，结果可能与顺序累加不同；固定归约树可提高特定配置下的可重复性，但不自动保证跨线程数、设备或算法都与串行结果逐位一致。
+
 5. Inclusive scan 与 exclusive scan 的定义有何区别？如何相互转换？
+
+    **面试回答：** Inclusive 的第 i 项包含 $x_i$，exclusive 只归约到 $x_{i-1}$，首项为单位元 e。保持操作顺序时，$I_i=E_i\oplus x_i$；反向转换可令 $E_0=e$、$E_i=I_{i-1}$，即将 inclusive 结果右移一位并补入 e。
+
 6. Hillis–Steele scan 与 Blelloch scan 的 work/span 分别是什么？
+
+    **面试回答：** Hillis–Steele 做 $\Theta(\log N)$ 轮，每轮约 N 个操作，因此 work 为 $\Theta(N\log N)$、span 为 $\Theta(\log N)$。Blelloch 用 upsweep 和 downsweep 两遍树，总 work 为 $\Theta(N)$，span 仍为 $\Theta(\log N)$，但阶段常数约为两倍。
+
 7. 为什么 work-efficient scan 在 32-wide SIMD 内可能更慢？
+
+    **面试回答：** 32-wide SIMD 上 Hillis–Steele 只需 5 个跨 lane 合并阶段，能较充分利用宽指令。Blelloch 虽然标量操作更少，却约需两遍树层级，靠近树根时多数 lane 被屏蔽；实际时间还包含 shuffle 和同步成本，因此较少 work 不必然等于较短指令路径。
+
 8. 怎样从 32-element warp scan 构造 1024-element block scan？
+
+    **面试回答：** 先由 32 个 warps 各自扫描 32 个元素，并保存各 warp 的总和；再由一个 warp 对这 32 个总和做 exclusive scan，得到各段 base。完成共享数据的必要同步后，把对应 base 按正确顺序合入每段局部前缀，即得到全块结果。
+
 9. Segmented scan 怎样用 flags 表示 nested sequences？
+
+    **面试回答：** 把各内层序列拼成一个扁平数组，并在每段首元素置 flag=1，其余为 0。Scan 传播前缀时，一旦跨入新段就丢弃上一段累计值，实现段内独立扫描；纯 start flags 不能单独表示空段，空段还需 offsets 或长度等元数据。
+
 10. CSR SpMV 如何分解为 gather、map、segmented scan 和 gather-ends？
+
+    **面试回答：** 先按 `cols[k]` gather 向量 x，再 map 得到 `values[k]*x[cols[k]]`；利用 row offsets 标出非空行起点，做 inclusive segmented sum。最后 gather 每个非空行的末元素作为 y，空行显式输出 0，避免对 `row_end-1` 进行无效取值。
+
 11. Gather instruction 为什么可能比 contiguous vector load 贵很多？
+
+    **面试回答：** Gather 的各 lane 地址可能落在不同 cache lines 甚至不同页面，触发多次事务、TLB 查询和独立 cache misses。连续 vector load 则常能高效利用少量相邻事务及预取；因此“编码成一条 gather 指令”不代表只付出一次连续读取的代价。
+
 12. 多个 scatter inputs 指向同一 index 时，语义上需要解决什么问题？
+
+    **面试回答：** 必须先定义重复目标的语义：是指定某个输入获胜，还是对所有输入求和、取最大值等归约。普通并发 store 既不保证期望顺序，也不能实现累积；应使用支持所需语义的原子操作，或先分组归约，再由唯一写者更新目标。
+
 13. 用 sort + segmented reduction 替代 atomics 的收益和代价分别是什么？
+
+    **面试回答：** 按目标索引排序后，同 key 的值可连续分段归约，每个目标只写一次，从而减少随机访问和热点原子竞争。代价是排序、临时存储及额外遍历；冲突少时可能更慢，若后续本就需要分组则更易摊销，并需确认归约顺序符合数值与操作语义。
+
 14. Particle binning 为什么不适合让每个 cell 扫描全部 particles？
+
+    **面试回答：** 若有 C 个 cells、N 个 particles，每个 cell 扫全体会产生 $\Theta(CN)$ 工作，即使避免了写冲突，也大量重复判断。更合理的是对每个粒子只算一次 cell ID，再按 ID 排序或分桶并构造边界 offsets，让并行度来自粒子数量。
+
 15. MoE routing 与 particle binning 在 primitive graph 上怎样对应？
+
+    **面试回答：** Particle→cell ID 对应 token→expert ID，按 cell 排序对应按 expert 分组，边界或 scan offsets 对应专家批次位置，再用 gather/scatter 打包数据。MoE top-k 会把一个 token 展开成多条路由记录，专家输出后还需按原 token ID 逆重排并做带权合并。
+
 
 ## 参考资料
 

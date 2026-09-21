@@ -857,13 +857,13 @@ Character、byte、word tokenizer 都有明显问题，BPE 也只是一个独立
 
 主要 tensor：
 
-| 对象 | Shape |
-| --- | --- |
-| Token IDs | $[B,T]$ |
-| Embedding table | $[V,d]$ |
-| Hidden states | $[B,T,d]$ |
-| LM head weight | $[d,V]$ |
-| Logits | $[B,T,V]$ |
+| 对象              | Shape     |
+| --------------- | --------- |
+| Token IDs       | $[B,T]$   |
+| Embedding table | $[V,d]$   |
+| Hidden states   | $[B,T,d]$ |
+| LM head weight  | $[d,V]$   |
+| Logits          | $[B,T,V]$ |
 
 Embedding 和 LM head 可以 weight tying，但 shape tradeoff 不变：增大 $V$ 会线性增大词表相关参数。
 
@@ -992,15 +992,45 @@ $$
 ## 15. 自测问题
 
 1. 为什么课程认为 API abstraction 对语言模型来说是“leaky”的？
+
+    **面试回答：** 因为 API 只隐藏了实现，没有消除底层选择对行为的影响：tokenizer 会影响切词和长度，context window、训练数据与 decoding 会影响能力和输出。质量、延迟、显存和成本仍由这些机制决定，所以研究和排障有时必须穿透接口检查整条技术栈。
+
 2. Mechanics、mindset 和 intuitions 中，哪些更容易从小模型迁移到 frontier scale？
+
+    **面试回答：** Mechanics 和 mindset 更容易迁移：前者是 attention、优化器、并行等工作机制，后者是资源核算、效率与 scaling 的研究方法。具体数据配方、超参数和架构优劣属于 intuitions，可能随规模改变，需要跨规模实验验证。
+
 3. 为什么 Bitter Lesson 不应被理解为“算法不重要”？
+
+    **面试回答：** Bitter Lesson 强调的是能有效利用更多计算和数据的通用方法，而不是算法无关紧要。算法决定资源转化成能力的效率；规模越大，低效率的绝对成本越高，因此应优先寻找可扩展、能随资源持续获益的算法。
+
 4. 为什么 compression ratio 使用 bytes/token，而不是 characters/token？
+
+    **面试回答：** UTF-8 byte 是可直接计量的原始数据单位，而“字符”可能指 code point 或可见字形，不同语言一个字符对应的 byte 数也不同。bytes/token 能统一表达压缩率和原始文本覆盖量，但跨语言比较时仍要注意编码长度差异。
+
 5. Character、byte、word tokenizer 分别卡在哪个 tradeoff 上？
+
+    **面试回答：** Character tokenizer 的序列较长，完整 Unicode 词表又大且长尾严重；byte tokenizer 只有 256 个基础 token、无 OOV，却使序列更长。Word tokenizer 常能缩短序列，但词表难以封闭，新词会成为 UNK，稀有词也难学好。
+
 6. BPE 的 vocab 和 ordered merges 分别记录什么？
+
+    **面试回答：** vocab 记录 token ID 到原始 bytes 的映射，用于还原文本；ordered merges 记录哪些相邻 token pair 可以合并为哪个新 token，以及合并优先级。编码按训练所得顺序应用规则，解码则先拼接各 token 的 bytes，再统一做 UTF-8 解码。
+
 7. 为什么 byte-level BPE 不需要 `UNK`？
+
+    **面试回答：** 只要基础词表包含全部 256 个 byte，任意合法 UTF-8 文本都能退回到 byte 序列表示；学习到的 merge 只是让常见片段更短，不会丢失这种覆盖能力。因此不需要 UNK，但单个 token 可能只包含一个字符的部分 bytes，解码应先拼接再转字符串。
+
 8. `the cat in the hat` 的三次 merge 如何把序列从 18 缩短到 12？
+
+    **面试回答：** 按示例的并列处理顺序，先把两处 t+h 合成 th，长度 18→16；再把两处 th+e 合成 the，16→14；最后把两处 the+空格合成一个 token，14→12。每次合并两处都各省一个 token，因此最终压缩率为 18/12=1.5 bytes/token。
+
 9. 增大 vocabulary size 为什么可能同时让 Transformer block 更便宜、LM head 更昂贵？
+
+    **面试回答：** 固定原始文本时，更大的词表通常能缩短 token 序列 T，使 block 的逐 token 计算约按 T、full attention 约按 T² 降低。但 LM head 每个位置要预测 V 类，成本约为 O(BTdV)，词表参数约为 Vd；T 的下降是否抵消 V 的增长要实测。
+
 10. 为什么 tokenizer 配置应该与 model weights 一起版本化和部署？
+
+    **面试回答：** Token ID 是模型 embedding 和输出权重的索引，vocab、merge 顺序、预切分规则或 special token ID 一变，同一文本就可能映射到不同语义。把 tokenizer 与权重一起版本化，才能保证训练、推理及各 worker 的输入输出约定一致，并支持可靠复现和回滚。
+
 
 ## 参考资料
 

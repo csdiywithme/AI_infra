@@ -920,19 +920,61 @@ CPU data loader、推理 runtime 和 DAG executor 常采用 per-worker queues：
 ## 21. 自测题
 
 1. static assignment 为什么不等于 compile-time assignment？
+
+    **面试回答：** Static assignment 指分配不随执行中的完成速度动态调整，并不是必须在编译时写死。程序可以在运行时根据 N、P 或预估成本计算分区，然后在执行阶段固定使用；它减少协调开销，但不能及时纠正预测失误。
+
 2. Mandelbrot 中平均分配像素为什么仍可能严重失衡？
+
+    **面试回答：** Mandelbrot 各像素达到逃逸条件所需的迭代次数差别很大，相同像素数不等于相同计算量。连续区域还可能集中高成本像素，因此应根据成本分布采用交错划分、成本估计或较细粒度动态领取，避免少数 worker 拖尾。
+
 3. 调大 `GRANULARITY` 会同时改善和恶化什么？
+
+    **面试回答：** 调大 `GRANULARITY` 让一次调度覆盖更多计算，减少队列、原子操作和调度开销，连续块还可能改善局部性。但可分配的块变少、每块耗时变长，会恶化负载均衡和尾部等待；最佳值应同时看调度成本、任务方差和 worker 数。
+
 4. 总时间 10 s，其中理论上不可消除的计算已占 9.7 s，调度优化最多能节省多少？
+
+    **面试回答：** 最多节省 $10-9.7=0.3$ s，即原总时间的 3%；理想新时间为 9.7 s，最大加速比约为 $10/9.7=1.031$。这个上界假设剩下的时间都能通过调度优化消除，现实通常达不到。
+
 5. Cilk 的 `spawn` 和创建系统线程有什么根本区别？
+
+    **面试回答：** `spawn` 声明 child 与后续 continuation 可以并行，创建的是逻辑任务，不保证立即执行，更不要求新建系统线程。Runtime 把大量轻量任务映射到固定 worker pool；没有空闲 worker 时，也可按合法的顺序执行，避免每个任务都承担线程创建和切换成本。
+
 6. child stealing 为什么可能产生 `O(N)` 的 breadth-first 队列？
+
+    **面试回答：** Child stealing 让 owner 继续执行 spawn 后的循环，把每个 child 放进 deque。若 N 个任务生成得比消费快，owner 会先积累大量同层任务，队列可增长到 $\Theta(N)$；这种广度优先生成方式增加 ready-task 存储，也容易偏离串行执行的局部性。
+
 7. continuation stealing 为什么有利于 locality？
+
+    **面试回答：** Continuation stealing 让 owner 先像普通函数调用一样执行 child，把剩余控制流留给 thief；没人偷时就恢复原来的串行深度优先顺序。刚访问的栈帧和数据更可能仍在 cache 中，因此常见路径开销低、局部性好；有空闲 worker 时仍能并行展开。
+
 8. thief 为什么从 deque top 偷，并随机选择 victim？
+
+    **面试回答：** Owner 从 bottom 取最新工作，thief 从 top 偷较老的 continuation，通常能减少双方争用；在递归分治中，较老任务还常代表较大的子问题，便于摊销偷取成本。随机 victim 避免维护昂贵的全局负载表，并分散多个 thief 对同一热点的争抢。
+
 9. 为什么顺序 spawn 循环本身可能成为瓶颈？怎样改变 decomposition？
+
+    **面试回答：** 普通 spawn 循环产生任务的控制流是一条长度 $\Theta(N)$ 的链，即使 child 能并行，揭示全部工作的 span 仍为线性。可把迭代域递归二分，让子区间并行产生任务，将理想生成 span 降为 $\Theta(\log N)$，并在小区间用 grain cutoff 控制开销。
+
 10. 若 `P` 个 workers 中有 `B` 个 deque 非空，随机偷取的成功概率与期望尝试次数分别是多少？
+
+    **面试回答：** 若从全部 P 个 workers 中均匀选择，且状态不变、非空即视为成功，则成功概率为 $B/P$，B>0 时平均尝试 $P/B$ 次。若排除空闲 thief 自己，则相应为 $B/(P-1)$ 与 $(P-1)/B$；真实竞争会使实际成功率降低，B=0 时无工作可偷。
+
 11. 为什么 continuation 从未被偷时，`cilk_sync` 可以接近 no-op？
+
+    **面试回答：** Continuation stealing 的 owner 会先执行 child，再恢复 caller；该作用域没有发生偷取时，到达 sync 前 children 已按深度优先顺序完成。Runtime 只需很轻的状态检查，无需跨 worker 等待，因此可接近 no-op，但不意味着机器码必然零开销。
+
 12. 到达 sync 的 worker 为什么应该继续偷工作，而不是阻塞等待 children？
+
+    **面试回答：** Sync 等待的是 logical continuation 的依赖，而不是要求当前 OS worker 原地停住。把 continuation 挂起后继续执行或偷取其他 ready work，可以保持处理器忙碌，也避免全部 worker 都在 join 点等待、剩余任务无人执行的局面。
+
 13. “最后完成 child 的 worker 可以继续 after-sync continuation”为什么不违反程序语义？
+
+    **面试回答：** 语义只要求 children 完成且结果对 after-sync 可见，不要求后续代码仍由最初的 worker 执行。Runtime 保存可恢复的 frame 和 continuation，由最后完成者通过正确的同步协议使其 ready 并唯一地恢复，既满足依赖顺序，也省去额外转交。
+
 14. join counter 的检查和 waiter 登记若不是原子的，会发生什么 lost wake-up？
+
+    **面试回答：** 可能出现 sync worker 先读到计数为 1，最后一个 child 随后把计数降到 0，却因尚无 waiter 而未唤醒；接着 sync worker 登记 waiter 并永久等待。需要锁、CAS 或等价协议协调检查与登记，并建立 child 写入到 continuation 读取的内存可见性。
+
 
 ## 参考资料
 

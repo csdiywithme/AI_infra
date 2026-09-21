@@ -21,7 +21,8 @@ topics:
 
 - [Transformer Block](../model-architecture/Transformer%20Block.md)
 - [Prefill 与 Decode](../model-architecture/Transformer%20Block.md#14-prefill-与-decode)
-- KV Cache：待从后续课程和实验继续沉淀。
+- [KV Cache、Prefix Sharing、GQA/MLA 与压缩](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2020%20-%20Prefix%20Sharing%20and%20KV%20Cache%20Optimizations.md)
+- [Sparse Attention、Linear Attention、SSM 与 Hybrid](../../courses/cmu-11-763/CMU%2011-763%20-%20Lecture%2022%20-%20Linearizing%20Attention%20and%20Sparse%20Models.md)
 
 ### 生成与决策
 
@@ -42,6 +43,22 @@ topics:
 - Tensor Parallel
 
 这些主题将在出现足够课程材料、推导或实验后升级为独立主题笔记；当前不创建空壳文件。
+
+### 从生成分布到系统决策
+
+- [[CMU 11-763 - Lecture 03 - Common Sampling Methods for Modern NLP|Sampling]]：temperature、截断与 typical sampling 改变输出分布。
+- [[CMU 11-763 - Lecture 04 - Beam Search and Variants|Beam Search]]：有限搜索预算、停止条件与多样性。
+- [[CMU 11-763 - Lecture 05 - A Star and Best First Search|A* 与 Best-First Search]]：启发式、最优性条件与搜索顺序如何影响计算成本。
+- [[CMU 11-763 - Lecture 06 - Other Controlled Generation Methods|Controlled Generation]]：语法约束、判别器与逐 token 控制。
+- [[CMU 11-763 - Lecture 07 - Chain of Thought and Intermediate Steps|CoT 与 Self-consistency]]：中间计算与答案层面的边缘化。
+- [[CMU 11-763 - Lecture 08 - Self-Refine and Self-Correction Methods|Self-correction]]：反馈来源、停止策略与无外部证据时的局限。
+- [[CMU 11-763 - Lecture 09 - Reasoning Models|Reasoning Models]]：训练如何使推理时计算更有效。
+- [[CMU 11-763 - Lecture 10 - Incorporating Tools|Tool Use]]、[[CMU 11-763 - Lecture 11 - Agents and Multi-Agent Communication|Agents]]：模型外执行、交互状态、预算与评测。
+- [[CMU 11-763 - Lecture 12 - Reward Models and Best-of-N|Best-of-N]]、[[CMU 11-763 - Lecture 14 - Minimum Bayes Risk and Multi-Sample Strategies|MBR]]：候选生成与决策效用不是同一件事。
+- [[CMU 11-763 - Lecture 15 - Inference Scaling vs Model Size|Inference Scaling]]：在同一资源口径下比较模型大小、候选数和推理策略。
+- [[CMU 11-763 - Lecture 16 - Token Budgets and Training-Time Distillation|预算与蒸馏]]：把部分在线搜索成本转移到离线训练。
+
+这些是课程来源入口；公式的适用条件、勘误和材料覆盖范围以各讲笔记为准。
 
 ## 分析框架
 

@@ -1074,23 +1074,77 @@ $$
 ## 19. 自测问题
 
 1. 为什么 training workload 与 production inference workload 的形状不同？
+
+    **面试回答：** Training 通常已知整段序列，可按固定长度 packing 和规则 batch 并行做 teacher forcing；production inference 的请求动态到达，输入输出长度、会话间隔和 cache hit 都不同。Decode 又依赖上一 token，无法直接沿未来时间并行，因此需要动态调度、持久 KV 状态和面向尾延迟的资源分配。
+
 2. TTFT 和 TPOT 分别主要受哪些阶段影响？
+
+    **面试回答：** TTFT 主要受排队、路由、prefix cache 查找与加载、prefill 和必要的 KV 传输影响。TPOT 主要受 decode step 的权重/KV 读取、计算、通信和调度干扰影响；因此优化首响应不能只调 decode，优化持续输出也不能只看 prefill 的算力利用率。
+
 3. 为什么 decode 在小 batch 下通常受 HBM bandwidth 限制？
+
+    **面试回答：** 每步每条序列只算一个新 token，却仍要读取大量模型权重和历史 KV；小 batch 下权重复用不足，FLOPs/byte 低，算力等数据而非数据等算力。忽略通信和其他开销，单步至少需要约 $Pb_w/BW_{HBM}$ 来搬权重，KV 流量和 kernel 空泡还会继续增加时间。
+
 4. Continuous batching 相比 static batching 解决了什么问题，又引入什么约束？
+
+    **面试回答：** Continuous batching 在每轮及时释放完成请求的槽位并接纳新请求，减少 static batching 中短请求等待长请求、槽位空闲和 padding 的浪费。它引入每轮动态 shape、KV 分配及抢占调度，必须同时满足 token/显存预算与 TTFT、TPOT 的尾延迟约束，所以不能无限加大 batch。
+
 5. 写出 GQA 模型单 sequence 的 KV cache 大小近似式。
+
+    **面试回答：** 若有 $L$ 层、context 长 $S$、$H_{kv}$ 个 KV heads、head dimension 为 $d_h$，每元素 $b$ bytes，则单序列 $M_{KV}\approx2LSH_{kv}d_hb$。前面的 2 表示 K 和 V；BF16 时为 $4LSH_{kv}d_h$ bytes，不含块尾碎片和元数据。
+
 6. Prefix cache 与普通 autoregressive KV cache 有什么区别？
+
+    **面试回答：** 普通 autoregressive KV cache 复用同一序列 decode 时的历史 K/V，避免每步重算；prefix cache 进一步跨请求或跨会话轮次复用相同前缀，减少重复 prefill。匹配需要保证前缀 token、模型/adapter 和位置语义等一致，且节省的计算要与查找、存储和搬运成本一起衡量。
+
 7. P/D disaggregation 在什么情况下可能得不偿失？
+
+    **面试回答：** 当 KV 很大、互联较慢、并发较低或 prefill/decode 池配比失衡时，传输和排队成本可能超过隔离干扰的收益。粗略判断是 $T_{interference\ saved}>T_{KV\ transfer}+T_{routing}+T_{imbalance}$ 才值得；应以目标流量下的 goodput 和尾延迟实测，而不是默认分离必然更快。
+
 8. 为什么 cold prefill 会伤害 warm request 的尾延迟？
+
+    **面试回答：** Cold prefill 需要计算很长的未缓存 prompt，warm request 可能只需加载旧 KV 和算少量增量；若共用队列或计算资源，短服务时间的 warm 请求仍会被长冷请求挡住。这样的 head-of-line blocking 会推高 warm TTFT 的 P95/P99，所以路由要考虑 cache hit 和缺失 token 数。
+
 9. CPD 相比普通 P/D disaggregation 多拆出了什么角色？
+
+    **面试回答：** CPD 在普通 prefill、decode 两类角色之外，增加专门处理低 cache-hit 冷请求的 pre-prefill nodes，先计算新上下文并写入分布式 KV。高 cache-hit 请求交给 warm prefill nodes 加载旧 KV、计算增量，再进入 decode；按缓存状态分流可减少冷请求对暖请求的排队干扰。
+
 10. 为什么一个 off-by-one kernel bug 可能导致整段生成轨迹偏离？
+
+    **面试回答：** 越界或未初始化读取可能先造成很小的 logits 差异，但一旦采到不同 token，下一步条件上下文就改变，之后整条自回归轨迹都可能分叉。因而单步平均数值误差很小也不代表生成等价，需要检查 token agreement、长输出、不同 shape 和长时间运行中的异常。
+
 11. Kernel-per-operation 为什么会在低延迟 decode 中产生大量空泡？
+
+    **面试回答：** 低延迟 decode 的很多算子很短，单次 launch、全局同步边界和等待最后少量线程块的 tail effect 相对占比很高。前一个 kernel 的少数 SM 仍在收尾时，其他 SM 可能空闲，下一个算子又不能提前开始，于是有用权重搬运与计算之间出现大量空泡。
+
 12. Megakernel 如何让 QKV、attention 和 O projection 的部分工作重叠？
+
+    **面试回答：** Megakernel 将操作拆为有依赖的 tile/head 任务，在 persistent kernel 内显式调度。当某些 QKV/RoPE 片段已就绪，就可提前加载对应 KV 并启动 attention；attention 计算时也可预取 O projection 权重，部分输出就绪后再启动依赖它的工作，以细粒度同步替代整算子屏障。
+
 13. 为什么 Megakernel 很难覆盖所有 batch size、context length 和 GPU？
+
+    **面试回答：** 最优调度依赖 SM 数、寄存器和共享内存、异步指令，以及 batch/context 决定的任务量与数据复用。模型、精度或 GPU 一变，原有 tile、同步与预取计划就可能低效甚至不适用；因此 Megakernel 上限高，但需要较多 specialization、验证和 fallback，难以靠一份 schedule 覆盖所有情况。
+
 14. 写出 Parcae 的简化 recurrence，并说明 $\rho(\bar A)<1$ 的含义。
+
+    **面试回答：** 简化 recurrence 是 $h_{t+1}=\bar A h_t+\bar B e+\bar R(h_t,e)$；去掉非线性项后，$h_T=\bar A^Th_0+\sum_{k=0}^{T-1}\bar A^k\bar B e$。$\rho(\bar A)<1$ 表示线性状态转移的特征值模都小于 1，初始扰动会衰减、常量输入下收敛；这并不单独保证整个非线性网络稳定。
+
 15. Parcae 如何从构造上约束 $\bar A$ 的 spectral radius？
+
+    **面试回答：** 将连续矩阵写成 $A=\operatorname{Diag}(-e^{a_i})$，再令 $\bar A=\exp(\Delta t A)$。在各步长 $\Delta t_i>0$ 的条件下，每个离散特征值为 $\exp(-\Delta t_i e^{a_i})\in(0,1)$，从而约束 spectral radius；输入归一化等措施还用于控制其他不稳定来源。[Parcae 论文](https://arxiv.org/html/2604.12946v1#S4.SS1)
+
 16. Recurrence 为什么可以看作 parameters 和 data 之外的第三个 scaling axis？
+
+    **面试回答：** 增加 recurrence 是重复使用共享 block，让同一 token 经过更多变换，增加计算深度与 FLOPs，却不同比例增加独立参数或训练数据。因而可在参数量和数据量固定时单独调节循环次数；代价是串行延迟和额外计算，所以是否有利仍需在同质量、同硬件与预算下比较。
+
 17. 参数更少为什么可能带来大于线性的 serving 收益？
+
+    **面试回答：** Serving 存在离散的容量和放置边界：少一些参数可能恰好让模型从多卡放入单卡，消除通信，或为更多 KV 和并发腾出显存。跨越这些边界会带来阶跃式收益，而非随参数线性变化；但若模型需要更多循环或生成步骤，仍要将新增计算纳入端到端测量。
+
 18. 如果要为 coding agent 设计 serving 系统，你会记录哪些 workload statistics？
+
+    **面试回答：** 我会记录输入/输出长度的分布与尾部、并发和到达率、会话轮次及轮间隔、共享 prefix 长度和 cache-hit ratio、缺失 token 数，以及模型/adapter 分布。再关联工具调用次数与耗时、KV 驻留层和搬运量、TTFT/TPOT/SLO、超时重试及成本，重点保留相关性而非只看平均值。
+
 
 ## 参考资料
 

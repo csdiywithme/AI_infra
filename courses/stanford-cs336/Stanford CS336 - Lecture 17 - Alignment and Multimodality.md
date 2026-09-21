@@ -491,15 +491,45 @@ Contrastive encoder 被奖励保留 caption 可描述的 semantics，而不是�
 
 ## 12. 自测问题
 1. 为什么 multimodal Transformer 必须定义每种模态的 token 接口？
+
+    **面试回答：** Transformer 处理的是带位置和维度约定的序列，原始像素、音频波形或视频不能直接当作文本 token 使用。必须定义 encoder/codebook、token 数、embedding 维度、位置与模态边界，才能决定信息如何进入模型；接口也决定压缩损失、context 占用和训练/推理成本。
+
 2. 写出 CLIP 的 $B\times B$ similarity matrix 和对称 loss。
+
+    **面试回答：** 令归一化的图像、文本 embedding 为 $v_i,t_i$，则 $S_{ij}=v_i^\top t_j/\tau$，得到 $B\times B$ similarity matrix。正例位于对角线，对称 loss 为 $-\frac1{2B}\sum_i[\log\frac{e^{S_{ii}}}{\sum_j e^{S_{ij}}}+\log\frac{e^{S_{ii}}}{\sum_j e^{S_{ji}}}]$，分别让图找文、文找图。
+
 3. SigLIP 与 CLIP 在 loss 和 distributed communication 上有何差别？
+
+    **面试回答：** CLIP 对每个图像或文本做 batch 内 softmax 多分类，分母耦合全部 negatives；SigLIP 把每对当二分类，用 $\log(1+e^{-z_{ij}(v_i^\top t_j/\tau+b)})$。后者不需要全局 softmax 分母，更易分块、流水处理 pairs；但使用跨设备负例时仍需交换 embeddings，并不等于没有通信。
+
 4. Projector 除了匹配 embedding dimension，还控制什么？
+
+    **面试回答：** Projector 决定视觉表示怎样与 LM 的语义空间对齐，并影响可见 token 数、空间细节和信息压缩程度。简单线性层或逐 token MLP 通常只变换特征，不自动减少 token；resampler/Q-former 才能改变序列长度，所以输出维度对上只是接口可运行，不代表视觉信息已充分对齐。
+
 5. AnyRes 为什么提升 OCR，又为什么显著增加 LM compute？
+
+    **面试回答：** AnyRes 将高分辨率图拆成多个 tile 编码，避免整图缩小时小字和局部细节被抹掉，因此有利于 OCR。代价是 visual tokens 近似随 tile 数增长，进入 LM 后增加 prefill、KV 和 attention 成本；若用 full attention，其主成本约为 $O((L_{text}+N_v)^2d)$。
+
 6. Dynamic resolution 下 visual-token 数如何随 $H,W,p,m$ 变化？
+
+    **面试回答：** 对经过 resize/padding 的高宽 $H,W$，patch size 为 $p$、每轴 merge factor 为 $m$ 时，$N_v\approx HW/(pm)^2$，特殊 token 和边界取整另计。高宽同时扩大 $k$ 倍，token 约增为 $k^2$ 倍；例如 $224\times224,p=14,m=2$ 对应 64 个空间 token。
+
 7. MRoPE 为什么需要 temporal/height/width 三轴？
+
+    **面试回答：** 图像中的相邻关系有上下和左右两个方向，视频还需要区分帧序与时间距离；把它们只压成一维序号容易混淆空间和时间结构。MRoPE 将 rotary 维度分配给 $(t,h,w)$ 三轴，分别编码时间、高度和宽度，使不同分辨率与多帧输入仍能表达对应的位置关系。
+
 8. 为什么 video example 可能支配普通 per-token loss？
+
+    **面试回答：** 若视频样本含更多参与监督的 tokens，全局 token-average loss 中它的权重约为 $L_i/\sum_jL_j$，就可能压过短样本，应考虑按样本或中间尺度归一化。关键是这里的 $L_i$ 指有效 loss tokens：若视觉输入标签被 mask，它们只增加条件与计算量，不会仅因输入更长就直接放大该样本的 loss 权重。[标签 mask 说明](https://huggingface.co/docs/transformers/model_doc/qwen2_vl#transformers.Qwen2VLForConditionalGeneration.forward)
+
 9. Continuous encoder + diffusion 与统一 discrete token 各有什么优缺点？
+
+    **面试回答：** Continuous encoder 适合提取语义，再由 diffusion 等专用 decoder 重建细节，理解和生成可分别优化，但需要多个模块和迭代采样。统一 discrete tokens 可把图文理解、生成与交错输出纳入同一个 next-token 框架；代价是量化损失、较长的图像序列、自回归延迟及跨模态训练稳定性问题。
+
 10. Multimodal prompt injection 与 text-only injection 有何额外风险？
+
+    **面试回答：** 恶意指令还能藏在图片小字、截图 UI、音频或视频帧中，被 OCR/感知模块转成模型会读取的内容，可能绕过只检查纯文本的入口。跨模态组合还会改变语义，tool agent 可能进一步执行被诱导的动作；应保留来源与权限边界，把外部模态内容当数据，测试感知到工具执行的完整链路。
+
 
 ## 参考资料
 - [Lecture 17 官方可执行讲义](https://cs336.stanford.edu/lectures/?trace=lecture_17)

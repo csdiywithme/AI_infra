@@ -870,20 +870,65 @@ $$
 ## 16. 自测问题
 
 1. 为什么 $QK^T$ 的结果是 $L\times L$？
+
+    **面试回答：** 忽略 batch 和 head 维度，一个 head 的 Q、K 都是 $L\times d_h$，所以 $QK^T$ 是 $(L\times d_h)(d_h\times L)=L\times L$。第 i 行第 j 列表示第 i 个 query 对第 j 个 key 的匹配分数；若 query/key 长度不同，结果就是 $L_q\times L_k$。
+
 2. 为什么 softmax 在 Key 维度执行？
+
+    **面试回答：** 每个 query 需要决定从哪些 key/value 位置读取信息，因此沿 Key 维度把该行分数归一化，使所有可访问位置的权重之和为 1。若沿 Query 维度做 softmax，就会变成不同 query 竞争同一个 key，语义不再是通常的 attention 聚合。
+
 3. 为什么 Q/K 决定信息路由，而 V 携带内容？
+
+    **面试回答：** Attention 写成 $A=\operatorname{softmax}(QK^T/\sqrt{d_h})$、$O=AV$。Q/K 通过相似度确定位置间的读取权重，即“从哪里读”；V 是被这些权重加权求和的向量，即“读什么”。它们是共同学习的不同投影，而不是预先指定的信息类别。
+
 4. 为什么 RoPE 通常作用在 Q/K 而不是 V？
+
+    **面试回答：** RoPE 通过旋转 Q/K 让点积包含相对位置：$(R_iq)^T(R_jk)=q^TR_{j-i}k$。把位置作用在匹配过程即可改变读取权重，而 V 保留内容表示；这是常见架构选择，并不是数学上禁止旋转 V。
+
 5. Attention 与 FFN 分别沿哪个维度混合信息？
+
+    **面试回答：** Attention 对不同 token 的 V 做加权聚合，主要混合序列维度的信息；FFN 用相同参数逐 token 独立地做通道投影和非线性变换，主要混合特征维度。Attention 的投影也会混合通道，但普通 FFN 本身不直接让不同 token 通信。
+
 6. 为什么 Attention 和 FFN 最终都要恢复到 $d$ 维？
+
+    **面试回答：** 标准 block 的 residual stream 宽度固定为 d，分支输出必须与输入同形才能相加。Attention 用 output projection 把各 head 结果映射回 d，FFN 用 down projection 从中间维度映射回 d；若改变主干宽度，则还需相应 residual 投影。
+
 7. 为什么 SwiGLU 有 Gate、Up、Down 三个 projection？
+
+    **面试回答：** SwiGLU 的 up projection 生成待加工特征，gate projection 经 SiLU 生成逐元素门控，二者相乘后由 down projection 写回主干：$\operatorname{FFN}(x)=[\operatorname{SiLU}(xW_g)\odot xW_u]W_d$。相比普通两层 FFN，多一个投影使门控依赖输入。
+
 8. 为什么 MHA 拆成多个 heads 后 projection 总宽度仍然是 $d$？
+
+    **面试回答：** 经典 MHA 通常选择 $H d_h=d$，把每个 Q/K/V 投影的 d 维输出重排成 H 个 head，再拼回 d。这里是每一种投影宽度为 d，Q、K、V 合计为 3d；$Hd_h=d$ 是常用容量与成本约定，不是 attention 的数学硬要求。
+
 9. GQA 主要减少哪些计算和内存成本？
+
+    **面试回答：** GQA 让多个 query heads 共享一组 K/V，主要减少 K/V 投影参数与计算、KV cache 容量，以及 decode 读取 KV 的带宽。Query heads 数保持不变，因此 Q/O 投影及主要 QK/AV 的理论乘加量不会简单按共享比例下降；它还涉及表达能力与效率的取舍。
+
 10. 为什么 Prefill 和 Decode 的 attention shape 不同？
+
+    **面试回答：** Prefill 同时处理 L 个 prompt token，每个 head 的 QK score 逻辑形状是 $L\times L$，配合 causal mask。普通 decode 只为新 token 形成一个 Q，去匹配长度为 S 的缓存 K，因此 score 是 $1\times S$；批量或投机验证会相应增加 query 维度。
+
 11. 为什么 Decode 更容易 memory-bound？
+
+    **面试回答：** 小 batch decode 每读一遍权重只生成少量 token，还要读取各请求的历史 KV，单位搬运对应的计算少，算术强度低。增大 batch 可复用权重，但独立 KV 流量通常也随请求数增长；长上下文、通信和 launch 开销都可能成为额外瓶颈。
+
 12. 如何从矩阵 shape 现场推导参数量和 FLOPs？
+
+    **面试回答：** 先写每个矩阵形状：例如 $X:[BL,d]$、$W:[d,f]$，参数量为 df（若有 bias 再加 f），前向主计算约 $2BLdf$ FLOPs，按乘加算 2 次。对 attention 分别数 QK、AV，对 SwiGLU 分别数三次投影，再区分共享参数、batch、层数及前后向。
+
 13. Hidden size 与 MLP/intermediate size 分别表示什么？
+
+    **面试回答：** Hidden size d 是 token 在 residual stream 中的表示宽度，贯穿各层主干；intermediate size f 是 FFN 内扩展后的宽度，用于非线性特征加工。SwiGLU 的 gate/up 通常都输出 f，逐元素相乘后仍是 f，再由 down 投影回 d，不能把它理解为多了一倍主干宽度。
+
 14. 为什么经典 SwiGLU 中间维度约为 $8d/3$？
+
+    **面试回答：** 忽略 bias，普通 FFN 取 $f=4d$ 时两个矩阵共 $2d(4d)=8d^2$ 参数。SwiGLU 有 gate、up、down 三个矩阵，共 $3df$；令预算相等得 $3df=8d^2$，即 $f=8d/3$，其主矩阵乘 FLOPs 也近似匹配。
+
 15. 为什么实际 Llama 配置不必严格遵循 $8d/3$？
+
+    **面试回答：** $8d/3$ 只是与传统 4d FFN 等参数/主 FLOPs 的设计基准。实际 Llama 配置还会根据容量需求设置扩展倍率，并把 f 向硬件友好的倍数取整，因此应读取具体模型配置；不能仅由 hidden size 反推一个固定 intermediate size。
+
 
 ## 17. 参考资料
 
