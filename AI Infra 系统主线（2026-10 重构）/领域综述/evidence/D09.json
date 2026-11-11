@@ -1,0 +1,197 @@
+{
+  "queries": [
+    "site.pytorch.org blog 2026 compiler torch.compile Helion",
+    "site.pytorch.org \"2026\" \"Helion\" kernels",
+    "new compiler runtime guarded dispatch PyTorch Triton 2026"
+  ],
+  "sources": [
+    {
+      "url": "https://pytorch.org/blog/building-a-high-performance-and-portable-vllm-linear-backend-with-helion/",
+      "date": "2026-10-02",
+      "date_basis": "official author/date line",
+      "read": "hybrid dispatch, num_tokens threshold, Graph tuning and test settings",
+      "status": "author workload result; not all backends or devices"
+    },
+    {
+      "url": "https://arxiv.org/html/2609.37241v1",
+      "date": "2026-09-29",
+      "date_basis": "fixed arXiv v1 header and abs metadata",
+      "read": "motivation, guarded SCM mechanism, execution and experimental scope",
+      "status": "paper prototype; guards preserved, not eliminated"
+    },
+    {
+      "url": "https://pytorch.org/blog/pytorch-2-10-release-blog/",
+      "date": "2026-01-21",
+      "date_basis": "official initial publish date; separate later update date",
+      "read": "compiler and numerical debugging release context",
+      "status": "version baseline, not latest status"
+    },
+    {
+      "url": "https://github.com/triton-lang/triton/blob/v3.4.0/python/tutorials/02-fused-softmax.py",
+      "event_date": null,
+      "date_basis": "Fixed v3.4.0 baseline",
+      "read_date": "2026-11-04",
+      "read_scope": "Complete tutorial: masked power-of-two rows, approximate exponent, compiled resource estimate and persistent programs; no GPU execution",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://github.com/triton-lang/triton/blob/v3.4.0/python/tutorials/03-matrix-multiplication.py",
+      "event_date": null,
+      "date_basis": "Fixed baseline",
+      "read_date": "2026-11-04",
+      "read_scope": "Lines 160–280: CUDA/HIP configurations, M/N/K tuning key and grouped program ordering",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://docs.pytorch.org/docs/2.9/torch.compiler_dynamo_overview.html",
+      "event_date": null,
+      "date_basis": "Fixed version documentation",
+      "read_date": "2026-11-04",
+      "read_scope": "Guards, check_tensor properties, graph-break continuations and cache-entry dispatch; not all backend internals",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://arxiv.org/html/2609.16389v1",
+      "event_date": "2026-09-14",
+      "date_basis": "Fixed v1 header",
+      "read_date": "2026-11-04",
+      "read_scope": "Sections 2, 4–5 overview, 6 performance setup, 8 limitations: concrete-size abstract interpretation, unsafe rewrites, no formal CUDA link/no tcgen05",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    }
+  ],
+  "gaps": [
+    "Full per-backend IR/codegen not audited",
+    "Compilation/recompile/fallback distribution not measured",
+    "Helion and Trident full implementation and held-out workloads not validated"
+  ],
+  "domain": "D09",
+  "checked_on": "2026-11-04",
+  "coverage": "Mechanism deepening with concrete derivations, fixed source and selected frontier; implementation/measurement gaps remain",
+  "independent_experiments": false,
+  "deepening_rounds": [
+    {
+      "round": "mechanism-deepening-20261104",
+      "date": "2026-11-04",
+      "queries": [
+        "GPU kernel language compiler layout asynchronous pipeline dynamic shapes 2026"
+      ],
+      "sources_added": [
+        "https://github.com/triton-lang/triton/blob/v3.4.0/python/tutorials/02-fused-softmax.py",
+        "https://github.com/triton-lang/triton/blob/v3.4.0/python/tutorials/03-matrix-multiplication.py",
+        "https://docs.pytorch.org/docs/2.9/torch.compiler_dynamo_overview.html",
+        "https://arxiv.org/html/2609.16389v1"
+      ],
+      "explanation_gaps_addressed": [
+        "Actual fixed softmax/matmul source, mask/resource/mapping",
+        "Capture vs layout vs runtime dispatch",
+        "Guard failures, graph breaks, shape buckets and Graph separation",
+        "Tuning amortization and independent promotion",
+        "Concrete safety-check guarantees and unproved obligations"
+      ],
+      "coverage": "Focused method/source review, not all-family or 90-day enumeration",
+      "not_performed": [
+        "GPU or deployment experiment",
+        "independent task-quality validation",
+        "all backend/source audit"
+      ]
+    }
+  ],
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-03",
+          "title": "TorchTPU：API复用后的图通信与数值边界",
+          "domains": [
+            "D13",
+            "D02",
+            "D09"
+          ],
+          "kind": "旧候选推进／机制补录",
+          "first_public": "最早已核官方介绍2026-04-07，当时公开源码仍为计划；非绝对首次证明。",
+          "event_date": "10/20开源阶段公告，页面10/21更新；固定实现提交11/07 21:20:19Z。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "google-pytorch/torch_tpu 680b8436e61baf6f832f32d2bc8ca55615ff619e",
+          "sources": [
+            [
+              "4/7介绍",
+              "https://developers.googleblog.com/torchtpu-running-pytorch-natively-on-tpus-at-google-scale/"
+            ],
+            [
+              "10/20公告",
+              "https://pytorch.org/blog/introducing-torchtpu/"
+            ],
+            [
+              "固定通信支持",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/distributed_support.md"
+            ],
+            [
+              "固定功能矩阵",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/feature_set.md"
+            ],
+            [
+              "精度",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/numerical_precision.md"
+            ],
+            [
+              "握手实现",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/src/torch_tpu/_internal/distributed/handshake.py"
+            ]
+          ],
+          "read_scope": "三份固定文档、precision_context.cc默认值与handshake should_handshake条件；未全仓审计。",
+          "change": "collective降低为StableHLO；默认skinny collective分图以容纳MPMD，代价是失去图内计算通信重叠。spmd_safe/handshake为融合前提，当前握手仅global PG。默认FP32 matmul走BF16输入精度、FP32累加，更高精度增加MXU passes。",
+          "limits": "公开main，项目自分类SimpleFSDP validated，FSDPv2/MPMD experimental或低性能，RL near-term；不能由API或no-crash计数推导所有模型训练正确或完整RL生产支持。GitHub无release不代表无PyPI包，0.2.0包日期未核。",
+          "judgment": "⚠️明确边界",
+          "independent_experiments": false
+        },
+        {
+          "id": "AIINFRA-E-20261109-09",
+          "title": "CUDA 13.5：Rubin toolkit GA 与 Tile 互操作分阶段",
+          "domains": [
+            "D13",
+            "D09",
+            "D08"
+          ],
+          "kind": "正式toolkit发布，含preview能力",
+          "first_public": "已核官方公告2026-11-04，未穷尽更早公开预览。",
+          "event_date": "2026-11-04公告；cuTile Python1.8.0同日。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "CUDA13.5；官方当前notes列NVCC/TileIR AS13.5.37；固定archive访问失败，动态notes按11/09核验",
+          "sources": [
+            [
+              "官方公告",
+              "https://developer.nvidia.com/blog/nvidia-cuda-13-5-brings-nvidia-vera-rubin-ga-support/"
+            ],
+            [
+              "13.5当前release notes",
+              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/"
+            ],
+            [
+              "cuTile版本说明",
+              "https://docs.nvidia.com/cuda/cutile-python/generated/release_notes.html"
+            ]
+          ],
+          "read_scope": "公告、release notes组件/Tile/驱动/knownissues与cuTile1.8.0；非全部库兼容矩阵。",
+          "change": "Vera Rubin进入toolkit GA；Tile增加跨GPU表达：unicast依赖NVLink对端访问，multicast/multimem还要求带NVLink SHARP的NVSwitch fabric，并须匹配目标架构。SIMT库函数foreign-call仍public preview，须显式开启；自写device函数仍属后续计划。",
+          "limits": "软件支持不证明GPU普遍供货或框架生产验证；preview不承诺跨版本兼容。cuTile列NVSHMEM3.9+而MathDx/CCCL Coop tilelib仍upcoming；新功能需要相应R620+。knownissue只作版本问题候选，未核引入/修复。",
+          "judgment": "🔄支持演进／🧪互操作",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

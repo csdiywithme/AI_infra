@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: developing
 course: "[[Stanford CS149]]"
 lecture: 3
 lecture_date: 2023-10-03

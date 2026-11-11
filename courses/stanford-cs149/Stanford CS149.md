@@ -1,6 +1,5 @@
 ---
 type: course
-status: developing
 area: systems
 aliases:
   - CS149

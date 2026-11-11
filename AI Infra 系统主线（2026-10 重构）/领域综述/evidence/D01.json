@@ -1,0 +1,345 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "status": "mechanism-deepened",
+  "writes_scope": "Only assigned domain note and its evidence JSON. Historical evidence cards, logs and topic studies unchanged.",
+  "date_policy": "Only explicitly dated events at or before 2026-11-04 enter the main frontier section. Foundational revisions are not counted as new events; undated main/release status is not established.",
+  "not_performed": [
+    "No models downloaded.",
+    "No packages installed.",
+    "No training, serving, dataset processing or hardware benchmark executed.",
+    "No exhaustive 90-day publication scan.",
+    "PDF figures were not visually checked; claims used textual methods and settings.",
+    "No native low-precision, loader-recovery, distributed or RL implementation was executed.",
+    "No claims of full-domain coverage or exhausted discovery."
+  ],
+  "domain_id": "D01",
+  "note": "D01 数据工程与训练配方.md",
+  "boundary": "Data acquisition/curation/synthesis, sampling/mixtures/loss weights, tokenization/packing/recoverable supply; independent quality and total preparation/training cost.",
+  "audit": [
+    {
+      "file": "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 07 数据与后训练闭环.md",
+      "headings": [
+        "2. 数据生产与输入管线：两个相连的预算",
+        "数据选择和后续可训练性，也属于系统验收",
+        "恢复训练，也要恢复“读到了哪里”"
+      ],
+      "lines": [
+        54,
+        83
+      ],
+      "depth": "Substantial existing treatment of filtering/dedup semantics, packing masks, precision near thresholds, and loader recovery. Historical version claims remain historical."
+    },
+    {
+      "file": "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 02 稀疏模型与数值格式.md",
+      "headings": [
+        "1. 能力首先来自数据与 recipe"
+      ],
+      "lines": [
+        25,
+        43
+      ],
+      "depth": "Existing recipe/open-reproduction map; not a complete comparative derivation."
+    },
+    {
+      "file": "AI Infra 系统主线（2026-10 重构）/正文/01 我们究竟在优化什么.md",
+      "headings": [
+        "数据与配方为什么也属于资源问题"
+      ],
+      "depth": "Basic teaching narrative; not complete data engineering coverage."
+    }
+  ],
+  "discovery": [
+    {
+      "entry": "Primary arXiv problem search, not known-project polling",
+      "queries": [
+        "2026 data curation mixture language model training synthetic data site:arxiv.org/abs",
+        "\"2026\" \"data mixture\" \"pretraining\" site:arxiv.org/abs"
+      ],
+      "found": [
+        "2610.32141",
+        "2606.18663",
+        "2605.30348",
+        "2607.22769"
+      ],
+      "selection": "LARE selected for separating exposure from loss scale; other results remain discovery candidates."
+    },
+    {
+      "date": "2026-11-04",
+      "entry": "Independent problem-led search before known-source deepening",
+      "queries": [
+        "site:arxiv.org/abs/26 language model pretraining data deduplication synthetic filtering mixture total cost",
+        "\"2026\" \"data curation\" \"cost\" language model pretraining site:arxiv.org/abs",
+        "\"2026\" \"synthetic data\" \"filtering\" \"pretraining\" site:arxiv.org/abs",
+        "\"2026\" \"data curation\" \"pretraining\" site:arxiv.org/abs",
+        "site:docs.pytorch.org torchdata StatefulDataLoader state_dict num_workers resume",
+        "site:arxiv.org sequence packing supervised fine tuning cross contamination attention mask position ids"
+      ],
+      "selection": "New source methods and evaluation deep-read; old candidate queue not used as boundary.",
+      "new_primary_sources": [
+        "https://arxiv.org/html/2107.06499v2",
+        "https://arxiv.org/html/2609.34287v1"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "D01-S1",
+      "title": "Dolma",
+      "url": "https://arxiv.org/html/2402.00159v2",
+      "fixed_revision": "arXiv:2402.00159v2",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Abstract; data design; §4.1 toolkit/filtering/mixing; selected curation headings"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D01-S2",
+      "title": "DataComp-LM",
+      "url": "https://arxiv.org/html/2406.11794v4",
+      "fixed_revision": "arXiv:2406.11794v4",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Abstract; §3 controlled workflow; selected appendices on hyperparameter/architecture comparisons"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D01-S3",
+      "title": "Beyond Data Schedule / LARE",
+      "url": "https://arxiv.org/pdf/2610.32141v1",
+      "fixed_revision": "arXiv:2610.32141v1",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "dated_frontier",
+      "event_date": "2026-10-23",
+      "event_date_basis": {
+        "kind": "arXiv submission history v1",
+        "url": "https://arxiv.org/abs/2610.32141",
+        "detail": "v1 submitted 2026-10-23 04:09:46 UTC. PDF cover separately says 2026-10-26; these dates are not conflated."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "PDF pp.1–3 introduction and fixed-exposure comparison; §3.2 adaptive rule; §4.1 experiment setup; arXiv submission history",
+        "Deepening: PDF §2 exposure/noise distinction; §3.1–3.3 EMA rule; §4 optimizer selection/single-run limits; appendix F selected state/cost caveats."
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "1.5B author experiments; no pipeline or seed replication.",
+        "Effective domain learning-rate identity exact for SGD, abstract for nonlinear optimizers.",
+        "Exposure before masking differs from loss-token shares."
+      ]
+    },
+    {
+      "id": "D01-S4",
+      "title": "Deduplicating Training Data Makes Language Models Better",
+      "url": "https://arxiv.org/html/2107.06499v2",
+      "fixed_revision": "arXiv:2107.06499v2",
+      "commit": null,
+      "commit_basis": "Fixed paper revision; no repository commit or source execution claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Introduction; NearDup/ExactSubstr comparisons, thresholds and document-length scope; selected implementation/computational appendix text"
+      ],
+      "verification_strength": "Primary methods and stated evaluation read; author results, not independently reproduced.",
+      "limits": [
+        "No deduplication executed; threshold-specific outcomes not generalized."
+      ]
+    },
+    {
+      "id": "D01-S5",
+      "title": "ReScraper: Unified Scraping and Cleaning of Web Data for Effective LLM Pretraining",
+      "url": "https://arxiv.org/html/2609.34287v1",
+      "fixed_revision": "arXiv:2609.34287v1",
+      "commit": null,
+      "commit_basis": "Fixed paper revision; no repository commit or source execution claimed.",
+      "role": "dated_frontier",
+      "event_date": "2026-09-28",
+      "event_date_basis": {
+        "kind": "arXiv v1 submission history",
+        "url": "https://arxiv.org/abs/2609.34287",
+        "detail": "History opened and v1 date checked on 2026-11-04."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§3.1–3.3 operations, deterministic executor contract, teacher targets and two-stage training",
+        "§4 matched raw pool, common dedup, budgets and 22-task evaluation",
+        "§5.1–5.4 main results and operation ablations; appendix A Tables 4–6 preprocessing and GPU-hour accounting"
+      ],
+      "verification_strength": "Primary methods and stated evaluation read; author results, not independently reproduced.",
+      "limits": [
+        "Author English Common Crawl pool, downstream models 400M/1.4B/2.8B; no independent run.",
+        "494 H200h per pool; 642 H200h one-time teacher/SFT subtotal. Per-pool ProX-C/UltraX costs are lower; whole lifecycle comparison not settled.",
+        "Public repository metadata read only; deterministic executor implementation not audited."
+      ]
+    }
+  ],
+  "coverage": {
+    "mechanisms": [
+      "Document identity and representative relationships",
+      "Exposure versus loss coefficients",
+      "Packing, masks and normalization",
+      "Recoverable data stream",
+      "Independent quality and total cost"
+    ],
+    "routes": [
+      "Rule/model filters",
+      "Exact/fuzzy/semantic dedup",
+      "Selection/mixtures/curriculum",
+      "Synthetic generation/verification",
+      "Packing/recoverable loading"
+    ]
+  },
+  "cross_domains": [
+    "D02",
+    "D03",
+    "D11"
+  ],
+  "gaps": [
+    "Audit semantic dedup representative mappings and multilingual/code loss under threshold changes.",
+    "Run matched total-cost/quality comparison including curator training, failed teacher attempts and proxy searches.",
+    "Reproduce LARE masks/streams and compare optimizer-specific wall time/state at larger scales.",
+    "Trace a complete packer/loader checkpoint under rank/worker changes; no product correctness asserted."
+  ],
+  "failed_reads": [
+    {
+      "url": "https://arxiv.org/html/2402.00159v3",
+      "result": "404; not used. Read and cited existing v2 after checking submission history."
+    },
+    {
+      "date": "2026-11-04",
+      "url": "https://arxiv.org/html/2610.32141v1",
+      "result": "404; used fixed v1 PDF instead."
+    },
+    {
+      "date": "2026-11-04",
+      "url": "https://meta-pytorch.org/data/0.8/stateful_dataloader.html",
+      "result": "Not accessible via web tool; not cited."
+    },
+    {
+      "date": "2026-11-04",
+      "url": "https://github.com/pytorch/data/blob/v0.8.0/torchdata/stateful_dataloader/README.md",
+      "result": "Cache miss; not cited and no API guarantee inferred."
+    },
+    {
+      "date": "2026-11-04",
+      "url": "https://github.com/cxcscmu/ReScraper/tree/main",
+      "result": "Tool aborted before dispatch; no directory or source read."
+    }
+  ],
+  "candidates": [
+    {
+      "title": "RegMix-D",
+      "url": "https://arxiv.org/abs/2606.18663",
+      "read_scope": "Search abstract only",
+      "status": "Not promoted; method/experiment/date-history verification incomplete."
+    },
+    {
+      "title": "LLMSurgeon",
+      "url": "https://arxiv.org/abs/2605.30348",
+      "read_scope": "Search abstract only",
+      "status": "Not promoted; method/experiment verification incomplete."
+    },
+    {
+      "title": "DomainPilot",
+      "url": "https://arxiv.org/abs/2607.22769",
+      "read_scope": "Search abstract only",
+      "status": "Not promoted; method/experiment verification incomplete."
+    }
+  ],
+  "deepening_pass": {
+    "date": "2026-11-04",
+    "user_requirement": "Explain principles, competing routes, frontier and causal cross-domain choices beyond frameworks and paper abstracts.",
+    "closed_explanation_gaps": [
+      "Total acquisition/curation/teacher/verification/search/training cost and reuse break-even",
+      "Exact/fuzzy/semantic/substring dedup versus filtering/editing/rewriting with representative identity",
+      "Exposure/loss weights/noise and mask-aware LARE normalization",
+      "Packing boundaries, token versus sample denominators, committed update versus prefetched/read cursor"
+    ],
+    "read_scope_policy": "New sources list exact successful methods/protocol reading; previous scopes preserved.",
+    "code_scope": "Paper methods/algorithms and pseudocode read. No repository implementation audit or execution claimed.",
+    "candidate_disposition": "Existing candidates unchanged: no additional substantive method read of their sources this pass. Newly discovered sources above enter domain research with stated date and limits; central IDs maintained by root.",
+    "no_completion_claim": "Mechanism gaps explained; empirical and implementation gaps remain."
+  },
+  "metadata_only_reads": [
+    {
+      "url": "https://github.com/cxcscmu/ReScraper",
+      "date": "2026-11-04",
+      "scope": "Repository identity/default-branch metadata only; no file/commit inspected or implementation claim added."
+    }
+  ],
+  "arithmetic_verification": {
+    "performed_on": "2026-11-04",
+    "method": "Python3 arithmetic and unit cross-check only; teaching assumptions, not measured benchmark",
+    "checks": {
+      "cost_break_even": "4100*m versus 600+3600*m; B cheaper for m>1.2, first integer m=2",
+      "teacher_denominator": "100000 accepted / 0.20 = 500000 attempts; 2000 output tokens/attempt = 1e9 output tokens",
+      "normalized_coefficients": "p=(7/8,1/8), a=(8/9,16/9), sum(p*a)=1; does not fix gradient norm",
+      "packing": "128/4096=0.03125; independent sample attention/loss contract still required"
+    }
+  },
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-01",
+          "title": "AgenticDS：训练候选池的获取也需要证据",
+          "domains": [
+            "D01",
+            "D15"
+          ],
+          "kind": "补录",
+          "first_public": "首次公开瞬间未穷尽；已核 arXiv v1 提交日 2026-10-29。",
+          "event_date": "2026-10-29：论文 v1；早于11/04选定综述，本轮才发现，不表示此前完整扫描中漏报。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "arXiv 2610.39608v1；代码 c8d41990b8f5b1c15e0473956a1320a3c1959c71（10/29 08:32:13Z提交，非公开时间证明）",
+          "sources": [
+            [
+              "论文v1",
+              "https://arxiv.org/html/2610.39608v1"
+            ],
+            [
+              "固定执行器",
+              "https://github.com/nju-websoft/AgenticDS/blob/c8d41990b8f5b1c15e0473956a1320a3c1959c71/agent/executor.py"
+            ]
+          ],
+          "read_scope": "论文方法和search-to-train实验；executor.py 1–180行的受限检索分支、预算、unresolved与Lucene manifest。",
+          "change": "Planner把需求转成含硬约束的查询，Engineer组合文本检索与关系扩展，Critic据来源证据排序和修补。数据获取进入配方上游，未知元数据不能被排名变成已满足约束。",
+          "limits": "论文原型及公开实现，作者实验而非独立验证。HuDS-Bench为200英文查询；search-to-train三领域各一个查询、三个模型、top-5结果中的合格数据集、每集至多2000样本且没有独立训练随机种子；不证明任意配方或生产收益。",
+          "judgment": "🧪早期",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@ type: topic-note
 status: evergreen
 area: multimodal-systems
 baseline_reviewed: 2026-09-15
-incremental_checked: 2026-09-21
+incremental_checked: 2026-10-19
 tracking_lane: T7
 ---
 
@@ -12,7 +12,7 @@ tracking_lane: T7
 > [!abstract] 核心问题
 > 工作负载的时间结构、状态和质量指标变化后，原有调度与性能结论还有哪些成立？先画一次任务怎样完成，再选择并行、cache 和硬件。
 
-[[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 03 推理状态与调度|推理]] · [[HPCGame 2026 - 07 数据与后训练闭环|数据和后训练]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群]] · [[HPCGame 2026 - 06 前沿追踪|当前判断]]
+[[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 03 推理状态与调度|推理]] · [[HPCGame 2026 - 07 数据与后训练闭环|数据和后训练]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
 
 ## 1. 先区分时间结构
 
@@ -38,6 +38,8 @@ tracking_lane: T7
 SGLang 团队 2026-01-16 的报告明确介绍了 layerwise prefetch/offload、混合并行和 Cache-DiT 集成。这是已核的机制起点；文中性能来自特定 dev 镜像的项目自测，不能作为所有模型/质量条件的结论。[原始报告](https://www.lmsys.org/blog/2026-01-16-sglang-diffusion/)
 
 沿 [[HPCGame 2026 - 02 稀疏模型与数值格式|质量与数值格式]] → [[HPCGame 2026 - 05 Kernel、DSL 与硬件|编译与硬件]] → [[HPCGame 2026 - 04 通信与内存层级|搬运层级]] 展开，能把同一个“少算一步”放回完整成本账本。
+
+**分阶段还有信任边界。** 2026-09-28 核到的 [CVE-2026-93088](https://cveawg.mitre.org/api/cve/CVE-2026-93088) 涉及 SGLang 分离式 diffusion 的内部消息反序列化；CNA 明列 0.5.11～0.5.14，修复版本未核定。阶段图因此还应标出谁能连接、谁验证消息、谁可发起执行，不能只画张量流。条件和未知项见 [[MLSys - 证据台账#E-20260928-11]]，连接 [[HPCGame 2026 - 08 集群效率与可靠性|控制面隔离]]。
 
 ## 3. 音频：平均快于实时，还要看什么时候能听见
 
@@ -67,6 +69,12 @@ SGLang-Omni 官方仓库把 preprocessing、encoder、autoregressive engine、ta
 
 这里应将“提交总数 → 接纳数 → 正确完成数 → SLO 内完成数”一起记录；拒绝、重试和取消仍属于完整服务账本。若某配置通过 503 筛掉大部分样本，仅在余下样本统计 WER，输入分布与分母都变了，不能据此断言质量提高。具体作者测试限制见 [[MLSys - 证据台账#E-20260921-04]]、[ASR #2163](https://github.com/sgl-project/sglang-omni/pull/2163)；跨阶段资源回收接回 [[HPCGame 2026 - 08 集群效率与可靠性]]。
 
+### 流式输出的边界，不一定就是可提交状态的边界
+
+2026-10-19核验Omni0.1.8的CosyVoice3实例：每个Euler step各自保存前缀KV，再跨音频hop复用；这不是把一个去噪步的KV近似拿给另一步。chunk内部存在双向可见范围，只有完整chunk的KV已定型；非默认hop停在chunk中间时，尾部必须重算。由此区分**allocated、已产生输出、committed可复用**，并将conv上下文也对齐提交点。[[MLSys - 证据台账#E-20261019-12]] · [review中发现的反例和修正](https://github.com/sgl-project/sglang-omni/pull/2406)
+
+正确复用仍需付内存池和编译预热成本，首hop未必更快；平均RTF不能替代首可播放音频、间隔抖动、长音频质量和取消回收。连接 [[HPCGame 2026 - 03 推理状态与调度#缓存正确、能留住、值得留，是三个问题]]。
+
 ## 4. Agent：把外部世界也计入关键路径
 
 工具调用等待期间，模型可以让出 GPU，但 session state、KV、环境进程和重试预算仍可能占用资源。需要把模型内调度接到 workflow 调度：
@@ -79,6 +87,14 @@ SGLang-Omni 官方仓库把 preprocessing、encoder、autoregressive engine、ta
 2026-09 的 turn-release 论文提供一个具体调度实例；它是论文结果与作者实验，不能推成 workflow 调度的“第一个实例”或生产保证。[[MLSys - 证据台账#E-20260915-02|证据与优先性勘误]] · [原论文](https://arxiv.org/abs/2609.10964)
 
 同一批环境执行还可进入 RL 训练，接回 [[HPCGame 2026 - 07 数据与后训练闭环]]；失败恢复与多租户问题接回 [[HPCGame 2026 - 08 集群效率与可靠性]]。
+
+### 从消息生命周期到KV生命周期
+
+2026-10-12核验的KVTether把一个原本隐藏的接口显式化：harness知道消息被删、被替换或仍由子任务引用，缓存层通常只看到访问时间。由此先判断“逻辑上还活着吗”，再判断“值得放在快速层吗”；活着的KV仍可能因容量压力被驱逐，死亡状态也要等在途访问结束才能回收。
+
+这并不证明MRU普适优于LRU。其结果是作者在真实硬件上用随机内容/固定长度回放，工具时长模拟、成本按外部token价估算；还需验证真实任务成功率、事件丢失/乱序和不可信hint的回退。[[MLSys - 证据台账#E-20261012-07]] · [论文§5～8](https://arxiv.org/html/2609.39819v1)。底层的取消与copy完成接回 [[HPCGame 2026 - 03 推理状态与调度#取消、forward结束与物理完成不是同一个事件]]。
+
+2026-10-19补充：逻辑还活着不保证容量够用。EfficientAgent将并发池上下文合成重用工作集；删短历史也可能破坏原本可复用前缀，反而增加fresh prefill。另一个近似复用实验显示请求顺序会影响缓存积累和答案一致性。因此真实agent评测应同时固定任务、上下文编辑、持久状态和质量，而不仅固定单次输入长度。两项均为作者论文证据，不是与KVTether组合后的验证。[[MLSys - 证据台账#E-20261019-10]] · [[MLSys - 证据台账#E-20261019-11]]
 
 ## 5. 每次看到新模型，填这张小表
 
@@ -105,4 +121,4 @@ SGLang-Omni 官方仓库把 preprocessing、encoder、autoregressive engine、ta
 - [SGLang-Omni 官方仓库](https://github.com/sgl-project/sglang-omni)
 - [Diffusers releases](https://github.com/huggingface/diffusers/releases)
 - [PyTorch：编译、动态 shape、LoRA 与 offload](https://pytorch.org/blog/torch-compile-and-diffusers-a-hands-on-guide-to-peak-performance/)
-- [[MLSys - 追踪规则与来源|T7 追踪规则]] · [[HPCGame 2026 - 06 前沿追踪|当前判断]]
+- [[D14 多模态 Agent 与流式系统|后续多模态研究]]

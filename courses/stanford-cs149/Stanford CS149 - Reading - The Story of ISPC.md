@@ -1,6 +1,5 @@
 ---
 type: reading-note
-status: developing
 course: "[[Stanford CS149]]"
 related_lecture: "[[Stanford CS149 - Lecture 03 - Multi-Core Architecture Part II and ISPC]]"
 author: Matt Pharr

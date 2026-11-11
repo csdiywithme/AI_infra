@@ -1,15 +1,15 @@
 ---
 type: evidence-ledger
-status: active
+status: archived
 created: 2026-09-15
 audit_scope: 历史定点复核与逐来源周度研究
-last_verified: 2026-09-21
+last_verified: 2026-10-19
 ---
 
 # MLSys：证据台账
 
 > [!nav] 阅读入口
-> [[HPCGame 2026 - 06 前沿追踪|当前判断与追踪入口]] · [[MLSys - 2026-08 至 09 旧版基线与日志|旧版原文归档]]
+> [[领域地图与覆盖缺口|AI Infra 领域地图]] · [[MLSys - 2026-08 至 09 旧版基线与日志|旧版原文归档]]
 
 > [!important] 核验范围
 > 9/15 初始化复核覆盖旧版 **2026-09-14 的六项记录**，建立四项勘误／口径澄清。9/21 增量见本页新证据索引与运行记录；早期基线和日志只补核了部分事件，仍未全部重新核验。未复核部分保留为历史线索，不能直接当作当前已核事实。这里核对公开一手文本、版本源码和归属，未在本地复现性能。
@@ -40,8 +40,10 @@ last_verified: 2026-09-21
 | 2026-09-14 agent scheduling 称“第一个直接实例” | ⚠️ 撤回优先性断言；改为本次追踪新增的研究实例 | [[#E-20260915-02]] |
 | 2026-09-14 DeepSeek 模型能力与 Dynamo 适配并列 | ⚠️ 补足支持组合；模型 FP4 KV／视觉能力不代表该 snapshot 支持 | [[#E-20260915-03]] |
 | 2026-09-14 Φ-Bench 的百分比分数 | ⚠️ 澄清口径：综合 reward 分数，不是任务完成率；不撤销原数值 | [[#E-20260915-06]] |
+| 2026-10-12 HiSparse 残余 P/D race 的风险描述未纳入后续反证 | ⚠️ 10/19补录10/5撤回提案及自然时序未复现；注入延迟hazard仍在，不宣称已修或普遍安全 | [[#E-20261019-05]] |
+| 10/19 核查时将 vLLM #60374 记为 Open | 2026-11-11 回看官方 PR，确认 10/19 已以 `4bd75e9` 合入 `main`。发布包与端到端故障验证各自按对应证据判断。 | [[#E-20261019-04]] · [官方 PR](https://github.com/vllm-project/vllm/pull/60374) |
 
-以上在 2026-09-15 作为追加勘误生效；归档原文保持原样。
+归档原文保留各自的核查时点。
 
 ## E-20260915-01
 
@@ -261,6 +263,446 @@ last_verified: 2026-09-21
 - **判断**：✅强化 T5，资源账面可用与实际进程退出必须对齐；自定义 ComposableJob integration 另需注意 Load 签名变化。
 - **后续**：复核原 PR、抢占/扩缩故障实验和预约释放时序。
 - **来源**：[v0.19.5](https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.5)。
+
+## 2026-09-28 证据索引
+
+以下均于 2026-09-28 发现并核验。新增 release、main 合入与旧结果补录分开；日期采用已取得的 API UTC 或原页面日历日期，不用搜索索引日期替代。除特别说明外，仅核原始文本和版本归属，无本任务 GPU 或独立性能复测。
+
+| ID | 事件 | 类型 / 主线 |
+| --- | --- | --- |
+| [[#E-20260928-01]] | AReaL：部分组保留与失败归因进入学习目标 | main 合入 / T2、T5、T7 |
+| [[#E-20260928-02]] | verl：权重 refit 的隐藏布局与 live storage | main 修复 / T2、T3、T4、T6 |
+| [[#E-20260928-03]] | vLLM 0.30：HiSparse 分层 KV、Fast Start 与 runner 边界变化 | 正式版本 / T3、T4、T5 |
+| [[#E-20260928-04]] | Dynamo 1.5：驻留策略与可达性索引分工 | 正式版本 / T3、T4、T5 |
+| [[#E-20260928-05]] | Kueue 0.19.6：实际预约与 reclaim 计数一致 | 正式修复 / T5 |
+| [[#E-20260928-06]] | FlashInfer 0.7：部署匹配的调优与跨进程复用 | 正式版本 / T3、T4、T6 |
+| [[#E-20260928-07]] | cuDNN Frontend 1.30：编译制品身份与执行合约 | 正式版本 / T3、T5、T6 |
+| [[#E-20260928-08]] | CUTLASS 4.8：正式包仍包含 preview 编译器/硬件路径 | 正式版本 / T6、T8 |
+| [[#E-20260928-09]] | ROCm：多 GPU profiling 的节点级故障域 | 9/15 问题补录 / T5、T8 |
+| [[#E-20260928-10]] | DeepSpeed Muon：loss 下降仍可能跑错 optimizer | 9/16 版本补录 / T1、T5 |
+| [[#E-20260928-11]] | SGLang 分离式 diffusion 的控制面信任边界 | 新公开 CVE / T3、T5、T7 |
+
+## E-20260928-01
+
+**AReaL：哪些失败被保留、丢弃或计零分，会改变实际学习分布。**
+
+- **日期/身份**：#1721 于 9/16 公开、9/23 合入 `46c4403`；#1750 于 9/22 公开、9/26 合入 `643b20b`。最新正式版仍为 8/25 的 v2.1.0，不能把新 main 行为归给该版。
+- **新事实**：v2 **offline** rollout 默认保留不完整组中成功导出的成员，仅在可用成员间归一化 reward，同时清理完整 session 组；可用 `drop_incomplete_group` 恢复严格丢组，或限制最小可用组。online 行为未变。随后 #1750 提供 **v1-only** mean-only normalization，并尝试把模型失败和系统失败分开，模型失败可保留为零 reward 轨迹。
+- **反证/边界**：#1750 明示审查风险尚未解决：invalid native receipt 仍可能回退到 legacy 分类，context overflow 可绕过 receipt 健康检查。缺 concat-leaf reward 不能由 scalar outcome 补造；不能写成“失败归因已解决”。
+- **验证主体**：作者实现；#1721 未跑本地 pytest/多节点 GPU integration，CI 通过不能替代后者；#1750 报告 284 项定向 CPU tests，明确未验证组合后的真实模型 RL 学习正确性。
+- **判断/承接**：🔄演进 T2/T5/T7，扩展 E-20260921-01 的状态协议判断：故障处理策略本身会选择训练样本、改变归一化分母。没有独立质量—成本改善结论。
+- **后续**：receipt 隔离修复、正式版、按失败类别统计组保留率和独立质量。
+- **来源**：[#1721](https://github.com/areal-project/AReaL/pull/1721) · [#1750](https://github.com/areal-project/AReaL/pull/1750) · [v2.1.0](https://github.com/areal-project/AReaL/releases/tag/v2.1.0)。
+
+## E-20260928-02
+
+**verl：传对数值还不够，refit 必须恢复 kernel 布局并保留使用中的存储。**
+
+- **日期/身份**：#7986 于 9/22 公开并合入 `12ebe0c`；#7987 于 9/22 公开、9/24 合入 `6093e00`。作者实验发生于 9/21、9/23，不等于首次公开日。均晚于正式版 v0.9.1，属 main 修复。
+- **机制**：FP8 MoE 重排可能替换 storage 却保持 shape/dtype，旧 refit 因此漏掉重排，向 kernel-layout 缓冲写入 checkpoint-layout 数据。修复追踪真实 storage replacement 并重做 stage/process。Blackwell BF16 的 4-D BlockMajorK 则暴露 shape 改变；新路径在 live storage 上建 checkpoint-shape view，写入后逐层 fold，保留参数对象/地址。
+- **验证不能拼接**：FP8 主线 Hopper + block-FP8 `[128,128]` + EP>1 + FlashInfer CUTLASS 仅获源码/CPU 核查；实际 GPU probe 用的是另一未合并 MXFP8/TRT-LLM 分支。BF16 作者在 1×B200、随机两层八专家 Qwen3-MoE、TP1、Megatron→vLLM 0.24 验证旧版首次 sync 崩溃、新修订多轮 byte/layout/address 一致；vLLM 0.29 只有源码核查，真实 30B TP2/EP2 仍待测。
+- **质量边界**：tiny-model GSM8K GRPO 的 reward 全为零；这是实现验证，不是有效学习或收敛证明。不采用被替代 PR 修订的 allocator 峰值作为真实大模型加速比。
+- **判断/承接**：✅强化 T2/T3/T4/T6，承接 E-20260921-01/07 的组合验收。shape/dtype 相同不证明权重解释方式相同；优化链还要核 storage、layout preparation 和地址生命周期。
+- **后续**：正式版归属、Hopper EP>1 GPU 验证、多卡真实模型反复 refit 与质量曲线。
+- **来源**：[#7986](https://github.com/verl-project/verl/pull/7986) · [#7987](https://github.com/verl-project/verl/pull/7987) · [v0.9.1](https://github.com/verl-project/verl/releases/tag/v0.9.1)。
+
+## E-20260928-03
+
+**vLLM：KV 可复用、host 页可命中、权重可重载是不同生命周期。**
+
+- **日期/身份**：正式 v0.30.0，9/22 05:20:54 UTC，`ced6857`。HiSparse #53781 为 8/25 公开、9/12 合入 `d43bb2f`；Fast Start #54921 为 9/2 公开、9/4 合入 `a69e75b`。本周新事件是 release 纳入。
+- **机制**：HiSparse 在压力出现时将 KV spill 到 pinned host，稀疏 decode 仅搬入 top-k 缺失行到请求级 GPU hot buffer，indexer cache 保持 GPU 驻留。所有 worker 确认 copy 按 stream 顺序入队后才允许原 GPU block 复用；全部 copy 完成后 host 页才发布为 prefix hit。PD 中 NIXL 负责搬运，HiSparse 决定 decode 侧落点。
+- **同版关系**：Fast Start 用 per-GPU daemon 保留量化后、TP 分片权重，经 CUDA IPC 供 engine 使用；不意味着保存了 KV/原会话或能抵抗整机故障。
+- **成熟度/组合**：正式版本、维护者实现说明；HiSparse 原 PR 限 NVIDIA sparse-MLA 路径，不外推所有 cache 组/ROCm/模型。图表实验条件未完整核取，本卡不采速度数字。
+- **演进而非旧卡勘误**：E-20260915-04 的 v0.29 回退边界保留为历史。v0.30 已列 MRV2 DBO eager/FULL CUDA graphs 与 PP 下 MTP、EAGLE3/DFlash/DSpark；当前判断不能继续照搬旧回退清单，也不能改成全组合成熟。
+- **判断/后续**：🔄演进 T3/T4/T5。分别测搬运所有权、可见性、失败回收，以及固定质量/SLO 下稀疏性、host 带宽和并发的联合效果。
+- **来源**：[v0.30.0](https://github.com/vllm-project/vllm/releases/tag/v0.30.0) · [HiSparse](https://github.com/vllm-project/vllm/pull/53781) · [Fast Start](https://github.com/vllm-project/vllm/pull/54921)。
+
+## E-20260928-04
+
+**Dynamo：engine 管驻留，router 管缓存是否完整且可达。**
+
+- **日期/身份**：正式 v1.5.0，9/21 20:21:52 UTC（北京时间 9/22），`b83b1d9`，晚于上次运行。Mooncake 索引 #11239 于 7/6 公开、7/31 合入 `4c65c30`；Disk/locality #11571 于 7/11 公开、7/30 合入 `8a753c3`。
+- **版本变化**：KVBM deprecated，但 1.5 仍带旧 wheel/examples；1.6 移除只是计划。官方推荐 engine-native host/disk offload；早期 KVCR 做跨节点共享，明确不是 KVBM 替代品。
+- **索引合约**：Mooncake ordered events 维护 shared index；命中要求 TP/PP/layout 对应的物理对象完整，`group_id` 仅为校验后的 fast path。事件缺口/断流保守清空，尚无 snapshot/replay，晚订阅可能看不到既存对象，合同限 default tenant。另一 vLLM STORAGE 路径是 worker-local Disk，REMOTE/未知 locality 不进入该索引；不据此推定所有未知 media 均已 fail-closed。
+- **不能拼接版本**：该版依赖 SGLang 0.5.18、TRT-LLM 1.3.0rc25、vLLM 0.28.0，各 backend 的 NIXL 版本也不同。不能自动获得本周 vLLM 0.30 功能，不能视为先前 V4.1/K-EXAONE 分支快照已通过正式 QA。GMS V1 等仍标 experimental。
+- **判断/后续**：🔄演进 T3/T4/T5；“有副本”与“能安全路由为命中”分离。维护者实现/测试，无独立系统 benchmark；下一问为丢事件重建、多租户隔离与完整请求 goodput。
+- **来源**：[v1.5.0](https://github.com/ai-dynamo/dynamo/releases/tag/v1.5.0) · [#11239](https://github.com/ai-dynamo/dynamo/pull/11239) · [#11571](https://github.com/ai-dynamo/dynamo/pull/11571)。
+
+## E-20260928-05
+
+**Kueue：回收的计数单位必须和实际预约一致。**
+
+- **日期/身份**：v0.19.6 于 9/24 13:28:08 UTC 发布，`f0e95ce`；原 PR #16111 同日公开/合入，release backport #16132 同日合入 `ff16cab`。
+- **事实**：`parallelism > completions` 时，实际只预约两者最小值，旧 ReclaimablePods 却按 parallelism 回收。作者例中 10/5 的 Job 仅完成一个 Pod，就错误释放仍运行的四个 Pod 的配额。修复 Indexed/NonIndexed 路径，统一按 `podsCount()`；同版也修复 StatefulSet/LeaderWorkerSet 已无 Pod 却仍持有 quota 的相反问题。
+- **成熟度/边界**：正式 patch、维护者 PR 和测试说明；未做集群复现，没有可引用的利用率提升比例。不能把其余 DRA/TAS/故障功能一并视为 GA。
+- **判断/承接**：✅强化 T5。承接 E-20260921-11，但本次是计数不一致，不是上周弹性 scale-up 的同一 bug；提前释放和滞留预约都破坏资源账本。
+- **后续**：完成、驱逐、缩零和恢复路径的 quota invariant；原始剩余 bug 是否回归。
+- **来源**：[v0.19.6](https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.6) · [#16111](https://github.com/kubernetes-sigs/kueue/pull/16111) · [#16132](https://github.com/kubernetes-sigs/kueue/pull/16132)。
+
+## E-20260928-06
+
+**FlashInfer：调优缓存要保存部署条件，而不只是一个最快 kernel 编号。**
+
+- **日期/身份**：v0.7.0，页面发布日 9/22，`4d75a33`，正式版；Autotuner v2 原 PR #3861 最早可见 7/7、9/5 合入。不是把旧 rc 或 PR 重新写成首次机制发布。
+- **事实**：新增 opt-in、文档仍标 experimental 的 `autotune_v2()`，按 eager/CUDA-graph 测量并把 policy 纳入环境身份；原子条目供多 rank 写入，同构 rank 可 reload 收敛。提供 tactic revalidation 合约，具体 runner 需接入。旧 API 保留；默认 auto 未全面改成 CUDA-graph，代表性 MoE probe、全部 runner 的校验接入仍是独立工作。
+- **可引用的实验范围**：正式版引用作者 vLLM、Qwen3-8B-FP8、TP2、B200 同缓存重启：tuning window 128s→1s，**总启动** 410.7s→165.3s。两组数字不是同一计时范围，不是稳态吞吐；请求分布/并发/SLO/模型质量未在该摘要中给出，因此不推出 serving 加速倍数。无独立复测。
+- **框架接入边界**：RFC 中 vLLM 迁移 #55671 仍为 draft，不代表已发布 vLLM 默认采用。异构 EP rank 的部分 warm-cache 情形仍需 collective 次数一致性保障，不能把同构 rank reload 测试外推到全部分布式组合。
+- **成熟度不能整体提升**：同版统一 MoE API 转正式，但 PrimTS MoE 仍 experimental、B300 qualification 待完；experimental backend 默认不参加自动选择，需显式 opt-in。不能从发布版推断任意低精度 backend 可互换。
+- **判断/后续**：🔄演进 T3/T4/T6。准备成本可跨进程摊销，但复用受硬件/软件/测量模式约束；下一问为真实输入分布、EP 路由形状及升级后失效/重调优。
+- **来源**：[v0.7.0](https://github.com/flashinfer-ai/flashinfer/releases/tag/v0.7.0) · [#3861 原设计和边界](https://github.com/flashinfer-ai/flashinfer/pull/3861) · [RFC 与验证](https://github.com/flashinfer-ai/flashinfer/issues/3920)。
+
+## E-20260928-07
+
+**cuDNN Frontend：跨进程复用的是受环境约束的可执行制品。**
+
+- **日期/身份**：正式 v1.30.0，页面发布日期 9/23，`42286a6`；不是上周的 1.30 nightly。#1031 为 9/12 公开、9/13 合入；#1146 为 9/19 公开并合入。API 补查 403，不对页面时间补造更高精度。
+- **机制**：缓存导出的 tvm-ffi 对象而不只是 MLIR；身份包含前端源码摘要、DSL/tvm-ffi、driver/GPU 属性，未知 manifest/可疑条目按 miss 处理。同版修补 FlashInfer graph 的 layout/dtype 与绑定合约。另有 f16/bf16 SM100/107 路径 stride Int32→Int64 修复，特定大 stride 曾导致 abort/静默 alias；该问题不涵盖 FP8/MXFP8/THD。
+- **实验边界**：#1031 作者在 SM100、cuDNN 9.25.1、DSL 4.7.1、tvm-ffi 0.1.11 的 121 项测试中报告 cold 44s→warm 12s，第二进程 bit-identical。是测试总时长/编译摊销，不是线上吞吐或会话恢复；没有独立复测。
+- **判断/承接**：🔄演进 T3/T5/T6，补强 E-20260915-05 的按 engine 验收原则；形状合法还需布局/绑定/整数范围正确。正式包不意味着其中所有 engine 已成熟。
+- **后续**：跨版本 cache invalidation、动态 B/H/layout 的回归，以及包含准备成本的真实 worker 周期收益。
+- **来源**：[v1.30.0](https://github.com/NVIDIA/cudnn-frontend/releases/tag/v1.30.0) · [#1031](https://github.com/NVIDIA/cudnn-frontend/pull/1031) · [#1146](https://github.com/NVIDIA/cudnn-frontend/pull/1146)。
+
+## E-20260928-08
+
+**CUTLASS：4.8 正式发布没有把所有 preview 路径变成成熟能力。**
+
+- **日期/身份**：v4.8.0，页面发布日期 9/22，`098de2a`；相对 8/27 的 v4.8.0dev 是正式发布事件，不宣称其中机制均首次出现。
+- **事实/边界**：`cute_ext` 编译路径仍需 `CUTE_DSL_USE_EXTENSION_COMPILER=1`，处于 preview、可能改变 PTX/SASS；默认切换属于未来计划。Operator API Rubin GEMM 仍 preliminary preview、待调优；发布说明要求尚待 CUDA 13.4 GA 配套提供的 R615 才能执行 SM107，Developer Preview R610 不足，不据此宣称工具链已可获得。nvMatmulHeuristics 当前限定 Blackwell。
+- **兼容性证据**：release 列明经过测试的下游 commit 组合，不代表任意 FlashAttention/FlashInfer/cuDNN/PyTorch/TRT-LLM 版本均兼容。只核 release，无硬件或性能复现。
+- **判断/后续**：✅强化 T6/T8 的“软件 target、工具链可得性、硬件可部署、性能调优”分阶段验收。更新 05 的当前版本边界，保留旧 dev 记录；下一问为默认切换和真实硬件/依赖矩阵。
+- **来源**：[v4.8.0](https://github.com/NVIDIA/cutlass/releases/tag/v4.8.0)。
+
+## E-20260928-09
+
+**补录：诊断作业本身也可能扩大故障域。**
+
+- **日期/身份**：ROCm Core SDK 10.0.0 于 8/26 发布，TheRock tag `therock-10.0` / `16adc4d`；#8229 的最早已核公开日为 **9/15**。上周仅发现 release 入口、正文访问失败，本周补核版本文档与问题；不能把后补的 Known Issues 全部倒推为 8/26 已公开。
+- **事实**：官方 Verified Issue 报告，单 MI300A 节点多 GPU 并发运行 `rocprofv3 --pmc` 或 `--kernel-trace` 可能触发整节点 hard reset，影响共驻作业，并需人工 power cycle。官方给出的 workaround 是含修复的 ROCm/rocm-systems develop 构建。
+- **成熟度/限制**：维护者确认的问题与 workaround，不是泛化到全部 AMD/GPU profiler 的结论；未锁修复 commit，也未证实修复进入正式包。网页显示 Open，但 fresh API 本次 403，不能把缓存状态声称为即时状态。本任务不运行可能有破坏性的复现。
+- **判断**：✅强化 T5/T8，收窄“观测只是被动开销”的假设；多租户隔离/故障注入应把诊断进程、节点恢复权限与故障范围一并纳入。
+- **后续**：固定修复 PR/commit、正式版归属与多 GPU 隔离回归。ROCm 10.0 的其余支持矩阵补查见运行记录，不据正式版标题推定全平台等价。
+- **来源**：[版本正文](https://rocm.docs.amd.com/en/docs-10.0.0/about/release-notes.html) · [#8229](https://github.com/ROCm/TheRock/issues/8229) · [release tag](https://github.com/ROCm/TheRock/releases/tag/therock-10.0)。
+
+## E-20260928-10
+
+**补录：loss 能下降，不证明实际执行的是所配置的 optimizer。**
+
+- **日期/身份**：DeepSpeed v0.19.7，9/16 22:00:09 UTC，`f5af15c`；#8442 于 9/6 公开、9/8 合入 `cbd303e`；#8438 于 9/6 公开、9/10 合入 `0166cc8`。均为较早事件，此次补齐 T1 来源缺口。
+- **事实**：stage 0 的 Muon 原先未调用 Newton–Schulz，矩阵更新退化成 raw-gradient SGD，loss 仍下降导致旧测试漏检。另一 ZeRO3 路径在 `zero.Init` 后依据一维占位 parameter 的 `ndim` 分类，错误转入 AdamW；修复读取原始 `ds_shape`。
+- **验证/边界**：正式版纳入、作者测试；前者报告七项路径测试，后者用两层 Llama、ZeRO3、六步验证 Muon 更新计数 0→84。不是长期收敛、最终质量或性能优势证据；没有本任务 GPU 复测。
+- **判断/后续**：✅强化 T1/T5。除了检查 loss，要验收 optimizer 分支和原始逻辑 shape；待真实 recipe 的收敛等价性、更多精度与恢复后路径验证。
+- **来源**：[v0.19.7](https://github.com/deepspeedai/DeepSpeed/releases/tag/v0.19.7) · [#8442](https://github.com/deepspeedai/DeepSpeed/pull/8442) · [#8438](https://github.com/deepspeedai/DeepSpeed/pull/8438)。
+
+## E-20260928-11
+
+**SGLang：分离式多阶段服务的内部消息接口也是信任边界。**
+
+- **日期/身份**：CERT/CC CNA 的 `CVE-2026-93088`，PUBLISHED，9/22 14:07:45 UTC 首次公开；9/17 reserved 不是公开披露日。发现/核验 9/28。
+- **已确认范围**：CNA 明列 SGLang 0.5.11～0.5.14 的分离式 diffusion orchestrator：DiffusionServer 的无认证 ZeroMQ ROUTER 在验证前反序列化收到的 pickle 消息，构成无认证任意代码执行风险。该记录没有给出修复版本。
+- **边界**：GitHub advisory 是 Unreviewed、版本 Unknown，不用它覆盖 CNA 的明确范围。v0.5.20 固定源码仍可见相应反序列化调用，但未完成 helper、网络策略和部署可达性审计；不能自行宣称 0.5.20 已确认受影响，也不能推定新 release 已修复。不推定用户部署或主机受影响。
+- **成熟度/验证主体**：正式 CNA 风险记录 + 定点源码阅读，不是本任务漏洞复现。原发现者报告访问失败；后续需维护者公告、修复 PR、受影响/已修版本及防护验证闭环。
+- **判断**：⚠️修正 T3/T5/T7 的验收范围：EPD/多阶段扩缩不只新增传输成本，还新增内部控制面和反序列化信任边界。HTTP 入口认证不能独自证明内部接口已隔离。
+- **来源**：[CNA 原始记录](https://cveawg.mitre.org/api/cve/CVE-2026-93088) · [GitHub advisory](https://github.com/advisories/GHSA-xv76-mrpv-26pg) · [v0.5.20 固定源码](https://github.com/sgl-project/sglang/blob/v0.5.20/python/sglang/multimodal_gen/runtime/disaggregation/orchestrator.py)。
+
+## 2026-10-12 证据索引
+
+本轮为 9/28 之后的增量与候选补核，不补造 10/5 运行。除 E-08 首次发现为 9/28 外，下列卡片首次发现、最近核验均为 **2026-10-12**。日期按来源 UTC 记录；机制公开、合入和 release 分开。
+
+| 证据 | 变化 | 状态 / 主线 |
+| --- | --- | --- |
+| [[#E-20261012-01]] | slime 持久样本与 trainer-only 恢复 | 正式版本、限定恢复 / T2、T5 |
+| [[#E-20261012-02]] | score centering 与实现支持边界 | 论文补录、正式版/main 分开 / T2、T4 |
+| [[#E-20261012-03]] | HiSparse draft 状态与跨 stream 修复 | 正式修复；PR披露残余PD race，后续修复未核 / T3、T4 |
+| [[#E-20261012-04]] | SGLang 取消 drain 与权重更新 session | 正式版本、限定 backend / T2、T3、T5 |
+| [[#E-20261012-05]] | Dynamo 校验地址与实际连接绑定 | 正式修复 / T3、T5、T7 |
+| [[#E-20261012-06]] | MaxText overflow 的原状态 replay | 正式实现、定向 TPU 测试 / T1、T5、T8 |
+| [[#E-20261012-07]] | KVTether：消息生命周期进入 KV 管理 | 新论文、作者回放 / T3、T7 |
+| [[#E-20261012-08]] | SWE-Serve：服务全链路验收缺口 | 9/22 论文补录 / T5、T6 |
+| [[#E-20261012-09]] | GPUNetIO 的共同底层与路径选择 | 新报告、既有机制补录 / T4、T8 |
+| [[#E-20261012-10]] | FlashInfer 同 prepared weights 的不同计算路径 | 正式包、显式选择 / T4、T6、T8 |
+| [[#E-20261012-11]] | Kueue 防止旧 placement 覆盖新 admission | 正式修复 / T5 |
+| [[#E-20261012-12]] | V4.1 dev.2 扩展 PD speculation，但更换 backend | 非 QA preview / T3、T4 |
+
+## E-20261012-01
+
+**slime：持久样本、模型提交和进程恢复必须对齐。**
+
+- **事件/日期**：新增正式 `v0.4.0`，10/9 03:04:12，`0b0c277`。Straw #2410 于9/24公开、9/28 04:39合入 `6857224`；trainer-only recovery #2444 于10/5公开、10/7合入 `4a7a509`。
+- **变化**：Straw 持久化 prompt、partial rollout、样本及 batch，Ray 传控制/引用；detached ServingCluster 可保留健康 serving/router/队列并替换失败 trainer/manager。训练已执行不等于模型已 durable commit，重放数据须等提交边界再释放。
+- **成熟度/边界**：版本已发布，默认仍 object-store/sync；当前共享 FS 目标为 JuiceFS。同一存活 Ray 集群内手动恢复，不提供自动任务重试/coordinator failover；冷启动不恢复 GPU KV、generation RNG。改 TP/PP 不保证 bitwise 一致，checkpoint 目录不包含全部池 payload。
+- **验证**：作者 H100/JuiceFS 故障测试；真实 OOM 与 manager-loss 分别涉及小模型和 Qwen3-30B-A3B，后者用 stateless Adam，不能推成普通 Adam 全覆盖。未核独立长期质量、恢复 SLO 或成本优势。
+- **判断/下一问**：✅强化 T2/T5，承接 E-20260921-02 与 E-20260928-01。恢复验收单位应是提交模型与被接受样本；后续核 Ray/owner/存储故障及重放的学习等价性。
+- **来源**：[release](https://github.com/THUDM/slime/releases/tag/v0.4.0) · [#2410](https://github.com/THUDM/slime/pull/2410) · [#2444](https://github.com/THUDM/slime/pull/2444) · [固定恢复指南](https://github.com/THUDM/slime/blob/v0.4.0/docs/en/advanced/fault-tolerance.md) · [Straw 边界](https://github.com/THUDM/slime/blob/v0.4.0/docs/en/advanced/straw.md)。
+
+## E-20261012-02
+
+**Score centering：分布差异不仅是吞吐问题，也可能改变梯度目标。**
+
+- **日期/增量**：论文 v1 为9/17 17:58:17，旧结果补录；slime #2405/#2406 于9/23合入 `4c4adbb`/`86c97a3`，10/9随0.4.0发布为新增版本事件。verl #8010 于9/23公开、10/1 14:52合入 `8718ca3`，仍为 main，未进入最新0.9.1正式版。
+- **机制**：对 sampler/trainer 分布不同造成的 score 梯度漂移作修正，可与 importance sampling 组合；不是 reward/group centering，也不是使低精度引擎数值相同。
+- **组合**：verl 默认关闭，仅 v1/TransferQueue、vLLM、FSDP、single-turn、bypass REINFORCE；支持列明 sync/async 路径，要求 top_p=1、top_k=-1、processed logprobs，禁 fused kernels。不能拼入 SGLang/Megatron/多轮；10/11提出的 #8196 truncated-support 仍 Open。slime 已发布的 top-p replay 是另一实现范围。
+- **作者实验**：2×RTX PRO 6000、vLLM0.29/torch2.13、Qwen3-0.6B Countdown、FP8 W/A+KV sampler 对 BF16 trainer，400步/每臂一seed/64 held-out prompts；SC final held-out 0.56，对 TIS 0.31。另需 [#8064](https://github.com/verl-project/verl/pull/8064) 的 tied-embedding FP8 weight-sync 修复，不是#8010单独可复现的组合。长跑用旧 dict 提取，优化后仅三步复查；训练 reward 与 held-out 分开，无独立 time-to-quality 结论。
+- **判断/下一问**：🔄演进 T2/T4；核修正开销、有效样本与独立质量，不能由固定步数分数推出学习更便宜。
+- **来源**：[论文正文](https://arxiv.org/html/2609.20807v1) · [日期](https://arxiv.org/abs/2609.20807) · [slime #2405](https://github.com/THUDM/slime/pull/2405) · [#2406](https://github.com/THUDM/slime/pull/2406) · [verl #8010](https://github.com/verl-project/verl/pull/8010) · [尚未合入 #8196](https://github.com/verl-project/verl/pull/8196)。
+
+## E-20261012-03
+
+**vLLM：target forward 完成，不代表 draft 状态已经可镜像。**
+
+- **日期/身份**：正式 `v0.31.0`，10/5 06:44:55，`db9527a`；#59309 于9/29 21:59公开、10/2 06:04合入 `4056c8a`。
+- **修复**：HiSparse+MTP+FULL graphs 在GPU池饱和时，可能过早将尚未写入的 draft rows 镜像到host，copy stream 也可能读取上次 request IDs。新路径区分target/draft层，将draft mirror推迟到下一步开始，并在copy stream构造当前IDs。
+- **验证主体/口径**：提交者H100测试及H200/B300指定配置。B300四卡、GLM-5.3 FP8 TP4、MTP3、FULL_DECODE_ONLY、8GiB GPU KV、40条约16k/512 code prompts，自报acceptance length 1.37→2.68；这不是吞吐比，无独立复测。
+- **未闭合**：原PR仍承认 deferred host writes 与 NIXL P/D import 的 host-block reuse 缺排序；本次未核到后续修复。不能推出HiSparse+PD+MTP全组合正确。
+- **判断/承接**：⚠️修正 E-20260928-03 的当前适用范围，不撤销其历史版本事实。T3/T4的可见性必须覆盖draft与跨stream生命周期。下次核剩余race、真实并发/SLO与版本回归。
+- **来源**：[v0.31.0](https://github.com/vllm-project/vllm/releases/tag/v0.31.0) · [#59309](https://github.com/vllm-project/vllm/pull/59309)。
+
+## E-20261012-04
+
+**SGLang：取消后释放与多桶换权重，都需要完成协议。**
+
+- **日期/身份**：正式 `v0.5.21`，10/2 01:09:04，`e00930c`。#41023 于9/24 03:15公开、14:35合入 `cd11037`；#40777 于9/22 21:09公开、9/24 03:04合入 `f4d9d2e`。新增是版本纳入/默认行为变化，机制PR早于上次运行。
+- **PD变化**：Mooncake/NIXL 默认启用 deferred release；decode abort 后保留KV页与metadata slot，等所有已通知prefiller ranks的drain ACK或30秒超时，降低在途写污染下一请求的风险。Mori/fake仍立即释放；旧两帧ACK不计，新decode/旧prefill会走timeout。有限超时不等于任意网络故障下的安全证明。
+- **RL变化**：tensor/distributed更新须置于begin/end session内：恢复可加载布局→多桶加载→一次kernel-layout finalize，枚举target/draft/all。本地执行的真实GPU验证仅1×B200 Marlin W4A16 MoE的A→B→A；Triton W4A16 MoE自动路径、MXFP4、compressed-tensors W4A16 linear及per-tensor FP8 linear未因此具备安全refit，DFlash/DSpark只有枚举测试。
+- **判断/边界**：🔄演进 T2/T3/T5，承接 E-20260928-02；退出请求和传完bytes都不代表状态可复用。作者测试，非独立性能/生产证明。该release的SafeUnpickler改动也不能代替diffusion CVE闭环，见运行记录。
+- **下一问/来源**：核混合版本ACK、超时回收与真实多卡反复refit。[release](https://github.com/sgl-project/sglang/releases/tag/v0.5.21) · [取消协议](https://github.com/sgl-project/sglang/pull/41023) · [更新协议与排除项](https://github.com/sgl-project/sglang/pull/40777)。
+
+## E-20261012-05
+
+**Dynamo：验证过的对象，必须就是随后实际使用的对象。**
+
+- **日期/身份**：正式 `v1.5.1`，10/7 01:54:13，`2093662`；地址绑定 #14474 于9/8公开、9/19合入 `848206e`，较早机制随本次版本记录。
+- **事实**：媒体下载的Python/Rust客户端连接已验证地址，保留原hostname的TLS校验，避免校验/连接二次解析的不一致。受目标策略保护的fetch默认拒绝代理；显式信任egress proxy是运维授权，不是自动安全。release另限制inline/remote媒体大小及本地目录，并为request-path overload hint设置1秒过期；monitor状态另算。
+- **验证/限制**：PR作者报告AMD64/macOS ARM64及116 HTTP测试；非独立安全审计。依赖仍SGLang0.5.18/TRTLLM1.3rc25/vLLM0.28，不拼接新版功能。已列SGLang sidecar协议导致500、部分H.264/PyNvVideoCodec2.2.3导致worker崩溃；1.6修复目标不是已交付。
+- **判断/下一问**：✅强化 T3/T5/T7，扩展 E-20260928-11 的信任边界：校验、连接、资源占用和过期状态必须一致。核重定向/代理策略、负载恢复和已知问题正式修复。
+- **来源**：[v1.5.1](https://github.com/ai-dynamo/dynamo/releases/tag/v1.5.1) · [#14474](https://github.com/ai-dynamo/dynamo/pull/14474)。
+
+## E-20261012-06
+
+**MaxText：省内存的 overflow fallback，首先要保留未更新的训练状态。**
+
+- **日期/身份**：#5321 于9/21 20:52公开、9/29 01:26合入 `0d5aac6`，随10/2 16:35:26正式 `maxtext-v0.2.5` / `493d592`发布；不是dropless概念首次出现。
+- **变化**：step fallback 在图内遇overflow选择旧state（含RNG count）保留donation，再由host从返回的未更新state replay；overflow flag从逐层通信改全模型一次归约，避免长期保留额外训练状态。
+- **边界**：Ring-of-Experts+ragged sort；默认None仍丢超限token。step不支持DiLoCo、预编译trainstep、optimizer/parameter host offload；layer局部分支不共享全部限制。Tunix RL扩展 #5570 截至10/12仍Open、目标分支atwigg/mlperf，依赖Tunix #2721，作者未跑真实RL，不能与预训练能力拼接。
+- **作者验证**：TPU7x 4 chips/8 devices、deepseek3-test、EP4×FSDP2、synthetic30步强制overflow，与相同chunking dropless基线loss/grad norm逐步bit-identical。671B/tpu7x-1024仅AOT编译内存/HLO分析，不是实跑显存、吞吐或长期收敛。
+- **判断/下一问**：✅强化 T1/T5/T8，并连接T2/T4。容量优化必须确认token与更新均未错误丢失；核真实数据、多步恢复和RL接入，而非只看能编译到多少设备。
+- **来源**：[正式tag](https://github.com/AI-Hypercomputer/maxtext/releases/tag/maxtext-v0.2.5) · [#5321](https://github.com/AI-Hypercomputer/maxtext/pull/5321) · [固定配置边界](https://github.com/AI-Hypercomputer/maxtext/blob/maxtext-v0.2.5/docs/reference/core_concepts/moe_configuration.md) · [未合入RL扩展](https://github.com/AI-Hypercomputer/maxtext/pull/5570)。
+
+## E-20261012-07
+
+**KVTether：逻辑上已死亡、暂时不用和物理仍驻留的 KV，不能只靠 LRU 区分。**
+
+- **日期/身份**：新论文 `2609.39819v1`，9/30 14:22:14 首次公开；正文 §5～8、表4。论文原型/作者实验，非 runtime 正式功能，未核固定实现 commit 或独立复测。
+- **机制/变化**：harness 的消息替换、删除、fork 等映射到 KV 生命周期；先排除 temporary/expired，再决定 live-but-idle 的驻留。共享KV所有映射版本均为Discarded时，才按已死亡状态回收，并等待在途使用完成；live KV仍可按压力策略驱逐。承接 E-20260928-04 的物理完整/可达索引，增加上层逻辑存活条件。
+- **实验边界**：3节点/12 GB200，GLM-4.7、SGLang0.5.8、1P2D/TP4，LMCache0.5.5/MoonCake0.3.8，每节点400GB host KV。三种轨迹各400任务、五档Poisson RPS；在真实硬件上用随机内容和固定长度回放，工具等待按记录模拟，不是在线任务质量实验。精度和可复现完整配置本轮未锁。
+- **不采普适性能结论**：论文所谓 task pricing 是按外部 token 费率估算，并非这套集群 TCO。MRU 只是特定 suspended 重用分布的启发式，去掉生命周期跟踪后也可能不如 LRU。
+- **判断/下一问**：🔄演进 T3/T7；“谁知道状态已经无用”成为跨层接口问题。下一步核事件丢失/乱序、多租户恶意 hint、真实内容与任务成功率，不把 trace 回放称生产部署。
+- **来源**：[版本历史](https://arxiv.org/abs/2609.39819) · [机制与实验正文](https://arxiv.org/html/2609.39819v1)。
+
+## E-20261012-08
+
+**补录 SWE-Serve：局部测试通过，不能替代实际服务链路验收。**
+
+- **日期**：论文 `2609.26777v1` 首公开9/22 17:54:59，官方报告9/23；9/28发现候选，10/12补核论文 §5.2/A.4.1 与公开仓库，不算本周新论文。
+- **证据**：53个SGLang工程任务，其中19个有真实模型服务检查。相同627个补丁，完整 verifier 通过288个（45.9%），删除E2E检查后435个（69.4%）；无结果仍算失败。这是重评分，不是重新跑出另一组补丁。
+- **敏感性**：其中4任务删除E2E后没有剩余测试；排除它们，剩15任务仍为191/495→304/495（38.6%→61.4%）。因此不能把总差直接解释成所有生产补丁的失败概率。
+- **成熟度/边界**：公开 benchmark、作者测量；12 CPU/41单H100任务，closed-book mini-swe-agent，未涵盖多GPU/多节点或其他引擎。通过 verifier 不等于维护者认可、可合并或生产安全；本任务未执行测试。
+- **判断/下一问**：✅强化 T5/T6，补足 E-20260921-08 的“源码—包—dispatch”链，向上延伸到请求—调度—cache—输出。下轮核升级回归与多节点失败场景，而非仅追加模型排行榜。
+- **来源**：[论文日期](https://arxiv.org/abs/2609.26777) · [论文与敏感性](https://arxiv.org/html/2609.26777v1) · [官方报告](https://developer.nvidia.com/blog/how-swe-serve-exposes-the-gap-between-local-tests-and-live-serving/) · [公开制品](https://github.com/NVIDIA/swe-serve)。
+
+## E-20261012-09
+
+**GPUNetIO：共同底层减少重复实现，但库名不保证实际绕过 CPU。**
+
+- **日期/身份**：10/6官方新报告；既有 GDA-KI、NCCL/NVSHMEM 集成机制为补录，未将报告日当首次实现。固定仓库 `b2b7a291ec70fdeeb1b27ba4b0ab8c8e260a729b`，10/5提交名为v5.0.0 rc1，不据此称新GA。
+- **事实**：NCCL GIN 与 NVSHMEM GPUNetIO transport 共享底层 Verbs 实现。CPU 建对象/注册，GPU 发WQE/doorbell/查CQ；开源子集是 RDMA one-sided，不等于完整SDK的Ethernet/DMA/two-sided。配置SDK可经dlopen切换实际实现。
+- **关键边界**：无直接GPU→NIC doorbell能力时使用CPU-assisted proxy；GPU-initiated不意味着所有机器都无CPU参与。低层API的并发同步仍由应用负责。只核文档和固定README，不采厂商带宽图为端到端优势。
+- **判断/下一问**：✅强化 T4/T8；将“共同依赖、实际选路、progress责任”纳入兼容矩阵。后续核 transport/SDK/driver/NIC组合、争用与失败路径，而非按库名重复统计创新。
+- **来源**：[10/6报告](https://developer.nvidia.com/blog/doca-gpunetio-gda-ki-unified-gpu-networking/) · [固定README](https://github.com/NVIDIA-DOCA/gpunetio/blob/b2b7a291ec70fdeeb1b27ba4b0ab8c8e260a729b/README.md)。后者网页cache miss，已用相同commit的raw正文核通。
+
+## E-20261012-10
+
+**FlashInfer：同一权重布局可以支持不同计算路径，但不等于默认动态精度。**
+
+- **日期/身份**：#5735 于9/30 13:01公开、10/2 18:07合入 `0be3eb2`；正式v0.7.1于10/9 20:00:11发布，页面 `0b46115`。
+- **机制**：SM120/121 CuTe DSL NVFP4 W4A16 routed-MoE直接读取cuTile W4A4同一prepared expert buffers：packed E2M1、128×4 swizzled E4M3 scales及per-expert FP32 scales；显式选择后可按token桶分派，不需第二份权重。未加默认backend list，默认dispatch不变。
+- **作者口径**：DGX Spark/SM121，Qwen3.8-Flash-Next MoE层H2560/I640/E512/top10；完整层含routing/combine、CUDA Graph冷L2，不含preparation。1token对Marlin 1.36×，1024token反而落后；无整模型质量/请求SLO结论，未核下游vLLM接入已交付。
+- **判断/下一问**：🔄演进 T4/T6/T8，承接 E-20260928-06 的部署匹配要求。物理布局的可共享性决定能否低成本选路；后续核真实token分布和质量—延迟收益。
+- **来源**：[v0.7.1](https://github.com/flashinfer-ai/flashinfer/releases/tag/v0.7.1) · [#5735](https://github.com/flashinfer-ai/flashinfer/pull/5735)。
+
+## E-20261012-11
+
+**Kueue：旧的 placement 计算不能覆盖新的 admission 决定。**
+
+- **日期/身份**：#15761 于9/17公开、10/7合入 `d1bd79b`；同日backport #16858 / `b13ee67`，正式v0.20.1于10/8 12:31发布，`237d77e`。
+- **事实**：TAS第二次放置更新携带resourceVersion，拒绝旧pass覆盖新的admission/eviction；失败保留reservation并重读重试，但NotFound除外，回填不得覆盖缓存中较新更新或复活已删除对象。只改second-pass，不等于全部调度已事务化。
+- **判断/边界**：✅强化 T5，承接 E-20260921-11 / E-20260928-05：不仅计数要对齐，还要确保释放/预约对应当前版本。维护者修复与测试，无独立集群利用率或性能测量。
+- **后续/来源**：核并发驱逐/重试的reservation invariant与回归。[v0.20.1](https://github.com/kubernetes-sigs/kueue/releases/tag/v0.20.1) · [#15761](https://github.com/kubernetes-sigs/kueue/pull/15761) · [#16858](https://github.com/kubernetes-sigs/kueue/pull/16858)。
+
+## E-20261012-12
+
+**Dynamo V4.1：PD speculation 的支持扩大，但这是更换 backend 的新快照。**
+
+- **日期/身份**：`v1.6.0-deepseek-v4.1-flash-dev.2`，10/8 23:42发布，`a201d5b`。
+- **相对变化**：E-20260915-03 的dev.1是SGLang preview；dev.2改用patched vLLM0.31，aggregated/1P1D均提供DSpark-3，分别列B200/GB200/H200 recipes。不能把它解释成旧SGLang组合原地获得支持。
+- **边界**：仍experimental、非QA、仅文本；NIXL protocol14不能与13混用。没有核完整benchmark制品，不转述性能，不能据此撤销FP4 KV/视觉未验证边界或称生产就绪。
+- **判断/下一问**：🔄演进 T3/T4；旧“1P1D无speculation”只适用于旧快照，当前支持需同时绑定backend和协议版本。核正式QA与多组合回归。
+- **来源**：[dev.2精确支持矩阵](https://github.com/ai-dynamo/dynamo/releases/tag/v1.6.0-deepseek-v4.1-flash-dev.2)。
+
+## 2026-10-19 证据索引
+
+以下卡片最近核验均为 **2026-10-19**。除特别注明外，首次发现也是10/19；Curator/NIXL/cuDNN版本及EfficientAgent线索在10/12已发现，本次补足机制。日期采用原始UTC；补录不是本周新发生。仅审计公开证据，未做本任务独立实验。
+
+| 证据 | 变化 | 事件与状态 / 主线 |
+| --- | --- | --- |
+| [[#E-20261019-01]] | Midtraining以匹配后训练检验，而非只看基座proxy | 新论文、制品未齐 / T1、T2 |
+| [[#E-20261019-02]] | 低精度去重会改变保留集合和代表关系 | 旧机制补录、已发布 / T1、T4、T6 |
+| [[#E-20261019-03]] | Score centering依赖逐token采样支持receipt | 新合入main、未随稳定版 / T2、T4 |
+| [[#E-20261019-04]] | P2P source、destination、peer注册须分别闭环 | 新合入main、0.32未包含 / T3、T4、T5 |
+| [[#E-20261019-05]] | HiSparse后续实验收窄残余风险 | 10/5反证补录、未合入 / T3、T4 |
+| [[#E-20261019-06]] | 扩容依据阶段工作量与部署标定 | 旧指南补录、experimental / T3、T5 |
+| [[#E-20261019-07]] | Ascend sparse MQA复用的是metadata中的KV快照 | 新main实现 / T4、T6、T8 |
+| [[#E-20261019-08]] | NIXL弹性连接准备与拓扑激活分开 | 旧版本机制补录 / T4、T5 |
+| [[#E-20261019-09]] | QK norm属于数学合约，不只是kernel替换 | 旧版本机制补录 / T4、T6 |
+| [[#E-20261019-10]] | Agent KV offload收益取决于重用工作集 | 9/27论文补录 / T3、T7、T8 |
+| [[#E-20261019-11]] | 近似非前缀复用须测试持久缓存历史 | 10/5论文补录反证 / T3、T7 |
+| [[#E-20261019-12]] | 流式Flow只提交完整因果chunk的KV | 新正式版纳入旧机制 / T3、T6、T7 |
+| [[#E-20261019-13]] | DeepEP V2.5重新划分通信与框架责任 | 9/29实现补录、部分experimental / T4、T5、T8 |
+
+## E-20261019-01
+
+**Midtraining：recipe的终点应是后续可训练性，开放程度另验。**
+
+- **日期/身份**：新论文 `2610.22019v1`，10/15 14:58:21公开；NVIDIA作者实验，未核版本化训练代码或独立复测。
+- **机制**：Nemotron 3.5 Lightning（30B/3B active）与Super（120B/12B）在256K做软件工程数据midtraining；约10% agent traces、20%预训练replay，工具返回不计loss。基座proxy不足以可靠挑选recipe，改用固定短SFT检验后续能力。
+- **结果边界**：GB300/BF16/Megatron，Lightning TP/CP/EP=2/4/8；500B额外midtraining后，两臂同100B-token full SFT，SWE Verified pass@1 60.7→64.5（OpenHands SDK1.17.0、500任务×3rollouts、temperature1/top-p0.95）。这是作者匹配后训练比较，不能省略500B前置成本称同成本获益。
+- **反证/开放性**：Appendix A仍计划未来发布处理脚本和训练集metadata；D只有单seed/20次GRPO update，作者明确不足以测RL增益。E中Super在256K继续训练损害1M RULER，须额外长上下文阶段恢复，不能拼接所有阶段能力。
+- **判断/下一问**：🧪探索 T1/T2；数据质量应在匹配SFT/harness下验收。等待manifest/脚本、完整成本、多seed长期RL，不因标题含Open就判可完整复现。
+- **来源**：[日期](https://arxiv.org/abs/2610.22019) · [固定正文§3–5及附录](https://arxiv.org/html/2610.22019v1)。
+
+## E-20261019-02
+
+**Curator：低精度去重优化也会改变“训练哪些数据”。**
+
+- **日期/身份**：#2388于9/10 17:35公开、21:40合入 `3fc330485c026a3e96bd0072fa001fe2a6e49477`；10/9 01:13发布v1.4.0 / `10fba1ea785863872ae6983b580ec6813e72cc79`。10/12已发现版本，本次为旧机制补录。
+- **事实**：固定tag的pairwise compute和KMeans embedding storage默认float16，KMeans fitting/prediction/centroid-distance仍FP32；不能简称整个去重全FP16或FP32等价。
+- **作者验证**：8H100、65,844,782文档、1000clusters，固定FP32 clusters/rankings逐ID比较、keep=hard、cosine阈值0.99：1437个保留/删除决策翻转（0.002182%）。双方均删除的ID，其nearest-neighbor parent一致率86.734%；当前输出只用removed IDs，代表关系不同不直接改变该输出，但会影响依赖映射的下游。
+- **性能限制**：两规模workflow自报1.08×/1.71×来自不同EOS hosts且重跑KMeans，非受控同卡A/B；pairwise累计compute倍数不等于流水线倍数。无下游训练质量验证，近exact阈值需显式FP32。
+- **判断/下一问**：✅强化 T1/T4/T6：验收保留集合与代表关系，不只验数值误差/吞吐；补同环境运行及最终质量，完整recipe缺口不因此关闭。
+- **来源**：[release](https://github.com/NVIDIA-NeMo/Curator/releases/tag/v1.4.0) · [实验与限制](https://github.com/NVIDIA-NeMo/Curator/pull/2388) · [固定workflow](https://github.com/NVIDIA-NeMo/Curator/blob/v1.4.0/nemo_curator/stages/deduplication/semantic/workflow.py)。
+
+## E-20261019-03
+
+**verl：记录top-k，不等于完整知道实际sampler支持集。**
+
+- **日期/身份**：#8196于10/11 03:30公开，10/18 04:36合入 `8ced5d2f4b148c2991217554e0c6f03028fa1470`；本次演进更新 E-20261012-02 的Open边界。最新正式版仍0.9.1，不能归入该版。
+- **机制**：移除手动score_centering_top_p，由provider生成response_support_complete并运输为rollout_support_complete；仅有效逐token receipt选择support-normalized估计，记录预算不改变采样。完整性要穿过partial resume、AgentLoop/TQ和padding；k值或head概率质量接近1都不足以证明完整。
+- **限制**：不完整/旧记录仍用top-k head＋trainer-tail近似，可能在未知真实支持集外分配tail mass，近零tail有epsilon误差，非精确恢复分布。#8199 Megatron与#8206优化仍Open，不拼接支持。
+- **作者验证**：H100/Qwen3-0.6B provider定向GPU测试对应较早head；最终非Boolean receipt拒绝修订只跑本地19项schema tests/hooks，未重跑远端。较早feature head的Countdown/400step/单seed结果为SC held-out0.58对旧PG0.09，但15s/step对10s/step；RTX PRO6000、vLLM0.29、FP8 sampler/BF16 FSDP、top-p0.95/top-k128/记录128。不是最终merge公平性能或同质量成本证明。
+- **判断/下一问**：🔄演进 T2/T4；概率修正依赖可审计采样metadata。核最终head完整回归、多seed和达到质量门槛的总耗时。
+- **来源**：[#8196](https://github.com/verl-project/verl/pull/8196) · [合入](https://github.com/verl-project/verl/commit/8ced5d2f4b148c2991217554e0c6f03028fa1470) · [Megatron候选](https://github.com/verl-project/verl/pull/8199) · [优化候选](https://github.com/verl-project/verl/pull/8206)。
+
+## E-20261019-04
+
+**vLLM P2P：source pins、destination slots、peer注册是三个故障生命周期。**
+
+- **日期/身份**：#59790于10/2公开、10/14 15:31合入 `e2aabc8b1521aad382b439e6be4e740d8e8211eb`；#60279于10/6公开、10/15 11:07合入 `8b27d274025e8dd1db3ca0405ac893492f8e7683`。新增main修复，承接10/12运行记录的Open候选。
+- **修复**：producer保留source pins至WRITE达到terminal才发AbortAck/失败通知，不能假设release handle/remove peer返回就停止写入；descriptor释放失败仍尝试remove remote agent，避免陈旧注册阻止重连。
+- **版本核验**：v0.32.0于10/18 06:50发布 / `5df63a7`，两个merge SHA与tag均diverged，固定tag nixl.py仍旧cancel/remove实现；**两项均未进入0.32.0**，发布日期更晚不表示包含main全部修复。
+- **验证与剩余问题**：前项为NIXL1.4.1/UCX TCP/CPU DRAM probe；后项含作者mock及reviewer两节点NIXL1.5/IB rc_mlx5/DRAM WRITE checksum复查，非真实模型服务验证。producer可能无限持pins；10/14新issue #61532指出consumer abort-ack超时后释放slots，尚未复现E2E KV corruption。#55181/#60374仍Open，最新#60374验证未读完，不能沿用“仅mock”的旧判断。
+- **判断/下一问**：✅强化 T3/T4/T5；某一侧修复不等于端到端故障闭环。核目标slot drain、有限资源回收、正式发布与真实故障回归。
+- **来源**：[#59790](https://github.com/vllm-project/vllm/pull/59790) · [#60279](https://github.com/vllm-project/vllm/pull/60279) · [剩余#61532](https://github.com/vllm-project/vllm/issues/61532) · [#60374](https://github.com/vllm-project/vllm/pull/60374) · [正式版](https://github.com/vllm-project/vllm/releases/tag/v0.32.0) · [固定源码](https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/v1/kv_offload/tiering/p2p/data/nixl.py)。
+
+## E-20261019-05
+
+**补录反证：HiSparse残余hazard，不等于已确认自然负载下错误输出。**
+
+- **日期/身份**：后续#59633于10/1 15:57公开，10/5 21:17关闭且未合入；本次发现并读取最后Closing评论。修正 E-20261012-03 未纳入反证的当前风险强度，不改旧卡正文。
+- **作者实验**：tiny DeepSeek-V3.2、MTP、P/D、1×H100、300requests/c16，自然时序NIXL post时没有pending deferred copy，copy约提前27ms；人为copy-stream延迟75ms后main有27次overwrite、提案0次。
+- **边界收窄**：仅MTP draft-layer rows暴露；page spill持有host-block引用，不属原描述的同一风险。greedy输出与non-P/D reference一致，作者认为可能影响acceptance而非greedy token correctness；未证明所有sampling/模型安全。原“host近满才复用”亦被纠正：freed unhashed blocks进入free queue前部。
+- **判断/下一问**：⚠️修正 T3/T4。应记录“注入延迟可触发、自然测试未复现、提案撤回未合入”，而非已确认生产corruption或已经修复。等自然复现、其他采样和真实负载反例。
+- **来源**：[#59633及10/5 Closing评论](https://github.com/vllm-project/vllm/pull/59633)。
+
+## E-20261019-06
+
+**llm-d：扩容指标应接到阶段工作量和真实启动滞后。**
+
+- **日期/身份**：v0.10.0于9/29 00:00发布；#2466于9/9公开、9/14合入。10/12已发现版本，本次补核固定指南；其中token-aware仍明确Experimental。
+- **机制**：prefill以uncached-token backlog除本部署实测peakPrefillThroughput估算积压秒数；decode按pod KV occupancy。共置取两trigger需求较大值，PD分别扩角色；标定必须含实际P/D传输，不能借同卡他人的吞吐。单EPP副本限制来自process-local计数，0与query unknown须区分，Ready=True不证明伸缩真实生效。
+- **验证/限制**：PR be80a09记录GPU-less Kind＋inference-sim＋KEDA2.20.2伸缩测试，不是GPU/SLO/成本证明。普通KEDA/EPP指南300秒双向stabilization防加载期间过度伸缩，也会延迟真正突发，需按cold-start重标定。
+- **判断/下一问**：🧪探索 T3/T5；请求数不直接等于工作量，指标正确也不自动满足p99。核open-loop突发、metric生命周期和实际模型冷启动，不能把历史guide的未tag句当当前router状态。
+- **来源**：[release](https://github.com/llm-d/llm-d/releases/tag/v0.10.0) · [固定token-aware指南](https://github.com/llm-d/llm-d/blob/v0.10.0/guides/workload-autoscaling/keda-epp-token-aware/README.md) · [普通指南](https://github.com/llm-d/llm-d/blob/v0.10.0/guides/workload-autoscaling/keda-epp/README.md) · [#2466](https://github.com/llm-d/llm-d/pull/2466)。
+
+## E-20261019-07
+
+**DeepGEMM-Ascend：metadata可能保存KV快照，而不只是索引。**
+
+- **日期/身份**：项目9/30初始公开；#12于10/14公开并合入 `3a35326271b069b8b5bf1a754435acd6cc91575b`（09:22:30UTC提交）。PR正文空，事实来自patch和固定源码，不能只凭标题。
+- **机制**：新增sparse/paged sparse MQA。paged FIRST将选定KV复制进metadata，REUSE读该快照而非当前raw KV；索引相同但KV内容变化也必须重建。阶段由host管理，没有device-visible phase。测试将raw KV清零、weights加倍仍读旧快照，重建才为零；这是已读测试设计，非本任务实跑。
+- **组合**：固定README要求Ascend950/CANN9.20/torch_npu；Q/K FP8 E4M3或packed FP4、BF16 weights/output，head dim128、头数4～32且为4倍数、sparse block8/16、page64/128。有效block ID有序、同请求query连续和page mapping一致由caller负责，不全被runtime检查。UE8M0成对压int16/MN-major布局不同于CUDA。
+- **判断/限制**：✅强化 T3/T4/T6/T8：prepared state身份需包含内容版本；不是整套attention/serving保证，既有峰值图不属于此次sparse新benchmark。后续核可变KV/错误metadata拒绝、完整模型接入和质量。
+- **来源**：[#12](https://github.com/deepseek-ai/DeepGEMM-Ascend/pull/12) · [固定API](https://github.com/deepseek-ai/DeepGEMM-Ascend/blob/3a35326271b069b8b5bf1a754435acd6cc91575b/csrc/apis/attention.hpp#L115) · [测试](https://github.com/deepseek-ai/DeepGEMM-Ascend/blob/3a35326271b069b8b5bf1a754435acd6cc91575b/tests/test_attention.py#L948) · [组合](https://github.com/deepseek-ai/DeepGEMM-Ascend/blob/3a35326271b069b8b5bf1a754435acd6cc91575b/README.md)。
+
+## E-20261019-08
+
+**NIXL：准备新连接与让新拓扑生效，不是同一阶段。**
+
+- **日期/身份**：#2138于8/22公开、8/25合入 `b0cbb237354d72b83500d5214d2b4484f9866fa3`；v1.5.0于9/30 07:31发布 / `1683cf3`。10/12发现版本，10/19补核旧机制，不声称首次随1.5发布。
+- **机制/边界**：connect_ranks(activate=False)建立standby memory views，同时保留dispatch/combine的active views。激活先cudaDeviceSynchronize，再换views/context/P2P pointers，等待comm stream后释放旧views。固定Python合约限定低延迟模式且只保证与dispatch/combine并发；释放GIL不等于激活无停顿。
+- **反证**：#2112小规模block-utilization优化被#2218于9/8回滚（9/6公开，`1e83d4a10e329cf3cdfc9c5e0821e4a9e932a739`）。维护者4GPU A/B、128tokens/top-k2/每rank2experts/hidden8192/30s timeout，在扩容与移除rank计划中出现receive timeout/assertion；未给硬件型号，不推性能。
+- **判断/下一问**：✅强化 T4/T5：拓扑、在途工作和旧注册的切换需要屏障；不能推出任意弹性无停顿或长期goodput。fixed-capacity graph复用还可能保留不适合新拓扑的launch配置，需测真实变更回归。
+- **来源**：[release](https://github.com/ai-dynamo/nixl/releases/tag/v1.5.0) · [#2138](https://github.com/ai-dynamo/nixl/pull/2138) · [固定合约](https://github.com/ai-dynamo/nixl/blob/v1.5.0/examples/device/ep/nixl_ep/buffer.py#L842) · [回滚反证](https://github.com/ai-dynamo/nixl/pull/2218)。
+
+## E-20261019-09
+
+**cuDNN：升级linear attention也要验数学合约，不能只对shape。**
+
+- **日期/身份**：#1454于10/7 18:30公开、19:41合入 `db85ff42d6d8ce8ab05b1d94414620cfc451a0fa`；1.31于10/8发布，tag `51a3de7`，release明列shipped source `8ab41a3b8fd8f2eb0c6d4b0f4ff566c8cf1e4bed`。10/12已发现，本次补核。
+- **事实**：FROST Q/K normalization由clamped norm改成 x×rsqrt(sum(x²)+1e-6)，小范数行数学结果会变。#1474说明SM90 CUDA KDA forward曾保留旧F.normalize，patch对齐additive epsilon；原SM90 CUDA backward拒绝use_qk_l2norm，不能因此说forward/backward全支持。
+- **保留限制**：1.31 Known Issues仍列SM100/SM107 FROST forward负有效scale：masked negative attn_scale可NaN，per-tensor FP8负descale_q×descale_k可错误输出/nonfinite Stats。仅这些路径，不推广所有cuDNN plans；1.32 nightly不是已核修复证明。
+- **判断/下一问**：⚠️修正 T4/T6/T8边界，承接E-20260928-07。核小范数、符号、实际backend及固定source一致性；无本次独立GPU或性能结果。
+- **来源**：[1.31版本/限制/source](https://github.com/NVIDIA/cudnn-frontend/releases/tag/v1.31.0) · [#1454](https://github.com/NVIDIA/cudnn-frontend/pull/1454) · [SM90差异](https://github.com/NVIDIA/cudnn-frontend/pull/1474) · [固定kernel](https://github.com/NVIDIA/cudnn-frontend/blob/8ab41a3b8fd8f2eb0c6d4b0f4ff566c8cf1e4bed/python/cudnn/linear_attention/frost/kernel/kda_prefill_f16.py#L121)。
+
+## E-20261019-10
+
+**EfficientAgent：单次搬运便宜，还不够证明KV offload划算。**
+
+- **日期/身份**：`2609.33762v1`于9/27 17:01公开，10/12只有线索，本次补录正文及公开实现README；论文原型、作者实验，未锁实现commit或独立复跑。
+- **机制**：收益还要求KV活到下次访问；并发agent全部上下文构成reuse working set。用stack-distance估容量，压力下保留小增量、拒绝大refill；容量足够则全写。host命中若只是替换GPU命中，并未减少计算。
+- **口径**：8H20/TP8、BF16 Qwen3-Coder-30B-A3B、vLLM0.13/LMCache0.3.12、16active agents、固定343K GPU KV、1024token host chunks；4427调用/147.1M prompt的依赖保持回放，强制输出原token并保留工具等待，grading另算。host每rank5→20GiB使makespan208.91→128.05min，不能称同内存算法增益。
+- **反例/限制**：40GiB时始终过滤写反而比全写慢；H800测试offload可变慢。模型/卡数/TP不同，非平台成本排名；固定轨迹性能不证明自由生成任务质量等价，无SLO/TCO结论。
+- **判断/下一问**：✅强化 T3/T7/T8；串起并发、容量、重用距离与搬运收益。核动态任务池与真实质量，并区分总prompt和必须重算的cache-stable前缀之外token。
+- **来源**：[日期](https://arxiv.org/abs/2609.33762) · [正文§3–5及附录A/B/E/G](https://arxiv.org/html/2609.33762v1) · [实现与依赖](https://github.com/KunmingSHAO/efficientagent_release)。
+
+## E-20261019-11
+
+**补录反证：近似非前缀复用的输入，还包括持久缓存的历史。**
+
+- **日期/身份**：`2610.05833v1`，10/5 05:37公开，本次发现/补录。论文作者实验，未核公开实现固定commit和独立复测。
+- **机制/实验**：Qwen3-8B、greedy/固定seed、LMCache0.5.1/vLLM0.23，关闭vLLM exact-prefix cache；7735个84文档滚动窗口、约7.2K～7.7Ktoken，确定字段抽取。相同prompt按五种请求次序逐个执行，组间清空cache、组内持续保存，比较5% token top-k与连续span修复。
+- **结果**：跨次序答案差异率69.0%对26.1%，是成对答案不一致率，不是任务失败率。连续span仍非无损：逆序fidelity低至54.3%。清空每次cache的500请求对照无显著差别；消融支持连续性，未证明文档边界或偏差排序有额外显著收益。L4 median TTFT约5.7×仅该抽取负载，非系统吞吐/真实agent质量。
+- **判断/边界**：⚠️修正 T3/T7的验收维度：近似cache需跨请求历史/重试/交错测试；不能泛化为精确prefix caching也会因该机制出错。连接E-20261012-07的生命周期，但两论文不是已验证组合。
+- **下一问/来源**：固定实现、更多模型和非抽取任务、SLO及独立复测。[日期](https://arxiv.org/abs/2610.05833) · [正文§4与消融](https://arxiv.org/html/2610.05833v1)。
+
+## E-20261019-12
+
+**Omni流式Flow：已分配帧不等于已经可以跨hop复用的帧。**
+
+- **日期/身份**：#2406于9/28公开、10/1合入 `257826d`；正式v0.1.8于10/12 18:22发布 / `870d774`，晚于上轮访问。新增是版本纳入，机制较早。
+- **机制**：Fun-CosyVoice3对每个Euler step/DiT layer分别保存因果prefix KV及conv尾部，跨音频hop复用，不是在不同去噪步间近似共用。review发现chunk内帧还可看后续帧，非默认hop计划会误缓存未完成chunk；最终只提交完整50-frame chunks，余下重算，并区分committed/allocated frames。池不足回退whole-history路径，随stream释放。
+- **作者验证/成本**：reviewer用真实权重和不同row/hop/reorder做bitwise对照；H10080GB/SeedTTS EN1088/c16，WER排除>50%样本后均1.18%、两臂均4个异常，speaker similarity70.30/70.42；性能为不同卡同时跑，非独立同卡受控结论。原H200自报还明确额外pool、约100秒compile warmup和首hop更慢，不以某hop节省推整服务收益。
+- **判断/下一问**：✅强化 T3/T6/T7：精确cache先确定因果提交边界，吞吐收益须计容量与启动。核非默认chunk、取消/池压力回归及长音频质量；该CUDA路径不证明XPU/MLX等价。
+- **来源**：[v0.1.8](https://github.com/sgl-project/sglang-omni/releases/tag/v0.1.8) · [#2406及review修正](https://github.com/sgl-project/sglang-omni/pull/2406)。
+
+## E-20261019-13
+
+**DeepEP V2.5：通信库提供原语，框架仍拥有路由与完成责任。**
+
+- **日期/身份**：#763于9/23公开、9/29 05:22合入 `def865146e95aa9ea223e277c0a8a4c6b81e5ac7`；10/12只见入口，本次为锁定实现的补录。10/15去掉格式检查不是技术新增。
+- **事实/组合**：V2.5拆分EPBuffer与Bucket/PP/Engram（后三者experimental），移除V1/NVSHMEM；固定文档要求NCCL2.32.3+、CUDA13.1+、Hopper+。不能沿用旧实现的依赖或按库名称零SM。
+- **责任边界**：冗余expert提供NVLink weight/scale prefetch与FP32 grad reduction原语；副本规划、token rerouting和expert GEMM由框架实现。域内所有ranks参与，mapping/storage须存活到完成；复用前须恢复backward weights并完成gradient reduction。deferred epilogue的wait会执行epilogue并首次产生结果，不是纯ready查询。
+- **判断/下一问**：🔄演进 T4/T5/T8；异步API要标谁触发工作、谁拥有buffer、谁提交结果。文档/源码核验，无整训练收益或生产可靠性证明；核框架集成、故障与跨版迁移。
+- **来源**：[#763](https://github.com/deepseek-ai/DeepEP/pull/763) · [固定README](https://github.com/deepseek-ai/DeepEP/blob/def865146e95aa9ea223e277c0a8a4c6b81e5ac7/README.md)。
 
 ## 新卡模板
 

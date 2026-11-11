@@ -1,0 +1,401 @@
+{
+  "reviewed_on": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "event_cutoff_for_this_pass": "2026-11-04",
+  "coverage_status": "bounded_deepening_not_network_complete",
+  "date_policy": "区分 arXiv 提交或版本日、PR 合入日、文章署名日与本轮阅读日；当前可见 main 或仓库元数据不倒推为截至 11/04 已交付。",
+  "evidence_policy": "一手正文支持机制；性能仍为作者实验，无本轮 GPU 实验或独立复跑。经典机制、旧线索重核和独立新发现分别标注。",
+  "untouched": "没有修改旧证据台账、候选、运行日志、专题或其覆盖截止。",
+  "domain": "D07",
+  "article": "D07 投机执行与解码加速.md",
+  "boundary": "指定目标采样/输出语义下减少串行解码成本；增加搜索计算提高质量与D03相连但不混算为无损执行加速。",
+  "local_audit": {
+    "read_files": [
+      "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 03 推理状态与调度.md §3",
+      "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 07 数据与后训练闭环.md §6",
+      "正文/05 从模型权重到一次生成.md"
+    ],
+    "interpretation": "两代原文均缺候选来源、链树、验证、异步与预算的系统比较；新稿标准机制与DSpark不足以代表领域全貌。"
+  },
+  "queries": [
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"speculative decoding\" \"2026\" after:2026-09-01 before:2026-11-05",
+      "purpose": "独立投机执行发现",
+      "observed_outcome": "发现DLoop、SpecStream、WebGPU resident loop和sparse-MoE分析；选择前两项深读"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "speculative decoding grammar constrained different tokenizer high concurrency arxiv 2026",
+      "purpose": "不含项目名的独立执行/正确性发现",
+      "observed_outcome": "找到Performance or Illusion系统测量线索，后续打开固定v1；本批不足以覆盖全部约束与异步路线"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"EAGLE-3\"",
+      "purpose": "已知候选方法标识核准",
+      "observed_outcome": "定位2503.01840并打开v1"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org speculative decoding different tokenizers grammar constraints",
+      "purpose": "跨词表与约束独立发现",
+      "observed_outcome": "批量结果混杂，未据二手泛化结论"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org/abs/ \"EAGLE-3: Scaling up\"",
+      "purpose": "固定候选训练方法入口",
+      "observed_outcome": "定位EAGLE-3正式题名和v1"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org/abs/ \"speculative\" \"tokenizers\"",
+      "purpose": "不含项目名的跨词表发现",
+      "observed_outcome": "本批没有可直接采用的完整固定方法源，随后追查官方UAG文章及tag代码"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org/abs/ \"speculative\" \"grammar\"",
+      "purpose": "不含项目名的约束分布发现",
+      "observed_outcome": "发现Future Validity和FactorSpec；前者读v1机制，后者仅摘要保留"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "\"Universal Assisted\" \"generation\" tokenizers",
+      "purpose": "已知跨词表方法追查",
+      "observed_outcome": "定位Hugging Face/Intel 2024-10-29官方文章；再用github connector读v4.46.0两个文件"
+    }
+  ],
+  "sources": [
+    {
+      "id": "D07-S01",
+      "title": "Fast Inference from Transformers via Speculative Decoding",
+      "primary_url": "https://arxiv.org/html/2211.17192v2",
+      "fixed_version": "arXiv v2",
+      "event_date": "2023-05-18",
+      "event_date_kind": "arxiv_version_date",
+      "date_evidence": "https://arxiv.org/html/2211.17192v2",
+      "organization_entry": "Google Research；正文affiliation",
+      "discovery_origin": "经典机制直接回访",
+      "read_scope": [
+        "§2 标准分布、接受与残差修正、算法1",
+        "§3.1–3.3 接受数与wall-time假设；正文A.1指向用于正确性说明"
+      ],
+      "verification_strength": "primary_algorithm_read_classic",
+      "independent_reproduction": false,
+      "open_questions": [
+        "本文收益模型未假定验证成本恒定；EOS/终止和服务干扰需另处理",
+        "没有将同seed逐token一致与分布一致混同"
+      ]
+    },
+    {
+      "id": "D07-S02",
+      "title": "Medusa",
+      "primary_url": "https://arxiv.org/html/2401.10774v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2024-01-19",
+      "event_date_kind": "arxiv_version_date",
+      "date_evidence": "https://arxiv.org/html/2401.10774v1",
+      "organization_entry": "Princeton/Together AI/UIUC等；正文affiliation",
+      "discovery_origin": "经典多头/树路线直接回访",
+      "read_scope": [
+        "§3.1 多头与tree mask/位置",
+        "§3.2–3.3 训练策略概述与typical acceptance语义"
+      ],
+      "verification_strength": "primary_method_read_classic",
+      "independent_reproduction": false,
+      "open_questions": [
+        "typical acceptance明确不强求原分布",
+        "backbone联合训练与冻结不是同一对照，不能统一称无损"
+      ]
+    },
+    {
+      "id": "D07-S03",
+      "title": "DLoop",
+      "primary_url": "https://arxiv.org/html/2610.07659v2",
+      "fixed_version": "arXiv v2",
+      "event_date": "2026-10-21",
+      "event_date_kind": "arxiv_revision_date",
+      "date_evidence": "https://arxiv.org/html/2610.07659v2",
+      "organization_entry": "NAVER AI Lab/Search Platform及Korea University；正文affiliation",
+      "discovery_origin": "独立arXiv事件检索→固定论文→作者repo元数据",
+      "read_scope": [
+        "v1提交记录2026-10-06；v2 2026-10-21",
+        "§3.1–3.3 起草循环、门限与loop-aware训练",
+        "§4选定实验表；未全面深读全部附录",
+        "本轮补读§3.2–3.3自反馈跨块输入、首/末stage loss、§4.1 greedy/节点预算/H100与门控选择；未全读附录随机采样实现"
+      ],
+      "verification_strength": "primary_method_and_selected_evaluation_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "论文无损结论依赖标准接受实现",
+        "未独立复跑；没有核每个支持模型/采样配置",
+        "当前repo元数据可见，不证明其截至11/04代码发布内容"
+      ]
+    },
+    {
+      "id": "D07-S04",
+      "title": "SpecStream",
+      "primary_url": "https://arxiv.org/html/2609.33184v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2026-09-27",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2609.33184v1",
+      "organization_entry": "西安交通大学；正文affiliation",
+      "discovery_origin": "独立arXiv事件检索→固定论文",
+      "read_scope": [
+        "§2–3 历史/验证开销与干扰",
+        "§4.1 提交边界/回滚区域",
+        "§4.2 多query流式验证与在线softmax",
+        "§4.3 目标优先共执行的方法概述；实验仅抽查摘要/结构",
+        "本轮重读§4.1 H<=C<=L、异步复制完成后推进H，§4.2 chunk online-softmax累加与候选mask"
+      ],
+      "verification_strength": "primary_method_read_evaluation_not_fully_audited",
+      "independent_reproduction": false,
+      "open_questions": [
+        "完整Attention不证明所有采样/数值路径逐位一致",
+        "未全面审计§5全部实验、代码或随机采样实现",
+        "共享GPU资源限制/传输配置需后续单独核验"
+      ]
+    },
+    {
+      "id": "D07-S05",
+      "title": "EAGLE-3: Scaling up Inference Acceleration of Large Language Models via Training-Time Test",
+      "primary_url": "https://arxiv.org/html/2503.01840v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2025-03-03",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/abs/2503.01840v1",
+      "organization_entry": "Peking University / Microsoft Research / Waterloo / Vector；固定论文署名",
+      "discovery_origin": "已知候选技术定向深读",
+      "read_scope": [
+        "§2.2 EAGLE/EAGLE-2的feature与动态树背景",
+        "§3.1多层feature融合、已选token embedding、自生表示续写",
+        "§3.2 training-time test与mask依赖；§4仅作为结构入口，未引用最大倍数"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "未读取EAGLE全部历史版本或固定实现",
+        "未独立验证训练数据规模效应或服务性能",
+        "与独立drafter/MTP在所有模型和负载上的优势未闭合"
+      ]
+    },
+    {
+      "id": "D07-S06",
+      "title": "Universal Assisted Generation: Faster Decoding with Any Assistant Model",
+      "primary_url": "https://huggingface.co/blog/universal_assisted_generation",
+      "fixed_version": "2024-10-29署名文章，机制以v4.46.0代码交叉核读",
+      "event_date": "2024-10-29",
+      "event_date_kind": "official_article_byline_date",
+      "date_evidence": "https://huggingface.co/blog/universal_assisted_generation",
+      "organization_entry": "Intel Labs / Hugging Face；署名官方文章",
+      "discovery_origin": "跨词表搜索→官方入口→固定tag源码",
+      "read_scope": [
+        "双向重编码、lookbehind和assistant缓存裁剪",
+        "Code指出Transformers4.46.0",
+        "Limitations:无q logits路径的multinomial匹配与未来工作；未采用作者性能表"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "动态文章不是完整历史快照，具体语义另由v4.46.0代码核读",
+        "没有推断当前transformers仍保留同样限制"
+      ]
+    },
+    {
+      "id": "D07-S07",
+      "title": "Transformers Different-Tokenizer Candidate Generator",
+      "primary_url": "https://github.com/huggingface/transformers/blob/v4.46.0/src/transformers/generation/candidate_generator.py",
+      "fixed_version": "tag v4.46.0",
+      "event_date": "2024-10-29",
+      "event_date_kind": "article_date_documenting_integration_not_tag_release_date",
+      "date_evidence": "https://huggingface.co/blog/universal_assisted_generation",
+      "organization_entry": "Hugging Face；固定tag代码",
+      "discovery_origin": "由官方文章所述版本定位",
+      "read_scope": [
+        "github.fetch_file lines430–620",
+        "lookbehind重编码和前缀重合对齐、discrepancy后的PKV裁剪",
+        "返回(new_target_ids,None)，没有目标词表上可直接比较的proposal logits；同时看到prompt lookup入口但未全读"
+      ],
+      "verification_strength": "fixed_tag_source_read_not_executed",
+      "independent_reproduction": false,
+      "open_questions": [
+        "没有执行代码或审计所有tokenizer边界",
+        "本行范围不是全部候选生成器实现",
+        "file blob SHA 1e4d7a4702453a8f287ee2561b95ecd6f656d512，非commit SHA"
+      ]
+    },
+    {
+      "id": "D07-S08",
+      "title": "Transformers Assisted Decoding Verify / Crop Path",
+      "primary_url": "https://github.com/huggingface/transformers/blob/v4.46.0/src/transformers/generation/utils.py",
+      "fixed_version": "tag v4.46.0",
+      "event_date": "2024-10-29",
+      "event_date_kind": "article_date_documenting_integration_not_tag_release_date",
+      "date_evidence": "https://huggingface.co/blog/universal_assisted_generation",
+      "organization_entry": "Hugging Face；固定tag代码",
+      "discovery_origin": "与candidate generator配对核读",
+      "read_scope": [
+        "github.fetch_file lines4190–4320",
+        "目标candidate_length+1 logits、逐前缀logits processors",
+        "candidate_logits存在时speculative_sampling，否则目标采样/argmax到首不匹配",
+        "outputs.past_key_values裁到new_cur_len-1；后续更新路径"
+      ],
+      "verification_strength": "fixed_tag_source_read_not_executed",
+      "independent_reproduction": false,
+      "open_questions": [
+        "没有执行代码或审计_speculative_sampling全部实现",
+        "不能以该tag证明当前主分支语义",
+        "file blob SHA 700ea0443f4dbd1442d6070a4fc5c48c5cedf199，非commit SHA"
+      ]
+    },
+    {
+      "id": "D07-S09",
+      "title": "Future Validity is the Missing Statistic: From Impossibility to Phi-Estimation for Grammar-Faithful Speculative Decoding",
+      "primary_url": "https://arxiv.org/html/2605.07698v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2026-05-08",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2605.07698v1",
+      "organization_entry": "National Taiwan University等；固定论文作者署名",
+      "discovery_origin": "不含项目名的grammar/speculative查询→固定v1",
+      "read_scope": [
+        "§3.1–3.2 locally projected vs完整grammar conditional和rollback axioms",
+        "§4未来合法完成概率Phi重加权与误差条件",
+        "§5估计层级入口、§1和§7范围限制；未审计所有附录实验"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "精确Phi通用计算困难，有限可枚举语法上的结果不代表通用生产方案",
+        "未采用作者TV最大值或速度数字",
+        "完整附录实现、真实schema和数值正确性仍未复核"
+      ]
+    },
+    {
+      "id": "D07-S10",
+      "title": "Speculative Decoding: Performance or Illusion?",
+      "primary_url": "https://arxiv.org/html/2601.11580v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2025-12-31",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/abs/2601.11580",
+      "organization_entry": "UC Berkeley；固定论文署名",
+      "discovery_origin": "不含项目名的约束/高并发检索→arxiv固定v1；abs另核版本史",
+      "read_scope": [
+        "§3.1部分设置和§3.2批次/任务/候选对照",
+        "§4.1公式中验证成本近似的适用条件",
+        "§5–6结构及选定分解/接受行为；未全面审计每图",
+        "abs版本史v1 2025-12-31，v2 2026-03-18；正文采用v1而非未深读v2"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "作者用token吞吐处理输出长度差异，不能据此证明任务质量相同",
+        "部分reasoning批次刻意避免抢占，未覆盖开放到达goodput",
+        "没有独立复跑或固定其所有vLLM补丁"
+      ]
+    }
+  ],
+  "known_repository_followup": [
+    {
+      "tool": "GitHub.get_repo",
+      "repository": "naver-ai/DLoop",
+      "observed": "当前元数据返回public仓库与main默认分支；没有读取或引用main算法内容",
+      "historical_release_verified": false,
+      "claim_scope": "不用于截至11/04实现成熟度判断"
+    }
+  ],
+  "coverage_gaps": [
+    "EAGLE完整代际和所有辅助层训练/目标更新成本未穷尽",
+    "已核固定UAG跨词表路径；通用随机提议分布变换未闭合",
+    "已区分逐步mask与完整语法条件分布；通用Phi低成本估计/生产实现未核验",
+    "高QPS大MoE、树验证与异步反馈的受控开放服务评测",
+    "非AR/diffusion计算图与本域证明不能直接等同"
+  ],
+  "github_tools_used": [
+    "fetch_file(huggingface/transformers, ref=v4.46.0, candidate_generator.py, lines430–620)",
+    "fetch_file(huggingface/transformers, ref=v4.46.0, generation/utils.py, lines4190–4320)"
+  ],
+  "failed_reads": [],
+  "candidates_disposition": [
+    {
+      "item": "FactorSpec 2611.02297",
+      "status": "abstract_only_not_promoted",
+      "reason": "2026-11-01候选已在时间边界内，但未深读关系约束/worker mask实现，不采用数字或正确性结论"
+    },
+    {
+      "item": "通用跨词表随机proposal分布变换",
+      "status": "gap_not_closed",
+      "reason": "固定UAG路径是目标采样匹配，不能替代通用p/q映射方法的深读"
+    }
+  ],
+  "followup_reads": [
+    {
+      "reviewed_on": "2026-11-04",
+      "tools": [
+        "web.run.open",
+        "web.run.find"
+      ],
+      "urls": [
+        "https://arxiv.org/html/2503.01840v1",
+        "https://huggingface.co/blog/universal_assisted_generation",
+        "https://github.com/huggingface/transformers/blob/v4.46.0/src/transformers/generation/candidate_generator.py",
+        "https://github.com/huggingface/transformers/blob/v4.46.0/src/transformers/generation/utils.py",
+        "https://arxiv.org/html/2605.07698v1",
+        "https://arxiv.org/html/2601.11580v1",
+        "https://arxiv.org/html/2610.07659v2",
+        "https://arxiv.org/html/2609.33184v1"
+      ],
+      "purpose": "逐域机制深化；实际读取的范围以sources.read_scope为准，不声称全域或全部版本覆盖",
+      "article_change": "增加概率修正反例、成本敏感性、feature自反馈、链树mask/回滚、grammar目标与固定UAG路径；保留Medusa typical与高负载反例"
+    }
+  ],
+  "derivation_checks": {
+    "kind": "analytical_teaching_examples_not_measurements",
+    "p": [
+      0.5,
+      0.3,
+      0.2
+    ],
+    "q": [
+      0.6,
+      0.1,
+      0.3
+    ],
+    "accepted_mass": [
+      0.5,
+      0.1,
+      0.2
+    ],
+    "residual_mass": [
+      0,
+      0.2,
+      0
+    ],
+    "wrong_argmax_repair_distribution": [
+      0.7,
+      0.1,
+      0.2
+    ],
+    "expected_accepted_chain4_p08": 2.3616000000000006,
+    "expected_submitted_without_eos": 3.3616000000000006,
+    "low_batch_assumed_speedup": 2.01696,
+    "busy_batch_assumed_speedup": 0.9085405405405407,
+    "tree_condition": "每节点仅看公共前缀和合法祖先；输入节点KV与预测后继logit位置区分",
+    "grammar_example": "当前两分支p=0.5/0.5，future-validity=0.1/0.9，完整合法条件首步为0.1/0.9；局部mask仍0.5/0.5",
+    "excluded": "常数接受行为、无EOS、顺序轮次为教学假设；异步按实际关键路径、服务按开放到达SLO另测",
+    "specstream_boundaries": "H是已完成迁移的全局前缀边界，C是逻辑已提交边界，L是总物化边界；[H,C)驻GPU；拒绝后H<=C'且只释放[C',L)"
+  },
+  "revision_status": "expanded_mechanism_draft_pending_cross_review",
+  "cross_review_corrections": [
+    {
+      "date": "2026-11-04",
+      "source": "https://arxiv.org/html/2609.33184v1",
+      "scope": "Sections 2.2 and 4.1, materialized committed KV C/H/L and C prime",
+      "correction": "C and C prime exclude newly selected repair/bonus tokens whose KV has not been computed; distinguish global offsets from GPU resident count; retain H<=C<=C prime."
+    }
+  ]
+}

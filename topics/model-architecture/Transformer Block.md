@@ -1,8 +1,6 @@
 ---
 type: topic
-status: developing
 area: model-architecture
-mastery: derive
 aliases:
   - Transformer Block 深入理解
   - Transformer 块

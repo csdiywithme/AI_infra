@@ -1,0 +1,340 @@
+{
+  "reviewed_on": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "event_cutoff_for_this_pass": "2026-11-04",
+  "coverage_status": "bounded_deepening_not_network_complete",
+  "date_policy": "区分 arXiv 提交或版本日、PR 合入日、文章署名日与本轮阅读日；当前可见 main 或仓库元数据不倒推为截至 11/04 已交付。",
+  "evidence_policy": "一手正文支持机制；性能仍为作者实验，无本轮 GPU 实验或独立复跑。经典机制、旧线索重核和独立新发现分别标注。",
+  "untouched": "没有修改旧证据台账、候选、运行日志、专题或其覆盖截止。",
+  "domain": "D14",
+  "article": "D14 多模态 Agent 与流式系统.md",
+  "boundary": "视觉/视频理解、diffusion/flow生成、实时音频视听与Agent任务的时间结构、阶段状态及执行编排；不是单一OCR代码助手案例。",
+  "local_audit": {
+    "read_files": [
+      "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 09 多模态与新工作负载.md",
+      "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 03 推理状态与调度.md §8",
+      "courses/hpcgame/HPCGame 2026 MLSys/追踪记录/MLSys - 证据台账.md E-20261019-12",
+      "正文/08 当请求变成多模态任务与 Agent.md"
+    ],
+    "interpretation": "旧09已有diffusion、音频速率/回压、准入分母、完整chunk提交与Agent生命周期；新08仅以OCR/工具为主。Omni旧案例本轮重新查PR元数据并读取固定合入代码。"
+  },
+  "queries": [
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"streaming\" \"multimodal\" \"2026\" after:2026-09-01 before:2026-11-05",
+      "purpose": "独立多模态/流式发现",
+      "observed_outcome": "与其他查询共批，返回结果不足以代表域覆盖"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"streaming\" \"audio\" \"2026\" \"Oct\"",
+      "purpose": "独立实时音频/边端路线发现",
+      "observed_outcome": "发现StreamSE，打开固定v1方法与完整端侧实验"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"LLM serving\" \"2026\" \"Oct\"",
+      "purpose": "跨域Agent执行接口发现",
+      "observed_outcome": "发现HEAR，打开固定v1协议语义与负载对照"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "full duplex streaming speech video diffusion serving backpressure arxiv October 2026",
+      "purpose": "不含项目名的独立多模态发现",
+      "observed_outcome": "发现Diffuplex、D2、VideoFDB等；打开Diffuplex固定v1方法/选择实验，其他未深读"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "\"DistriFusion\" arxiv",
+      "purpose": "经典去噪分布式方法核准",
+      "observed_outcome": "定位固定2402.19481v1和作者实验范围，不把作者项目页动态新闻当版本快照"
+    }
+  ],
+  "sources": [
+    {
+      "id": "D14-S01",
+      "title": "SGLang-Diffusion: Two Months In",
+      "primary_url": "https://www.lmsys.org/blog/2026-01-16-sglang-diffusion/",
+      "fixed_version": "署名日期的官方文章；所述dev镜像lmsysorg/sglang:dev-pr-17247",
+      "event_date": "2026-01-16",
+      "event_date_kind": "article_byline_date",
+      "date_evidence": "https://www.lmsys.org/blog/2026-01-16-sglang-diffusion/",
+      "organization_entry": "SGLang-Diffusion / LMSYS",
+      "discovery_origin": "旧库已知组织来源回访",
+      "read_scope": [
+        "Overview并行与阶段",
+        "Key Improvements: Layerwise Offload、Kernel、Cache-DiT；未采用动态嵌入表中的性能排名"
+      ],
+      "verification_strength": "dated_official_method_description_not_full_historical_snapshot",
+      "independent_reproduction": false,
+      "open_questions": [
+        "文章可更新，未证明每个功能首次出现日",
+        "不把1月报告当11月现状或所有模型/质量条件下性能",
+        "未核近期diffusion所有正式release"
+      ]
+    },
+    {
+      "id": "D14-S02",
+      "title": "StreamSE",
+      "primary_url": "https://arxiv.org/html/2610.37024v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2026-10-27",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2610.37024v1",
+      "organization_entry": "Sungkyunkwan University；正文affiliation",
+      "discovery_origin": "独立arXiv事件检索→固定论文",
+      "read_scope": [
+        "§3 因果codec latent回归、RVQ与状态",
+        "§4.4 手机单核/int8/p95/80ms帧/热控制/分段重置",
+        "§4.3 选定前瞻与RVQ消融"
+      ],
+      "verification_strength": "primary_method_and_device_evaluation_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "未独立复测或证明任意手机/长会话",
+        "状态窗与分段重置限定；无前瞻不等于零算法延迟",
+        "未把语音增强当通用语音Agent系统"
+      ]
+    },
+    {
+      "id": "D14-S03",
+      "title": "HEAR",
+      "primary_url": "https://arxiv.org/html/2610.06597v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2026-10-05",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2610.06597v1",
+      "organization_entry": "哈尔滨工业大学深圳；正文affiliation",
+      "discovery_origin": "独立arXiv事件检索→固定论文",
+      "read_scope": [
+        "§3 作用域、消息类别、意图/控制等四种语义区分",
+        "§4.1–4.2 负载与策略比较、SCBench到达构造、Mooncake不同负载"
+      ],
+      "verification_strength": "primary_protocol_and_selected_evaluation_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "未深读所有附录与角色级配置",
+        "作者基于指定harness/model/engine，不能当行业互操作标准",
+        "没有独立质量与部署验证"
+      ]
+    },
+    {
+      "id": "D14-S04",
+      "title": "SGLang-Omni PR #2406",
+      "primary_url": "https://github.com/sgl-project/sglang-omni/pull/2406",
+      "fixed_version": "merge commit 257826d526b718851a5323b8dab72a11522fb0de",
+      "event_date": "2026-10-01",
+      "event_date_kind": "github_merged_at_utc",
+      "date_evidence": "https://github.com/sgl-project/sglang-omni/pull/2406",
+      "organization_entry": "sgl-project / PR作者；GitHub一手记录",
+      "discovery_origin": "旧线索重核，非新发现",
+      "read_scope": [
+        "get_pr_info: created 2026-09-28T04:48:46Z, merged 2026-10-01T14:38:37Z",
+        "PR正文初始设计、性能条件和编译/池开销",
+        "list_pr_changed_filenames用于定位固定代码"
+      ],
+      "verification_strength": "merged_metadata_and_description_verified_code_read_separately",
+      "independent_reproduction": false,
+      "open_questions": [
+        "PR正文最初性能与版本状态不自动代表最后服务收益",
+        "未在本轮重查v0.1.8发布时间或全部review实验"
+      ]
+    },
+    {
+      "id": "D14-S05",
+      "title": "CosyVoice3 prefix_cache.py at merge",
+      "primary_url": "https://github.com/sgl-project/sglang-omni/blob/257826d526b718851a5323b8dab72a11522fb0de/sglang_omni/models/fun_cosyvoice3/prefix_cache.py",
+      "fixed_version": "257826d526b718851a5323b8dab72a11522fb0de",
+      "event_date": "2026-10-01",
+      "event_date_kind": "merge_commit_date_via_D14-S04",
+      "date_evidence": "https://github.com/sgl-project/sglang-omni/blob/257826d526b718851a5323b8dab72a11522fb0de/sglang_omni/models/fun_cosyvoice3/prefix_cache.py",
+      "organization_entry": "sgl-project；固定合入代码",
+      "discovery_origin": "由PR changed files定位",
+      "read_scope": [
+        "lines 1–210: complete chunk因果说明、每Euler step/layer独立pool、allocated/committed与conv state",
+        "lines 360–end: 每Euler step使用各自pool、提交与conv上下文更新",
+        "同时抽读同commit streaming_vocoder.py lines1–170，未在正文增加该辅助源链接"
+      ],
+      "verification_strength": "fixed_code_mechanism_seen_not_executed",
+      "independent_reproduction": false,
+      "open_questions": [
+        "没有运行GPU测试",
+        "没有证明所有hop计划、backend和取消路径正确",
+        "分配64-frame物理块与因果chunk提交边界不能混为一谈"
+      ]
+    },
+    {
+      "id": "D14-S06",
+      "title": "Qwen2.5-VL Technical Report",
+      "primary_url": "https://arxiv.org/html/2502.13923v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2025-02-19",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2502.13923v1",
+      "organization_entry": "Qwen Team / Alibaba Group；固定报告署名",
+      "discovery_origin": "评审后定向补读模型报告，作为视觉计算图基线，非2026进展",
+      "read_scope": [
+        "§2.1 视觉编码器、14步长patch、相邻四特征merger与语言投影；Table 1",
+        "§2.1.1 窗口与四个全局注意力层、视频两帧分组",
+        "§2.1.2–2.1.3 动态分辨率、帧率与绝对时间MRoPE的所引段落"
+      ],
+      "verification_strength": "fixed_primary_architecture_read_not_serving_implementation_validation",
+      "independent_reproduction": false,
+      "open_questions": [
+        "未读全部训练或评测章节，未采用作者SOTA或长视频最大长度为服务结论",
+        "静态图像token算式是基于已调整宽高、指定patch/merger规则的推导，不含特殊标记，也不直接用于视频",
+        "路由、编码结果缓存和阶段拆分是计算图推导的系统问题，报告未验证其收益",
+        "没有深读当前服务实现与同质量阶段路由比较"
+      ]
+    },
+    {
+      "id": "D14-S07",
+      "title": "DistriFusion: Distributed Parallel Inference for High-Resolution Diffusion Models",
+      "primary_url": "https://arxiv.org/html/2402.19481v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2024-02-29",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2402.19481v1",
+      "organization_entry": "MIT / Princeton / Lepton AI / NVIDIA；固定论文署名",
+      "discovery_origin": "去噪生成经典代表定向深读",
+      "read_scope": [
+        "§4 displaced patch、fresh Q/full K/V、异步AllGather、GroupNorm修正",
+        "§5.1 SDXL/COCO/50-step与25-step、额外4步同步warm-up、指标和测时",
+        "§5.2–5.3选定对照口径与分辨率/通信表；未全面审计实现"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "近似stale激活不是精确Attention等价变换",
+        "SDXL/A100和图像指标不证明长视频时序质量",
+        "没有独立复测或当前实现commit核验"
+      ]
+    },
+    {
+      "id": "D14-S08",
+      "title": "Moshi: a speech-text foundation model for real-time dialogue",
+      "primary_url": "https://arxiv.org/html/2410.00037v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2024-09-17",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/abs/2410.00037v1",
+      "organization_entry": "Kyutai；固定论文署名",
+      "discovery_origin": "经典全双工计算图直接打开固定v1",
+      "read_scope": [
+        "§3.4.1 Temporal/Depth Transformer及大模型时间轴",
+        "§3.4.2 12.5Hz、语义/声学delay",
+        "§3.4.3 双流与§3.4.4文本Inner Monologue对齐/输出；不采用最大延迟/质量结论"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "没有深读全部codec训练或对话评测",
+        "架构可同时听说不证明部署已正确处理回声、网络、取消",
+        "未把理论/作者实践延迟推广到并发服务"
+      ]
+    },
+    {
+      "id": "D14-S09",
+      "title": "Full-duplex Spoken Language Modeling with Discrete Diffusion",
+      "primary_url": "https://arxiv.org/html/2610.17780v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2026-10-13",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/abs/2610.17780v1",
+      "organization_entry": "NVIDIA；v1正文作者affiliation",
+      "discovery_origin": "不含项目名的full-duplex检索→arxiv固定v1",
+      "read_scope": [
+        "固定v1正文署名/affiliation和abs提交日交叉核对",
+        "§3.3 80ms AR交互状态、因果尾窗和适配",
+        "§3.4 单独AR/diffusion cache、256画布、首8位置提前冻结和调度",
+        "§3.5 TTS与一秒内打断时未说canvas的处理",
+        "§4.2–4.3评测目标/对照类别",
+        "§5.2 Fisher有无的暂停处理/时延取舍；§5.3 batch1单GB300边界，未采用最大TPS"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "方法是作者原型，训练代码/checkpoints承诺不等于本轮已验证发布",
+        "提前冻结开头改变内容修订机会，不能等同标准AR精确投机",
+        "交互指标、语音质量与内容吞吐分开；batch1不代表服务并发",
+        "未执行完整音频/播放/回声/网络中断验证"
+      ]
+    }
+  ],
+  "github_tools_used": [
+    "get_pr_info(sgl-project/sglang-omni,2406)",
+    "list_pr_changed_filenames(sgl-project/sglang-omni,2406)",
+    "fetch_file(prefix_cache.py, ref=257826d526b718851a5323b8dab72a11522fb0de, selected ranges)",
+    "fetch_file(streaming_vocoder.py, same ref, lines1–170)"
+  ],
+  "coverage_gaps": [
+    "已补Qwen视觉计算图/数量推导；跨阶段服务实现与同质量路由对照未核",
+    "已补DistriFusion stale激活机制；长视频时空并行/时序质量及近期diffusion正式版本未完成比较",
+    "已补Moshi/Diffuplex听说双时钟和交互取舍；端到端回声/视听同步/真实网络取消未核",
+    "Agent动态依赖、工具副作用/恢复有机制推导；没有自由执行任务成功率实验",
+    "具身实时闭环未深读；未覆盖全部多模态模型/硬件/阶段组合"
+  ],
+  "followup_reads": [
+    {
+      "reviewed_on": "2026-11-04",
+      "tool": "web.run.open / find",
+      "urls": [
+        "https://arxiv.org/html/2502.13923v1"
+      ],
+      "purpose": "实际打开固定模型报告补视觉编码—桥接—语言阶段因果链，不新增近期发布或全域覆盖声明",
+      "article_change": "增加3段动态视觉机制、分阶段优化与路由/状态身份联系"
+    },
+    {
+      "reviewed_on": "2026-11-04",
+      "tools": [
+        "web.run.open",
+        "web.run.find"
+      ],
+      "urls": [
+        "https://arxiv.org/html/2402.19481v1",
+        "https://arxiv.org/html/2410.00037v1",
+        "https://arxiv.org/html/2610.17780v1",
+        "https://arxiv.org/abs/2410.00037v1",
+        "https://arxiv.org/abs/2610.17780v1"
+      ],
+      "purpose": "逐域机制深化；实际读取的范围以sources.read_scope为准，不声称全域或全部版本覆盖",
+      "article_change": "增加视觉数量与双队列、去噪依赖/近似通信、端到端Amdahl账、全双工双时钟/播放取消、Agent join/副作用恢复"
+    }
+  ],
+  "failed_reads": [],
+  "candidates_disposition": [
+    {
+      "item": "D2 2610.17124",
+      "status": "not_promoted_unread",
+      "reason": "独立检索发现半双工backbone适配线索，未深读固定方法"
+    },
+    {
+      "item": "VideoFDB NVIDIA research event",
+      "status": "not_promoted_unread",
+      "reason": "官方摘要提示视觉流忽视和交互评估，未深读基准方法/版本，保留视听同步缺口"
+    },
+    {
+      "item": "DuplexJev 2610.02638",
+      "status": "not_promoted_unread",
+      "reason": "单token语音判定负载不同于完整生成对话，未深入，不据其摘要扩展结论"
+    }
+  ],
+  "derivation_checks": {
+    "kind": "analytical_teaching_examples_not_measurements",
+    "static_vision": {
+      "resized_448_patch": 1024.0,
+      "resized_448_lm_visual": 256.0,
+      "resized_896_patch": 4096.0,
+      "resized_896_lm_visual": 1024.0
+    },
+    "diffusion_path_ms": {
+      "baseline": 850,
+      "denoiser_halved": 550,
+      "speedup": 1.5454545454545454
+    },
+    "audio_three_frame_backlog_ms": 60,
+    "causal_protocol": "ready工具join、播放/发送/提交边界、取消ID版本和外部副作用是正文自写执行例，不声称某统一runtime已全部实现",
+    "excluded": "视频跨帧质量、真实播放/回声、端侧热约束、服务并发及自由Agent成功率均未由教学算例验证"
+  },
+  "revision_status": "expanded_mechanism_draft_pending_cross_review"
+}

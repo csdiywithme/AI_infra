@@ -1,14 +1,14 @@
 ---
 type: research-synthesis-log
-status: active
+status: archived
 initialized: 2026-09-15
 ---
 
 # MLSys：月度复盘
 
-[[HPCGame 2026 - 06 前沿追踪|当前判断]] · [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[MLSys - 运行记录|覆盖与断点]]
+[[领域地图与覆盖缺口|AI Infra 领域地图]] · [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[MLSys - 运行记录|覆盖与断点]]
 
-> 每个新自然月首次成功周任务回看上一周期。这里保留当时的综合判断；当前有效版本提炼到 06。复盘可以修正联系和优先级，不能凭重复引用增加证据强度。
+> 这里保留 HPCGame 追踪时期的月度综合判断，阅读时按各期实际覆盖范围核对。
 
 ## 2026-09 初始化
 
@@ -47,6 +47,52 @@ initialized: 2026-09-15
 - 0-SM/PD/KV tiering等优化，计入争用和故障后是否仍改善任务完成量？
 - 哪些新工作负载或平台已经提供足够证据，值得提高深读频率？
 
-## 后续复盘模板
+## 2026-10
 
-每期新建 `## YYYY-MM` 小节，记录运行日与真实覆盖周期、三条主要判断的变化、支持/反证、关系图更新、旧问题闭环、来源/优先级调整、下一周期判别证据。保留此初始化条目；新一期明确说明修正了哪条旧认识。
+运行日：**2026-10-12**。覆盖区间：9/15初始化至本轮已核证据；9/21、9/28与本次为实际研究记录，**不补造10/5成功运行**。这是首轮周期复盘，不是10月全领域综述。新增事件见 [[MLSys - 2026-10 周度更新#2026-10-12]]，实际截止见 [[MLSys - 运行记录#2026-10-12]]。
+
+### 三条判断的支持与限制
+
+| 判断 | 本轮为什么变强或改变 | 限制 / 反证 |
+| --- | --- | --- |
+| 系统状态协议会改变有效训练，而不只改变吞吐 | AReaL失败分母、verl/SGLang权重布局、slime提交/重放、MaxText overflow共同要求保存学习语义 | score centering仅限定实现与小规模作者实验；持久队列不恢复生成RNG；TPU预训练不等于Tunix RL。仍未证明普适time-to-quality优势 |
+| KV优化是上层语义与下层所有权的联合问题 | HiSparse draft修复、PD取消drain、KVTether消息生命周期把“何时可释放”连接起来 | KVTether是随机内容/固定长度回放，MRU不普适；vLLM原PR披露P/D host-block排序缺口，后续修复未核，30秒timeout也不是无限故障下的安全证明 |
+| 功能、正确性、性能、生产成熟是四个不同验收结果 | SWE-Serve有E2E消融与任务敏感性；FlashInfer可共享布局但默认不选新backend；GPUNetIO也有CPU-assisted路径 | benchmark通过不等于上游认可；版本正式不等于每个组合成熟，厂商共享底层不证明跨库同等性能或独立故障隔离 |
+
+依据：[[MLSys - 证据台账#E-20260928-01]]、[[MLSys - 证据台账#E-20261012-01]]～[[MLSys - 证据台账#E-20261012-10]]；一手来源和排除项逐卡保留，不因本月重复引用增加独立证据强度。
+
+### 地图新增的联系
+
+将中心关系补为：**谁知道逻辑状态已经无效 → 如何通知所有消费者 → 何时可以回收/重放/提交 → 有效任务或训练质量**。这条联系贯通后训练、KV、通信和集群，不是新增一条孤立的项目清单。00增加横向关系，07解释恢复承诺，09解释harness生命周期，05把验收接到真实服务。
+
+本月纳入的新子问题是 **harness如何向serving提供可靠生命周期信息**。[KVTether正文](https://arxiv.org/html/2609.39819v1)已经给出消息级到KV级映射；验收问题是共享引用、乱序/丢事件、租户隔离和真实任务质量。它属T3/T5/T7，不扩大到无关agent产品追踪。[Ask the Tool](https://arxiv.org/abs/2609.18849)继续作为“进度提示”对照候选，不能与KVTether拼成已验证系统。
+
+### 旧问题的真实进度
+
+| 问题 | 本次证据状态 | 仍需什么才能关闭 |
+| --- | --- | --- |
+| [SGLang #36452](https://github.com/sgl-project/sglang/issues/36452) | fresh API仍Open，末次更新9/18 | 定容根因、关联修复及相同条件回归 |
+| [vLLM #55000](https://github.com/vllm-project/vllm/issues/55000) | fresh API仍Open，末次更新9/9 | secondary agent启动问题对应修复/发布 |
+| [vLLM #55181](https://github.com/vllm-project/vllm/issues/55181) | 10/7有新讨论；[#60374](https://github.com/vllm-project/vllm/pull/60374)/[#60279](https://github.com/vllm-project/vllm/pull/60279)仍Open | 合入/发布＋真实stale-peer/RDMA验证，不能用mock替代 |
+| [CVE-2026-93088](https://cveawg.mitre.org/api/cve/CVE-2026-93088) | CNA仍9/22记录，affected0.5.11～0.5.14，无fixed版；0.5.21其他SafeUnpickler改动不是已核闭环 | 维护者明确受影响/已修版本、对应diffusion路径与可达性；不推定用户受影响 |
+| [ROCm #8229](https://github.com/ROCm/TheRock/issues/8229) | fresh API仍Open，正文仍develop workaround | 固定修复commit、正式包、多GPU隔离回归 |
+| [AReaL #1750](https://github.com/areal-project/AReaL/pull/1750) | 末次更新9/26，正文receipt风险仍未撤销 | 失败归因的修复、真实学习质量；新main提交不能自动冲销旧风险 |
+| verl refit / V4.1 snapshot | verl两PR无新已核GPU验证/正式版；V4.1 dev.2扩大PD speculation但改backend | 真实多卡质量与正式QA；见 [[MLSys - 证据台账#E-20261012-12]] |
+| HiSparse / Kueue | 已分别进入vLLM0.31、Kueue0.20.1的指定修复 | HiSparse剩余P/D race、TAS之外事务不可顺带宣布解决 |
+
+### 优先级与盲区调整
+
+1. **最明显的偏差不是缺项目名，而是证据类型失衡。** 台账偏向release/PR正确性，开放数据完整recipe、独立质量—成本、长期故障损失和跨平台等价实验仍少。不能据工程修复数量推断研究影响大小。
+2. **接下来两轮优先深读T1数据/recipe和T2独立质量。** Curator1.4只发现版本不证明训练质量；score centering需多seed/真实模型、修正开销和相同目标质量。T5安全/失败闭环保持最高优先。
+3. **T8以一个可核组合为单位补齐。** MaxText已补进TPU恢复机制，但不足以进行GPU/TPU成本排名。DeepEP/DeepGEMM Ascend、TileLang、SGL-JAX列入组合核验队列，拒绝仅凭“同API”推出同性能。
+4. **没有证据可断言某热点已经连续四周只有宣传。** 10/5缺记录，故不伪造四周审计；对仅spec/roadmap的硬件材料保持入口扫描，只有可获得工具链、固定实现或可审计实验时触发深读。现有来源不删除。
+5. **新候选不挤掉旧缺口。** NIXL1.5、Omni0.1.7、Diffusers0.41、cuDNN1.31、PyTorch2.14.1、llm-d0.10等版本待深入；HBF/Lachesis先核模拟假设与摘要/正文数值一致性，不当实际硬件寿命结论。
+
+### 下轮能改变判断的证据
+
+- 同数据、独立质量门槛下的训练/修正总成本，含失败、验证、同步和无效样本。
+- 取消/重试、draft/target、host import/mirror交错的真实压力测试和回归版本。
+- harness生命周期提示缺失或不可信时仍正确的回退；真实内容回放之外的任务质量。
+- 平台迁移的明确功能矩阵、失败语义与同SLO实验，而非AOT可编译或峰值指标。
+
+月度复盘已完成；全来源窗口、90天回填和历史原文复核仍未完成。详情保留在运行记录，不提高全局完成标记。

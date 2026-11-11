@@ -1,0 +1,243 @@
+{
+  "report": "Agent generated and optimized Megakernels",
+  "date": "2026-11-04",
+  "gpu_execution": false,
+  "sources": [
+    {
+      "title": "Hazy execution VM",
+      "url": "https://github.com/HazyResearch/Megakernels/blob/7309cec801537b61fea3b50d7dfe454a6cde578e/include/megakernel.cuh",
+      "ref": "7309cec801537b61fea3b50d7dfe454a6cde578e",
+      "supports": "controller/loader/storer/launcher/consumer roles; semaphore init and instruction pipeline",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "Hazy controller",
+      "url": "https://github.com/HazyResearch/Megakernels/blob/7309cec801537b61fea3b50d7dfe454a6cde578e/include/controller/controller.cuh",
+      "ref": "7309cec801537b61fea3b50d7dfe454a6cde578e",
+      "supports": "slot retirement, page order, semaphore reconstruction",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "Hazy original experiment",
+      "url": "https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles",
+      "ref": "2025-05-27",
+      "supports": "historical Llama-3.2-1B batch1 BF16 32 prompt 128 generated, bandwidth claims",
+      "evidence_level": "author-reported",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MPK paper",
+      "url": "https://arxiv.org/html/2512.22219v1",
+      "ref": "arXiv:2512.22219v1",
+      "supports": "dynamic event-driven runtime and offline experimental conditions; up to1.7x",
+      "evidence_level": "author-reported",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MPK static path",
+      "url": "https://github.com/mirage-project/mirage/blob/4d09bbadc465b50e9bc014095305c76d804da421/python/mirage/mpk/static_megakernel.py",
+      "ref": "4d09bbadc465b50e9bc014095305c76d804da421",
+      "supports": "static task lists distinct from runtime path; undeclared wait risk",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MPK static scheduler",
+      "url": "https://github.com/mirage-project/mirage/blob/4d09bbadc465b50e9bc014095305c76d804da421/python/mirage/mpk/static_schedule.py",
+      "ref": "4d09bbadc465b50e9bc014095305c76d804da421",
+      "supports": "queue edges plus data dependencies checked for cycles",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MPK search",
+      "url": "https://github.com/mirage-project/mirage/blob/4d09bbadc465b50e9bc014095305c76d804da421/python/mirage/mpk/search.py",
+      "ref": "4d09bbadc465b50e9bc014095305c76d804da421",
+      "supports": "cost-driven grids/placement; machine/code/first-on-SM cost filtering",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MPK runtime primitives",
+      "url": "https://github.com/mirage-project/mirage/blob/4d09bbadc465b50e9bc014095305c76d804da421/include/mirage/static_megakernel/runtime.cuh",
+      "ref": "4d09bbadc465b50e9bc014095305c76d804da421",
+      "supports": "explicit release/acquire PTX; mbarrier phase rule; warp roles",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MPK agent skills",
+      "url": "https://github.com/mirage-project/mirage/blob/4d09bbadc465b50e9bc014095305c76d804da421/.claude/skills/README.md",
+      "ref": "4d09bbadc465b50e9bc014095305c76d804da421",
+      "supports": "current agent skill inventory; v2 docs reference different branch",
+      "evidence_level": "documentation-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MPK roadmap",
+      "url": "https://github.com/mirage-project/mirage/issues/773",
+      "ref": "issue773 accessed2026-11-04",
+      "supports": "direction toward model-slice static kernel library and serving integration",
+      "evidence_level": "maintainer-stated",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "AMK harness",
+      "url": "https://github.com/RightNow-AI/AutoMegaKernel/blob/884534c4d2dbed4381576f81a79ae97feca53c34/harness.py",
+      "ref": "884534c4d2dbed4381576f81a79ae97feca53c34",
+      "supports": "ScheduleConfig edit surface; predicted versus measured-gpu",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "AMK VM scheduler",
+      "url": "https://github.com/RightNow-AI/AutoMegaKernel/blob/884534c4d2dbed4381576f81a79ae97feca53c34/vm/scheduler.cu",
+      "ref": "884534c4d2dbed4381576f81a79ae97feca53c34",
+      "supports": "cooperative grid; per logical-SM serial queue; synchronization",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "AMK IR validator",
+      "url": "https://github.com/RightNow-AI/AutoMegaKernel/blob/884534c4d2dbed4381576f81a79ae97feca53c34/schedule/ir.py",
+      "ref": "884534c4d2dbed4381576f81a79ae97feca53c34",
+      "supports": "all-join and provenance checks; RAW/WAW skip beyond8000tasks; warnings do not imply reject",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "AMK sync",
+      "url": "https://github.com/RightNow-AI/AutoMegaKernel/blob/884534c4d2dbed4381576f81a79ae97feca53c34/vm/sync.cuh",
+      "ref": "884534c4d2dbed4381576f81a79ae97feca53c34",
+      "supports": "legacy atomicAdd(c,0) labeled acquire; audit concern, no GPU failure reproduced",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "NVIDIA CUDA atomic semantics",
+      "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html#legacy-atomic-functions",
+      "ref": "CUDA13.2.1",
+      "supports": "legacy atomicAdd has relaxed ordering; atomicity and acquire distinct",
+      "evidence_level": "official-specification",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "AMK race tests",
+      "url": "https://github.com/RightNow-AI/AutoMegaKernel/blob/884534c4d2dbed4381576f81a79ae97feca53c34/tests/test_validator_races.py",
+      "ref": "884534c4d2dbed4381576f81a79ae97feca53c34",
+      "supports": "partial shared-counter wait and missing producer edges counterexamples",
+      "evidence_level": "code-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "AMK paper",
+      "url": "https://arxiv.org/html/2606.09682v1",
+      "ref": "arXiv:2606.09682v1",
+      "supports": "static graph validation is not mechanized proof; asymmetric precision,pos0,random weights conditions",
+      "evidence_level": "author-reported",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "AMK measured results",
+      "url": "https://github.com/RightNow-AI/AutoMegaKernel/blob/884534c4d2dbed4381576f81a79ae97feca53c34/DATACENTER_RESULTS.md",
+      "ref": "884534c4d2dbed4381576f81a79ae97feca53c34",
+      "supports": "author experiments and negative results; not independently reproduced",
+      "evidence_level": "author-reported",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "AMK later occupancy analysis",
+      "url": "https://github.com/RightNow-AI/AutoMegaKernel/commit/884534c4d2dbed4381576f81a79ae97feca53c34",
+      "ref": "884534c4d2dbed4381576f81a79ae97feca53c34",
+      "supports": "H100 occupancy explanation includes model prediction, not confirmed root cause",
+      "evidence_level": "author-reported",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MoK README",
+      "url": "https://github.com/cursor/mixture-of-kittens/blob/f3a8bd2432457c5a2a2ea13915f0dcd0224581e4/README.md",
+      "ref": "f3a8bd2432457c5a2a2ea13915f0dcd0224581e4",
+      "supports": "SM100/103, CUDA13, BF16/MXFP8, API/tests/benchmarks",
+      "evidence_level": "documentation-inspected",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MoK design",
+      "url": "https://cursor.com/blog/mixture-of-kittens",
+      "ref": "2026-08-04",
+      "supports": "expert-directed agent assistance; communication and compute overlap design",
+      "evidence_level": "author-reported",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "MoK paper",
+      "url": "https://arxiv.org/abs/2609.36070",
+      "ref": "arXiv:2609.36070v1",
+      "supports": "512GPUs training experiment,1.41x end-to-end author result",
+      "evidence_level": "author-reported",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "Hazy agent role",
+      "url": "https://hazyresearch.stanford.edu/blog/2026-08-05-retire-the-abstractions",
+      "ref": "2026-08-05",
+      "supports": "experts retain invariants and oracle; no one-shot complex megakernel claim",
+      "evidence_level": "author-reported",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "Cohere serving engine",
+      "url": "https://cohere.com/blog/megakernels",
+      "ref": "2026-09-08",
+      "supports": "discovery only; serving integration example; no source audit",
+      "evidence_level": "discovery-documentation-only",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "title": "mKernel",
+      "url": "https://github.com/uccl-project/mKernel",
+      "ref": "default branch accessed2026-11-04",
+      "supports": "discovery only; Hopper multinode fused kernels; no agent-specific claim",
+      "evidence_level": "discovery-documentation-only",
+      "accessed": "2026-11-04",
+      "independently_reproduced": false
+    },
+    {
+      "url": "https://arxiv.org/html/2609.36070v1#S4.SS2",
+      "title": "Mixture-of-Kittens v1 end-to-end benchmark",
+      "ref": "arXiv:2609.36070v1",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "author-reported-experiment",
+      "supports": [
+        "512 GB300 EP32 precision configuration, prior DeepEP/FFN backend and 1.41x end-to-end tokens/s/GPU",
+        "Experimental environment differs from minimum installation requirements"
+      ]
+    }
+  ]
+}

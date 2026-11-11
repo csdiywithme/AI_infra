@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: seed
 course:
 lecture:
 lecture_date:

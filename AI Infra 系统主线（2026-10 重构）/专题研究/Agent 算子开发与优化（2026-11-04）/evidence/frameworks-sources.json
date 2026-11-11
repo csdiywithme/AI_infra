@@ -1,0 +1,304 @@
+{
+  "schema": "kernel-agent-source-ledger.v1",
+  "report": "开源算子优化Agent框架",
+  "accessed_at": "2026-11-04 Asia/Shanghai",
+  "method": "GitHub connector fixed-source inspection and primary paper/web audit. No GPU or live-model reproduction.",
+  "sources": [
+    {
+      "url": "https://github.com/alibaba/atrex-kernel-agent/blob/02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48/README.md",
+      "title": "alibaba/atrex-kernel-agent: README.md",
+      "ref": "02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "项目范围、运行接口和作者性能说法；不作为独立性能验证"
+      ],
+      "blob_sha": "f8593ea1f6dec021a674e35766096a6ca3e3d88a"
+    },
+    {
+      "url": "https://github.com/alibaba/atrex-kernel-agent/blob/02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48/docs/supervisor-promotion.md",
+      "title": "alibaba/atrex-kernel-agent: docs/supervisor-promotion.md",
+      "ref": "02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "Agent草稿与私有Git/evaluator分离；report后封存精确源码；nativeABBA晋升"
+      ],
+      "blob_sha": "30219fa776b8167a4c83542d50270acccab4cee7"
+    },
+    {
+      "url": "https://github.com/alibaba/atrex-kernel-agent/blob/02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48/docs/measurement-records.md",
+      "title": "alibaba/atrex-kernel-agent: docs/measurement-records.md",
+      "ref": "02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "任务身份包含源码和evaluator等；去重与accepted-job恢复"
+      ],
+      "blob_sha": "6b9c7ec71679193d1f5a62913450d97ba0f33213"
+    },
+    {
+      "url": "https://github.com/alibaba/atrex-kernel-agent/blob/02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48/docs/supervisor-runtime.md",
+      "title": "alibaba/atrex-kernel-agent: docs/supervisor-runtime.md",
+      "ref": "02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "same-UID native；Bubblewrap文件隔离不等于网络隔离；Profile/Dev不是接受证据"
+      ],
+      "blob_sha": "b1692ebe228f1c212bf87a3c09e12debf29c74f7"
+    },
+    {
+      "url": "https://github.com/alibaba/atrex-kernel-agent/blob/02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48/docs/optional-light-modules.md",
+      "title": "alibaba/atrex-kernel-agent: docs/optional-light-modules.md",
+      "ref": "02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "若干fixture在作者临时目录；Light与Legacy差异；六case和测量默认"
+      ],
+      "blob_sha": "f4ba207d7d27529fb5b2ddc40a307bf33b5c9e17"
+    },
+    {
+      "url": "https://github.com/alibaba/atrex-kernel-agent/blob/02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48/src/aka/light/acceptance/provider.py",
+      "title": "alibaba/atrex-kernel-agent: src/aka/light/acceptance/provider.py",
+      "ref": "02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "检查权威记录与六case正确性"
+      ],
+      "blob_sha": "1fc96d40172458837cc984eadbb8c22e1fc5b5d5"
+    },
+    {
+      "url": "https://github.com/alibaba/atrex-kernel-agent/blob/02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48/src/aka/light/acceptance/verifier.py",
+      "title": "alibaba/atrex-kernel-agent: src/aka/light/acceptance/verifier.py",
+      "ref": "02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "完整ABBA schedule、严格几何平均延迟下降，performance_score只诊断"
+      ],
+      "blob_sha": "30e05c165aeb94224bec50f7238e7b3083c9ca7c"
+    },
+    {
+      "url": "https://github.com/alibaba/atrex-kernel-agent/blob/02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48/src/aka/light/acceptance/recorded_verifier.py",
+      "title": "alibaba/atrex-kernel-agent: src/aka/light/acceptance/recorded_verifier.py",
+      "ref": "02ff86be4cd7467c28fdaaa7d3bc71f1b107ca48",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "独立候选六case gate与ABBA一个case的区别"
+      ],
+      "blob_sha": "2ae5231c150c406896320c1d877ecaa02ef2b392"
+    },
+    {
+      "url": "https://github.com/meta-pytorch/KernelAgent/blob/e0647170da36ef9b059ac0bd3d60103aa4ed378b/README.md",
+      "title": "meta-pytorch/KernelAgent: README.md",
+      "ref": "e0647170da36ef9b059ac0bd3d60103aa4ed378b",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "项目范围、运行接口和作者性能说法；不作为独立性能验证"
+      ],
+      "blob_sha": null
+    },
+    {
+      "url": "https://github.com/meta-pytorch/KernelAgent/blob/e0647170da36ef9b059ac0bd3d60103aa4ed378b/Fuser/runner.py",
+      "title": "meta-pytorch/KernelAgent: Fuser/runner.py",
+      "ref": "e0647170da36ef9b059ac0bd3d60103aa4ed378b",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "子进程crash/timeout与Python socket阻断而非完整OS sandbox"
+      ],
+      "blob_sha": "41454fb1bc6a8ac1f086035ca2dce30a3587d9e4"
+    },
+    {
+      "url": "https://github.com/meta-pytorch/KernelAgent/blob/e0647170da36ef9b059ac0bd3d60103aa4ed378b/triton_kernel_agent/opt_worker_component/searching/strategy/beam_search.py",
+      "title": "meta-pytorch/KernelAgent: triton_kernel_agent/opt_worker_component/searching/strategy/beam_search.py",
+      "ref": "e0647170da36ef9b059ac0bd3d60103aa4ed378b",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "P×M×K×C扩展；PTX去重与外层max_rounds停止"
+      ],
+      "blob_sha": "39a034bf6fd8cb1af0d2886869d416c88ff44a9c"
+    },
+    {
+      "url": "https://github.com/meta-pytorch/KernelAgent/blob/e0647170da36ef9b059ac0bd3d60103aa4ed378b/triton_kernel_agent/opt_worker_component/orchestrator/optimization_orchestrator.py",
+      "title": "meta-pytorch/KernelAgent: triton_kernel_agent/opt_worker_component/orchestrator/optimization_orchestrator.py",
+      "ref": "e0647170da36ef9b059ac0bd3d60103aa4ed378b",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "worker内verify-refine、best-runtime、roofline停止条件"
+      ],
+      "blob_sha": "5479e46b1ffdc470e20f815e4091df5c09a7aa9a"
+    },
+    {
+      "url": "https://github.com/meta-pytorch/KernelAgent/blob/e0647170da36ef9b059ac0bd3d60103aa4ed378b/triton_kernel_agent/opt_worker_component/benchmarking/benchmark.py",
+      "title": "meta-pytorch/KernelAgent: triton_kernel_agent/opt_worker_component/benchmarking/benchmark.py",
+      "ref": "e0647170da36ef9b059ac0bd3d60103aa4ed378b",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "GPU锁、子进程timeout、候选/compile baseline计时"
+      ],
+      "blob_sha": "7bbf2a6a29ee93645ba8da9f9b7fe58fe5a0a7e0"
+    },
+    {
+      "url": "https://github.com/meta-pytorch/KernelAgent/blob/e0647170da36ef9b059ac0bd3d60103aa4ed378b/triton_kernel_agent/opt_worker_component/benchmarking/kernel_subprocess.py",
+      "title": "meta-pytorch/KernelAgent: triton_kernel_agent/opt_worker_component/benchmarking/kernel_subprocess.py",
+      "ref": "e0647170da36ef9b059ac0bd3d60103aa4ed378b",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "仅计时不验正确性；do_bench预算；候选文本影响dtype"
+      ],
+      "blob_sha": "34f46ad6a6da1193b69da2c3f85cf6a80d889c79"
+    },
+    {
+      "url": "https://github.com/meta-pytorch/KernelAgent/blob/e0647170da36ef9b059ac0bd3d60103aa4ed378b/triton_kernel_agent/opt_worker_component/benchmarking/timing.py",
+      "title": "meta-pytorch/KernelAgent: triton_kernel_agent/opt_worker_component/benchmarking/timing.py",
+      "ref": "e0647170da36ef9b059ac0bd3d60103aa4ed378b",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "do_bench warmup/rep的毫秒预算"
+      ],
+      "blob_sha": "0e0730cff952f08298e32bef0f5a317d05e044f2"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/README.md",
+      "title": "isl-org/kernelfoundry: README.md",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "项目范围、运行接口和作者性能说法；不作为独立性能验证"
+      ],
+      "blob_sha": "571ff1677a69c35a1d890ca98ebb15bc2b65951c"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/kernelfoundry/algorithm/evolve_database_optimization_aware.py",
+      "title": "isl-org/kernelfoundry: kernelfoundry/algorithm/evolve_database_optimization_aware.py",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "Current initializer uses four dimensions and 256 cells: memory/compute/parallelism/esimd; CUDA/Triton/OpenCL use ESIMD=0 slice of 64 cells",
+        "Paper method section and class docstring still describe 3D; paper Table6 says 4D"
+      ],
+      "blob_sha": "8a7b07b9253af1f1fcb5840ea5e6bee4edbd12c7"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/kernelfoundry/algorithm/qd_gradient.py",
+      "title": "isl-org/kernelfoundry: kernelfoundry/algorithm/qd_gradient.py",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "TransitionTracker估计搜索方向而非可微程序梯度"
+      ],
+      "blob_sha": "ca47f39ff08893e2037d7b0dcf204b2a62df718c"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/kernelfoundry/algorithm/agentic_controller.py",
+      "title": "isl-org/kernelfoundry: kernelfoundry/algorithm/agentic_controller.py",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "branch fork、并行agent、reference gate与budget"
+      ],
+      "blob_sha": "85a3dcb8ad8b5b8096a7da46edc5d6c071f8737f"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/kernelfoundry/algorithm/answer_processor.py",
+      "title": "isl-org/kernelfoundry: kernelfoundry/algorithm/answer_processor.py",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "只提取EVOLVE块"
+      ],
+      "blob_sha": "917d0c421cc3c0efea830b996da6c5fc46f498f3"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/kernelfoundry/eval_pipeline/tasks/task_runner.py",
+      "title": "isl-org/kernelfoundry: kernelfoundry/eval_pipeline/tasks/task_runner.py",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "local/Celery build/test分工"
+      ],
+      "blob_sha": "a8e8482cb2f3ee659d2d930a089450c0bfefb346"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/kernelfoundry/eval_pipeline/tasks/test_custom_task.py",
+      "title": "isl-org/kernelfoundry: kernelfoundry/eval_pipeline/tasks/test_custom_task.py",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "correctness失败跳过profile；分离性能与profile执行"
+      ],
+      "blob_sha": "7d4f335eefa3ff1dc2b6ccd2b03b2f0f1635f61c"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/kernelfoundry/mcp_server/server.py",
+      "title": "isl-org/kernelfoundry: kernelfoundry/mcp_server/server.py",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "打包、提交、轮询与EVOLVE回填"
+      ],
+      "blob_sha": "b28ca4cc596210da991a23b35edcf000b257d9b3"
+    },
+    {
+      "url": "https://github.com/isl-org/kernelfoundry/blob/93ee9227068a9fed379c0e3bff9a7570a87b77db/tests/test_compile_error_honesty.py",
+      "title": "isl-org/kernelfoundry: tests/test_compile_error_honesty.py",
+      "ref": "93ee9227068a9fed379c0e3bff9a7570a87b77db",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "implementation-inspected",
+      "supports": [
+        "编译失败和reference成功不会掩盖candidate失败"
+      ],
+      "blob_sha": "3922434f39f8c7b5934d6c26c1244e7dfb3ed9ea"
+    },
+    {
+      "url": "https://arxiv.org/html/2603.12440v1",
+      "title": "KernelFoundry paper v1",
+      "ref": "arXiv:2603.12440v1",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "author-reported-experiment",
+      "supports": [
+        "Table2 SYCL111 tasks arithmetic2.32x geometric1.38x",
+        "Intel Arc140V/B580和CUDA RTX A6000",
+        "候选isolated backward对比reference autograd存在层级不匹配",
+        "40轮候选预算与数值容差"
+      ]
+    },
+    {
+      "url": "https://pytorch.org/blog/kernelagent-hardware-guided-gpu-kernel-optimization-via-multi-agent-orchestration/",
+      "title": "PyTorch KernelAgent hardware-guided optimization",
+      "ref": "2026-03-06",
+      "accessed_at": "2026-11-04 Asia/Shanghai",
+      "evidence_level": "author-reported-experiment",
+      "supports": [
+        "H100 100 KernelBench L1",
+        "1.56x geom vs default compile; static shape and CUDA graphs disabled",
+        "89% metric is max compute/memory SOL"
+      ]
+    }
+  ],
+  "coverage_gaps": [
+    "No independent GPU benchmark",
+    "Atrex private temporary regression fixtures not executable from repo",
+    "KernelFoundry README geometric mean discrepancy",
+    "NVIDIA production deployment not evaluated"
+  ]
+}

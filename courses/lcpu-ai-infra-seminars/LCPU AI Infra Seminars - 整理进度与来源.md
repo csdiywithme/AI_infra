@@ -1,15 +1,14 @@
 ---
 type: course-index
-status: developing
 course: Weiming HPC Training Camp × LCPU AI Infra Seminars
 updated: 2026-09-18
 ---
 
-# LCPU AI Infra Seminars：整理进度与来源
+# LCPU AI Infra Seminars：课程索引与来源
 
-本轮 **2.2、W.1、6、7 已全部完成**：每讲一份精编字幕与一份结构化笔记，共 8 份，沿用 Session 03/04 的标准。第 5 讲因无法提取字幕，已按用户要求跳过。
+第 2.2、6、7 讲和 Workshop 1 各有一份课程笔记和精编字幕。第 5 讲未取得录播字幕，保留课件草稿。
 
-## 交付入口
+## 课程资料
 
 | 讲次 | 时长 | 笔记 | 精编字幕 |
 |---|---|---|---|
@@ -17,8 +16,6 @@ updated: 2026-09-18
 | W.1 TileLang | 01:26:31 | [[LCPU AI Infra Seminars - Workshop 01 - Parallel Programming with TileLang\|课程笔记]] | [[LCPU AI Infra Seminars - Workshop 01 - TileLang - 精编字幕\|精编字幕]] |
 | 6 AI Communication Stack | 02:17:11 | [[LCPU AI Infra Seminars - Session 06 - AI Communication Stack\|课程笔记]] | [[LCPU AI Infra Seminars - Session 06 - AI Communication Stack - 精编字幕\|精编字幕]] |
 | 7 Inference & LLM Serving | 03:25:12 | [[LCPU AI Infra Seminars - Session 07 - Inference & LLM Serving\|课程笔记]] | [[LCPU AI Infra Seminars - Session 07 - Inference & LLM Serving - 精编字幕\|精编字幕]] |
-
-“已完成”指本次整理完成，不代表个人已掌握全部内容。课程笔记沿用 Vault 的 `status: developing`，精编字幕为 `status: polished`。
 
 ## 标准与来源边界
 

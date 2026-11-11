@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: developing
 course: "[[CMU 11-763]]"
 lecture: 4
 lecture_date: 2025-09-04

@@ -1,0 +1,57 @@
+{
+  "checked_date": "2026-11-04",
+  "scope": "Only new report pack: local links, frontmatter delimiters, fenced code/math, JSON parse, Python syntax, audit outcome, report hashes. No GPU execution or full external-link crawl.",
+  "reports": [
+    {
+      "file": "00 阅读入口与结论.md",
+      "chinese_chars": 1673,
+      "sha256": "9cf3839278d0fe397cd5ec9fd30322d4dff21ea494af429ec94ecf25a65b563e"
+    },
+    {
+      "file": "01 开源算子优化框架技术报告.md",
+      "chinese_chars": 3197,
+      "sha256": "5b43bc48d4c5041d80045d528af930748dbeab612c39ca4edf93e692e109d0ea"
+    },
+    {
+      "file": "02 专用模型与学习方法技术报告.md",
+      "chinese_chars": 3086,
+      "sha256": "92a7c47835d194f63266f40fca30b0f2dabd3d888dd7826288b20e4a39512a18"
+    },
+    {
+      "file": "03 Megakernel 生成与调度技术报告.md",
+      "chinese_chars": 2990,
+      "sha256": "852ebd56e0408a753eaf8f994979a6b147b0f8e85c4687df11dfa82710e41a2e"
+    },
+    {
+      "file": "04 Codex Skills MCP 与算子工具链技术报告.md",
+      "chinese_chars": 3075,
+      "sha256": "4624161c71d540b705944006d18b1cc1dd8e71f7e1b8d49b72a3bd1bb3647034"
+    },
+    {
+      "file": "05 评测与可信验收共同附录.md",
+      "chinese_chars": 1675,
+      "sha256": "bb0d96e1a0bb38836bf9821c18f6a4b050edd69288751d85c2fe011ece688325"
+    }
+  ],
+  "source_ledgers": [
+    {
+      "file": "frameworks-sources.json",
+      "records": 26
+    },
+    {
+      "file": "learning-sources.json",
+      "records": 17
+    },
+    {
+      "file": "megakernel-sources.json",
+      "records": 26
+    },
+    {
+      "file": "toolchain-evaluation-sources.json",
+      "records": 23
+    }
+  ],
+  "unique_source_urls": 92,
+  "cpu_gate_audit": "PASS: reproduced acceptance of non-measured failed artifacts, exact upstream blob checked",
+  "errors": []
+}

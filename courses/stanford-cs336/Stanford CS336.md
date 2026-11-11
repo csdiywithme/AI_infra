@@ -1,6 +1,5 @@
 ---
 type: course
-status: developing
 area: model-architecture
 aliases:
   - CS336

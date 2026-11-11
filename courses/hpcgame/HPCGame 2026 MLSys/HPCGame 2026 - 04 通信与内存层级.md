@@ -20,7 +20,7 @@ topics:
 > [!nav] 把通信接回工作生命周期
 > RL 权重版本和反馈时序见 [[HPCGame 2026 - 07 数据与后训练闭环]]；拓扑放置、慢节点、失败恢复与租户约束见 [[HPCGame 2026 - 08 集群效率与可靠性]]。
 >
-> 本篇已有的版本/规格案例保留其历史时点；最新适用范围、未确认事项和后续修复进入 [[MLSys - 证据台账]] 与 [[HPCGame 2026 - 06 前沿追踪]]。
+> 这里的版本和规格按当时记录阅读。历史证据见 [[MLSys - 证据台账]]，近期机制与支持边界见 [[D10 通信与互联]]。
 
 ## 1. 一张统一的层级图
 
@@ -64,7 +64,7 @@ flowchart LR
 - hierarchical 0-SM AllGather/Alltoall；
 - TMA cost model、CuTe DSL bindings 与 diagnostics。
 
-这并不意味着全部成熟。官方 release notes 仍列出特定 H100/B40/PAT 等 regression 与 known issues，feature matrix 必须绑定 NCCL、CUDA、driver、NIC 与 topology。
+这并不意味着全部成熟。NCCL 2.31.2 的发布说明列出了特定 H100/B40/PAT 组合的已知问题，feature matrix 必须绑定 NCCL、CUDA、driver、NIC 与 topology。
 
 2026-09-21 增量：NCCL 2.32.3 将 GPU 进度、watchdog mirror 和降级诊断进一步纳入实现。由此应把“谁推进进度”连到“如何证明仍有进展、如何识别 fallback、何时进入失败终态”；诊断能力不等于自动恢复。Rubin target 的加入也不意味着性能调优已完成。[[MLSys - 证据台账#E-20260921-03]] · [精确 release](https://github.com/NVIDIA/nccl/releases/tag/v2.32.3-1)
 
@@ -75,6 +75,12 @@ NVSHMEM 用 symmetric heap、one-sided put/get/atomics 与 device-side synchroni
 传统 IBRC 常由 CPU proxy 维护发送队列和 doorbell；IBGDA 将 WQ、DBR、completion 等控制对象暴露给 GPU，减少 CPU round trip。它在小消息、动态 EP、kernel 内通信中有潜力，但增加 memory ordering、资源管理与兼容性复杂度。
 
 NVSHMEM 3.7.x 已覆盖 Ampere/Hopper/Blackwell 与多代 CUDA，同时保留平台、ABI、PMI/VMM 等限制。NCCL 吸收 device APIs 不会让 NVSHMEM 消失，更可能形成不同抽象层的互补。
+
+### 共同底层不等于相同的实际路径
+
+2026-10-12核验的GPUNetIO报告把NCCL GIN、NVSHMEM等接到共同Verbs实现。对分析更有用的不是再加一个库名，而是检查：CPU建对象，谁发WQE/doorbell，谁查completion，是否选了SDK扩展，是否因拓扑回退到CPU-assisted proxy。共享底层也意味着要追踪共同依赖版本，而不能把多个上层库的声明计为多个独立验证。
+
+开源RDMA one-sided子集不等于完整SDK的Ethernet/DMA/two-sided；低层API同步责任也未消失。[[MLSys - 证据台账#E-20261012-09]] · [原始报告](https://developer.nvidia.com/blog/doca-gpunetio-gda-ki-unified-gpu-networking/)。把这种实际路径验收接回 [[HPCGame 2026 - 05 Kernel、DSL 与硬件]] 和 [[HPCGame 2026 - 08 集群效率与可靠性]]。
 
 ## 4. MoE 是通信栈的压力测试
 
@@ -92,6 +98,8 @@ MoE 的 All-to-All(v) 同时具有小消息、输入相关流量、跨节点不�
 
 DeepEP V2 转向 NCCL GIN，是“collective 库成为可编程数据面”的直接证据；UCCL EP 的异构扩展则说明单厂商最优路径仍不是完整答案。
 
+2026-10-19补核V2.5后的边界：固定实现已移除V1/NVSHMEM，不能沿用旧依赖或把全库叫“零SM”。库给出的冗余expert搬运/归约原语，不包括框架的规划、rerouting与GEMM；deferred epilogue的wait还可能负责执行工作并首次产生结果。异步API要分别写明**谁触发、谁持有buffer、谁提交结果**。[[MLSys - 证据台账#E-20261019-13]] · [固定README](https://github.com/deepseek-ai/DeepEP/blob/def865146e95aa9ea223e277c0a8a4c6b81e5ac7/README.md)
+
 ## 5. NIXL 与 KV/状态传输
 
 NIXL、Mooncake、LMCache 等处在“memory/transport abstraction”与 serving runtime 之间。它们必须处理 registered memory、push/pull、completion、peer lifecycle 与 backend compatibility。
@@ -108,6 +116,8 @@ P/D compute overlap
 CPU/GPU/NIC 占用
 tail 与 failure behavior
 ```
+
+2026-10-19补核NIXL弹性机制：standby连接可以准备好而active拓扑继续执行；激活仍需同步、切换views、等待comm stream才能释放旧views。建立连接、激活、回收是三个阶段，不因为释放GIL就变成全程无停顿。小规模调优被回滚的反例也提示，静态吞吐不证明动态拓扑正确。[[MLSys - 证据台账#E-20261019-08]] · [连接/激活合约](https://github.com/ai-dynamo/nixl/blob/v1.5.0/examples/device/ep/nixl_ep/buffer.py#L842)
 
 ## 6. Scale-up 与 scale-out 不能混为一层
 

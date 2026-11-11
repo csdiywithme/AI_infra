@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: developing
 course: Weiming HPC Training Camp × LCPU AI Infra Seminars
 session: 7
 speaker: 孔昊然

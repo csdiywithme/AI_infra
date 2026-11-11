@@ -21,11 +21,8 @@ video_url: https://www.bilibili.com/video/BV1vmzXBBESY/
 
 # HPCGame 2026：大模型训练、推理与 Infra 概览
 
-> [!important] 已重组为可从任意问题进入的主题网络
-> 这篇保留为完整的线性资料库；日常阅读请从 [[HPCGame 2026 - 00 MLSys 知识地图]] 进入。新结构拆为：[[HPCGame 2026 - 01 训练状态与并行|训练状态]]、[[HPCGame 2026 - 02 稀疏模型与数值格式|模型结构]]、[[HPCGame 2026 - 03 推理状态与调度|推理状态]]、[[HPCGame 2026 - 04 通信与内存层级|通信/内存]]、[[HPCGame 2026 - 05 Kernel、DSL 与硬件|Kernel/硬件]]、[[HPCGame 2026 - 06 前沿追踪|前沿追踪]]。
-
-> [!info] 2026-09-15 追踪体系重构
-> 持续研究从 [[HPCGame 2026 - 06 前沿追踪|当前判断]] 进入，并连接 [[HPCGame 2026 - 07 数据与后训练闭环]]、[[HPCGame 2026 - 08 集群效率与可靠性]]、[[HPCGame 2026 - 09 多模态与新工作负载]]。本长文是历史资料；已核勘误见 [[MLSys - 证据台账]]，运行范围见 [[MLSys - 运行记录]]。
+> [!info] 讲座资料与后续研究
+> 回看原课、时间索引和专题笔记，从 [[HPCGame 2026 - 00 MLSys 知识地图|HPCGame 课程导读]] 进入。近期进展见 [[领域地图与覆盖缺口|AI Infra 领域地图]]，历次核查与勘误见 [[MLSys - 证据台账|HPCGame 历史证据]]。
 
 > [!abstract] 一句话总纲
 > 大模型系统不是一串孤立优化，而是 **数据与算法目标 → 并行分解 → 内存/通信代价 → 运行时调度 → 芯片与互连** 的连续 codesign；模型越稀疏、上下文越长、精度越低，理论 FLOPs 越不能代表真实成本，系统的主要矛盾越会转向数据搬运、状态管理和故障边界。
@@ -349,7 +346,7 @@ llama.cpp / Ollama 代表模型量化与本地执行；KTransformers 则把大 M
 
 ### 10.3 模型支持已经变成核心竞争力
 
-截至 2026-08，[vLLM releases](https://github.com/vllm-project/vllm/releases) 已进入 0.27.x 并加入完整 Kimi K3 支持；[SGLang releases](https://github.com/sgl-project/sglang/releases) 已到 0.5.18。版本号本身不值得背，重要的是旗舰模型包含 hybrid attention、MoE、低精度与多模态后，运行时必须 day-0 支持新的 state type 和 kernel，而不再只是实现标准 Transformer decode。
+混合注意力、MoE、低精度和多模态一起进入模型时，运行时需要接入新的状态表示、调度和 kernel。不同组合的调度与状态代价见 [[D05 推理服务与调度]]、[[D06 KV 与模型状态系统]]。
 
 ## 11. 分离式推理：从 P/D 到 E/P/D 与分层 KV
 
@@ -416,18 +413,7 @@ NVSHMEM 提供 PGAS 风格的 symmetric heap、one-sided put/get/atomics 和 dev
 
 讲座列举了传统 NCCL 的若干限制：初始化/拓扑发现重、通信域偏静态、小消息延迟、SM 占用与同步模型受限；并跟进 2.27/2.28/2.29 的 SHARP、shrink/grow、symmetric memory、GIN、copy engine、Inspector、one-sided 和 NCCL4Py。
 
-✅ 截至 2026-08，官方最新 release line 已到 NCCL 2.31.x。[2.31.2 release notes](https://docs.nvidia.com/deeplearning/nccl/archives/nccl_2312/release-notes/rel_2-31-2.html) 增加/强化了：
-
-- **Compute Fabric Transport（CFT）** 的 host/device APIs，可注册 window memory 并从 device 发起 Put/Get/Red/NVLS；
-- per-collective configuration 与 tuning；
-- GIN 的 EFA GDA backend 与 device-side timeout；
-- one-sided 多 context / multi-NIC；
-- hierarchical 0-SM AllGather / AlltoAll；
-- TMA cost model、CuTe DSL bindings 与更多 diagnostics。
-
-这说明“GPU-initiated、低/零 SM、one-sided、可调 collective”正在进入 NCCL 主线。DeepEP V2 改用 NCCL GIN 是最强的交叉验证：原本看似对立的两条栈正在融合。
-
-⚠️ release notes 同时列出 PAT 在 H100/B40 等组合上的 regression/known issues。讲者说“新功能可能有 bug，要动态评估”依然准确；通信库的 feature matrix 必须绑定版本、NIC、driver、CUDA 和 topology。
+固定版本的 GPU 发起操作、one-sided 通信与诊断案例见 [[HPCGame 2026 - 04 通信与内存层级#NCCL 的演进|NCCL 的演进]]。能力与故障边界要结合库版本、NIC、驱动、CUDA 和拓扑核验，分析方法见 [[D10 通信与互联]]。
 
 ✅ [NVSHMEM 3.7.2 release notes](https://docs.nvidia.com/nvshmem/release-notes-install-guide/release-notes/release-3720.html) 显示其已覆盖 Ampere/Hopper/Blackwell 与多代 CUDA，但依然保留兼容性、ABI 和平台限制。它不会因 NCCL 支持 GIN 就消失，更可能成为不同抽象层的互补。
 
@@ -543,34 +529,9 @@ CPU：全局调度、复杂控制面与异常路径
 
 > **MLSys 的核心工作，是在正确的语义与质量约束下，减少不可隐藏的数据移动；无法减少的部分，就用分层、并行、重叠和调度把它放到系统最能承受的位置。**
 
-## 16. 截至 2026-08-24 的逐项核查总表
+## 16. 2026-08-24 核查索引
 
-| 讲座方向 | 半年后的事实 | 判断 |
-| --- | --- | --- |
-| 开放数据与 recipe | Kaiyuan、EvoLM、Smol 继续公开训练轨迹；Nemotron 3 Super/Ultra 补充数据与环境资产 | ✅ 开放度增强，但完整 recipe moat 仍在 |
-| Benchmark 与数据污染 | 更多训练报告公开数据组成，但 leaderboard 仍无法分离数据、recipe、prompt 与 Infra 贡献 | ✅ 原警告仍成立 |
-| “几维并行” | Megatron 用 Parallel Folding 为 attention/expert 子图建立不同 mesh | ✅ 证明应从子图约束而非维度命名出发 |
-| FSDP/ZeRO | FSDP2 per-parameter DTensor 与独立 process group overlap 继续成熟 | ✅ 重心转向 materialization/overlap 调度 |
-| Context Parallel | Megatron 已把 CP 与 MoE、MLA、MTP 和多维并行组合 | ✅ 从前沿选项进入长上下文标准工具箱 |
-| MoE / EP | DeepEP V2 支持 EP2048、ElasticBuffer、低/0-SM 路径；UCCL EP 扩到 EFA/AMD | ✅ 能力增强；⚠️ 跨硬件稳定性仍难 |
-| CPU-centric vs GPU-centric | DeepEP 从 NVSHMEM 转向 NCCL GIN；NCCL 主线加入更多 device API | 🔄 概念仍有用，项目标签已失真 |
-| 精确 attention | FlashAttention-4 针对 Blackwell 再次重写并使用 CuTe DSL | ✅ 每代硬件需要新映射 |
-| Hybrid attention | Kimi K3、DeepSeek V4 把 KDA/MLA/sparse hybrid 带入旗舰模型 | ✅ 从研究方向进入部署现实 |
-| Sparse attention | HiSparse 仍需 GPU/host 分层 cache | ⚠️ 少算 FLOPs 不等于状态管理简单 |
-| FP4 training | Transformer Engine + Nemotron Ultra 提供大规模 NVFP4 证据；TE 的 linear-GEMM autocast 例中 2.03×，预量化为 3.55× | ✅ 已可用；⚠️ 完整训练 step 仍须实测 |
-| CPU/GPU 大模型 offload | KTransformers 增加新模型、SGLang 和三层 cache 支持 | ✅ 专门化路径增强；⚠️ 仍需数百 GB DRAM |
-| vLLM vs SGLang | 两者都覆盖 prefix cache、spec decode、PD；vLLM 偏 hash-block/connectors，SGLang 偏 radix/HiCache/day-0 | 🔄 起源差异保留，能力边界持续融合 |
-| PD disaggregation | vLLM/SGLang/Dynamo 生态成熟，connector 增多 | ✅ 成为主流架构；⚠️ 官方明确“不自动提升吞吐” |
-| KV pool / tiering | vLLM connectors、SGLang HiCache 已覆盖 GPU/CPU/storage 与多后端 | ✅ 进入工程实现；⚠️ metadata/backpressure 故障显性化 |
-| Multimodal/agent infra | EPD、disaggregated encoder、agent hints/priority/cache retention 已出现 | ✅ 讲座预判开始落地 |
-| NCCL 动态化 | 2.31 加入 CFT、per-collective tuning、GIN EFA GDA、0-SM、one-sided multi-NIC | ✅ NCCL 正从静态 collective 库扩展 |
-| NVSHMEM / one-sided | 3.7.x 支持 Blackwell 与新 CUDA，但平台/ABI 限制仍多 | ✅ 持续发展，未被 GIN 替代 |
-| UALink / scale-up | UALink 2.0 specification 已发布，加入 in-network compute | ✅ 标准推进；⚠️ 生态部署尚未收敛 |
-| CUDA DSL | CUDA Tile 进入 Python/C++ 官方工具链；FA4 验证 CuTe DSL 性能上限 | ✅ 高层 tile abstraction 明显成熟 |
-| 2:4 sparsity | Rubin 把 2:4 用于 attention activation，而不只是静态权重 | ⚠️ 对通用权重稀疏的批评仍对，用途已变化 |
-| AI kernel generation | profile/RL agents 与更严格 benchmark 快速发展 | ✅ 单 GPU 进展大；🧪 通信/跨硬件 generality 未解 |
-| CPU/C2C/DPU | Rubin 平台强化 C2C 并继续配置 BlueField-4 | ✅ CPU/DRAM/DPU 都回到系统 codesign，而非退出 |
-| Engram / storage | DeepEP V2 已有实验 0-SM Engram path，CXL/memory grafting 论文增加 | 🧪 系统栈开始跟进，仍缺广泛生产证据 |
+[[MLSys - 2026-08 至 09 旧版基线与日志#1. 截至 2026-08-24 的基线核查|八月基线核查总表]] · [[MLSys - 证据台账#勘误索引|后续勘误]]
 
 ## 17. 六个最容易被误读的点
 
@@ -714,22 +675,6 @@ CPU：全局调度、复杂控制面与异常路径
 - [CUDA Tile Python](https://developer.nvidia.com/blog/cuda-13-2-introduces-enhanced-cuda-tile-support-and-new-python-features/)；[CUDA Tile C++](https://developer.nvidia.com/blog/develop-high-performance-gpu-kernels-in-c-with-nvidia-cuda-tile/)
 - [CUDA Agent](https://arxiv.org/abs/2602.24286)；[SOL-ExecBench](https://arxiv.org/abs/2603.19173)；[CommBench](https://github.com/uccl-project/CommBench)
 
-## 22. 每周 Follow-up 日志
+## 22. 历史追踪
 
-### 2026-08-31
-
-- Hybrid attention / 开放权重与训练 recipe｜新事实：Qwen 发布开放权重的 `Qwen3.8-Flash-Next`，明确标为 Qwen4 架构的 experimental preview；语言模型为 125B/6B active，另有 51B n-gram embedding 与 4B MTP，按 `3 × Gated DeltaNet + 1 × Qwen Sparse Attention` 交错并在每层接 MoE，同时披露按参数类别混用 Muon/AdamW、取消 batch-size warmup 的 recipe｜相对上次的变化：原笔记主要用 Kimi K3/DeepSeek V4 说明 hybrid attention；这次新增了“线性 recurrent state + micro-block sparse attention + MoE + 可 offload 的 n-gram memory”同模组合及公开权重，但仍未开放训练数据或完整复现 recipe｜判断：🧪早期｜为什么重要：它进一步支持未来引擎需要统一管理 KV、recurrent state、MTP state 与外置参数/记忆，而不是只围绕 dense KV cache 设计；但官方另称正式版 Qwen3.8-Flash 才包含更多 production features，不能把预览权重等同于生产成熟｜一手来源：[官方模型卡](https://huggingface.co/Qwen/Qwen3.8-Flash-Next)、[官方技术报告](https://github.com/QwenLM/Qwen3.8-Flash-Next/blob/main/tech_report.pdf)
-
-- vLLM / speculative decoding / EPD / KV tiering｜新事实：vLLM `v0.28.0` 正式发布；Model Runner V2 加入 E/P/D disaggregation，分层 KV 支持磁盘 offload、可插拔 secondary-tier manager、partial load、metrics 与不依赖并行布局的 canonical CPU layout，同时加入 DFlash2、DSpark confidence-scheduled verification、draft model async scheduling，以及 Kimi K3/DeepSeek V4 的新 kernel 与 sparse-MLA 路径｜相对上次的变化：EPD 与多级 KV 从“生态正在探索/各 connector 拼接”推进为 vLLM 稳定版本中的成组能力，且 speculative decoding 开始和 hybrid/sparse 模型的 state/layout 一起演进｜判断：🔄演进｜为什么重要：调度器、模型 runner、KV connector、speculator 与并行布局正在成为同一个联合优化面；release note 中约 60% TTFT 改善、17 GiB/GPU 节省及若干 kernel speedup 均为项目自报，仍需按目标 workload 复测｜一手来源：[vLLM v0.28.0 release notes](https://github.com/vllm-project/vllm/releases/tag/v0.28.0)
-
-- MoE 推理优化边界｜新事实：新论文在 OLMoE-1B-7B、DeepSeek-V2-Lite、Qwen3-30B-A3B 上报告：fused Triton kernel 隔离测试快 5.6–9.0×，但端到端仅 0.999×，瓶颈是每次 forward 约千次 kernel launch；去除全部 23 个 graph break 反而使模型慢 3×，INT4 路由漂移与质量损失也并不等价｜相对上次的变化：为原笔记“局部 kernel 加速不等于端到端收益、MoE 需看 launch/通信/调度”的判断增加了一组反例式实测，并修正“保持 router 路由一致即可保持质量”的过度简化｜判断：⚠️修正｜为什么重要：MoE 优化应先测 end-to-end ceiling、launch timeline 与 expert semantics，再决定融合、量化或编译；以上数字均是论文作者结果，尚非跨框架共识｜一手来源：[论文（arXiv:2608.26612）](https://arxiv.org/abs/2608.26612)
-
-- Triton / kernel correctness / Rubin｜新事实：Triton `3.8.0` 正式发布，加入初始 Rubin SM107 支持和四 lane FP8/FP4 packed arithmetic，扩展 generic multi-CTA/TMA/multicast；同时新增 FpSan 符号浮点等价检查、扩大 ConSan 覆盖，并提供面向 symmetric memory 与 multi-node topology 的实验性 GSan data-race detector｜相对上次的变化：Rubin 的公开软件 enablement 已进入稳定 Triton release；同时 kernel DSL 开始内建数值语义、同步与分布式内存的验证工具，而不只追求代码生成与 autotune｜判断：✅强化｜为什么重要：这直接回应 AI 生成 kernel 和复杂 multi-CTA/通信 kernel 的 correctness 证明问题；但 release 中 Rubin 被称为 initial support，GSan 也明确是 experimental，不能据此推断生产完备｜一手来源：[Triton 3.8.0 release notes](https://github.com/triton-lang/triton/releases/tag/v3.8.0)
-
-- CuTe/CUTLASS / FP4 / Rubin｜新事实：NVIDIA 发布 `CUTLASS 4.8.0dev`，CuTe DSL、Operator API 与 C++ building blocks 首次覆盖 Rubin SM107 的 dense、block-scaled FP8/FP4 GEMM，并暴露更大 SMEM/TMEM、B-collector reuse 与 mixed-precision 路径；`cute_ext` compiler pipeline 和 Operator API Rubin 支持均为 preview/preliminary｜相对上次的变化：原笔记对 Rubin FP4/稀疏能力的硬件判断出现了首批可阅读、可编译的 kernel building blocks，但执行 Rubin kernel 仍要求尚待 CUDA 13.4 GA 随附的 R615 driver，当前 Developer Preview 的 R610 不足｜判断：🧪早期｜为什么重要：可以提前研究 tile/layout 与低精度 kernel 形态，却不能把“repo 已有示例”误写为“Rubin 已可生产部署”｜一手来源：[CUTLASS 4.8.0dev release notes](https://github.com/NVIDIA/cutlass/releases/tag/v4.8.0dev)
-
-- NIXL / PD connector correctness｜新事实：Dynamo `v1.4.2` 正式 patch 修复 Frontend 与 SGLang Runtime 镜像中的 NIXL loader path；此前 Rust binding 会静默落到 non-functional stubs，而同一解释器内 Python binding 正常，造成配置看似成功但数据路径并未真正工作｜相对上次的变化：把原笔记“connector 版本/路径/环境变量是工程雷区”的抽象警告升级为一个已确认且已修复的静默失效案例｜判断：⚠️修正｜为什么重要：PD/KV transfer 验收不能只看进程启动或 Python smoke test，必须观察真实传输、动态库解析、bytes/latency 与 fallback；否则 benchmark 可能测到错误路径｜一手来源：[Dynamo v1.4.2 release notes](https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.2)
-
-- SGLang / speculative decoding / KV 容量｜新事实：SGLang 新公开 issue 指出 `v0.5.18` 的 NEXTN/EAGLE draft worker 会先分配约 5.08 GiB 的临时 BF16 embedding/head，再在 KV pool 定容之后释放；报告者在单卡测试中测得 stock 的 `max_total_num_tokens` 为 149,806，修补初始化顺序后升至 305,070，截至核查时 issue 仍开放、无关联 PR｜相对上次的变化：speculative decoding 的成本从“额外 draft compute/acceptance rate”扩展到初始化时序对 KV admission capacity 的隐性影响｜判断：⚠️修正｜为什么重要：高并发服务应把启动期峰值、pool sizing 时点和最终空闲显存纳入容量审计；这是一份可复现的用户 issue/单环境 benchmark，不代表已被 SGLang maintainers 确认或修复｜一手来源：[SGLang issue #36452](https://github.com/sgl-project/sglang/issues/36452)
-
-- AI kernel generation｜新事实：两项新工作把 benchmark 从常规 ML operator 推向更异构的任务：EMNLP 2026 接收的 DataKernelBench 评测 LLM 对 data-movement-heavy 数据库查询的 CUDA/Triton 优化，作者报告 H100 上 full-query CUDA 在 full pass rate 下相对 TorchPlan 为 2.11×；FABRICA 则用 49 个 CUDA→Cerebras CSL 配对任务测试跨架构重映射，作者报告 agentic workflow 将核心集成功率从 6/28 提至 26/28，并在 27 对 WSE-3 实机结果上取得 3.47× 几何平均加速｜相对上次的变化：原笔记的 CUDA Agent/SOL-ExecBench 视角被扩展到“非 ML dataflow”和“跨计算范式移植”，共同强调 target knowledge、执行反馈、failure-directed repair 与 correctness gate｜判断：🧪早期｜为什么重要：kernel agent 的下一道门槛不是继续刷熟悉算子，而是跨 workload/架构的语义重构与同目标硬件验证；两组性能均为论文作者 benchmark，尤其 FABRICA 仍是预印本，不宜外推到任意 shape/系统｜一手来源：[DataKernelBench](https://arxiv.org/abs/2608.25061)、[FABRICA](https://arxiv.org/abs/2608.25124)
+[[MLSys - 2026-08 至 09 旧版基线与日志#2026-08-31|8 月 31 日跟进]] · [[MLSys - 2026-09 周度更新|9 月记录]] · [[MLSys - 2026-10 周度更新|10 月记录]]

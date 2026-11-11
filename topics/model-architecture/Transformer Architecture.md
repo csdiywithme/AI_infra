@@ -1,8 +1,6 @@
 ---
 type: topic
-status: developing
 area: model-architecture
-mastery: explain
 aliases:
   - 现代 Transformer 架构
   - Modern Transformer Architecture
@@ -13,7 +11,7 @@ topics:
 # Transformer Architecture
 
 > [!abstract] 核心结论
-> 当前生成式 LLM 最常见的基准结构是 Pre-Norm、decoder-only、causal attention、RMSNorm、RoPE、GQA、SwiGLU Transformer。学习时先掌握这一基准，再比较其他架构改变了什么能力或系统瓶颈。
+> 本文以 Llama-style decoder-only Transformer 为基准。先理解 causal attention、Pre-Norm、RMSNorm、RoPE、GQA 和 SwiGLU，再比较其他设计怎样改变模型能力和系统瓶颈。
 
 ## 问题与适用范围
 
@@ -255,15 +253,12 @@ MoE 能增加总参数容量，同时控制每个 token 的 active FLOPs，但�
 > [!warning] 比较架构时
 > “理论 FLOPs 更少”不等于端到端速度更快。还需要检查 tensor shape、算术强度、内存访问、kernel 实现、并行通信和实际 workload。
 
-## 5. 当前理解边界
+## 5. 延伸阅读
 
-当前先将标准 decoder-only block 掌握到 `derive`，再独立学习：
-
-- GQA、MLA 与 KV Cache；
-- Sliding-window attention；
-- MoE；
-- FlashAttention；
-- 分布式训练与推理并行。
+- [[D04 模型结构与数值表示|注意力范围、历史表示和 MoE]]。
+- [[D06 KV 与模型状态系统|KV 容量、读取和复用]]。
+- [[D08 算子与 GPU 执行|FlashAttention 与中间结果物化]]。
+- [[D02 分布式训练与模型状态|训练状态与并行切分]]、[[LLM Inference#Serving 与系统优化|推理系统与并行]]。
 
 ## 待解决问题
 

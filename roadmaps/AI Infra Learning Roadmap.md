@@ -1,6 +1,5 @@
 ---
 type: roadmap
-status: developing
 area: ai-infra
 aliases:
   - AI Infra 学习路线
@@ -11,7 +10,7 @@ topics:
 
 # AI Infra Learning Roadmap
 
-> [!abstract] 当前策略
+> [!abstract] 基础学习顺序
 > 先把 Llama-style decoder-only Transformer 理解到能够推导、实现和分析性能，再逐步学习 Attention Alternatives、MoE、分布式训练与推理服务。
 
 ## 通用分析框架
@@ -64,7 +63,7 @@ Embedding
 → LM Head
 ```
 
-当前材料：
+阅读材料：
 
 - [Transformer Architecture](../topics/model-architecture/Transformer%20Architecture.md)
 - [Transformer Block](../topics/model-architecture/Transformer%20Block.md)
@@ -113,23 +112,14 @@ Embedding
 
 主题入口：[LLM Inference](../topics/inference/LLM%20Inference.md)。
 
-## 掌握程度
+## 并行选修 · AI Agents
 
-主题笔记使用 `mastery` 表示当前能力：
+[CMU 11-768 · AI Agents（Fall 2026）](../courses/cmu-11-768/CMU%2011-768.md)接续 11-763 的工具调用与智能体。课程从工具调用和上下文管理延伸到 coding agent 与任务评测。
 
-```text
-explain → derive → implement → benchmark
-```
-
-- `explain`：能够解释目标、机制与适用边界；
-- `derive`：能够推导 shape、参数量、FLOPs、内存和通信；
-- `implement`：能够独立实现最小正确版本；
-- `benchmark`：能够设计 workload、测量指标并解释性能结果。
-
-## 当前重点
+## 基础自测
 
 1. 从 token ID 追踪到 vocabulary logits；
 2. 现场推导 Transformer block 的主要资源开销；
 3. 区分 prefill 与 decode 的计算形态；
 4. 实现最小 Transformer 和 KV Cache；
-5. 建立第一个可复现的性能实验。
+5. 设计并复现一次性能实验。

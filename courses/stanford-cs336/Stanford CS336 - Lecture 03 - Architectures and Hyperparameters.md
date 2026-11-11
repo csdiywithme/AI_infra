@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: seed
 course: "[[Stanford CS336]]"
 lecture: 3
 lecture_date: 2026-04-06

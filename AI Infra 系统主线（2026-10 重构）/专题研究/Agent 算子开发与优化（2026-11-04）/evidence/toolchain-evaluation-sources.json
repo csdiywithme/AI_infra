@@ -1,0 +1,257 @@
+{
+  "schema": "kernel-agent-source-ledger.v1",
+  "report": "Codex工具链与评测共同附录",
+  "accessed_at": "2026-11-04 Asia/Shanghai",
+  "sources": [
+    {
+      "url": "https://github.com/minho-fan/kernel-opt-agent/blob/21f10bbe3c2dc854e533b62fcd306186f88c76c6/skills/kernel-loop/SKILL.md",
+      "title": "minho-fan/kernel-opt-agent: skills/kernel-loop/SKILL.md",
+      "ref": "21f10bbe3c2dc854e533b62fcd306186f88c76c6",
+      "blob_sha": "acae75908f39fa3d4e95596d7401e0f3d0f462f4",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "循环协议与gate明确限制"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/minho-fan/kernel-opt-agent/blob/21f10bbe3c2dc854e533b62fcd306186f88c76c6/skills/kernel-loop/scripts/check_iteration_gate.sh",
+      "title": "minho-fan/kernel-opt-agent: skills/kernel-loop/scripts/check_iteration_gate.sh",
+      "ref": "21f10bbe3c2dc854e533b62fcd306186f88c76c6",
+      "blob_sha": "ba6ab5e7362923651b95521264f7711ce0d68f9f",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "文件与格式gate源码；CPU反例基于本文件"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/minho-fan/kernel-opt-agent/blob/21f10bbe3c2dc854e533b62fcd306186f88c76c6/skills/kernel-benchmark/scripts/benchmark.py",
+      "title": "minho-fan/kernel-opt-agent: skills/kernel-benchmark/scripts/benchmark.py",
+      "ref": "21f10bbe3c2dc854e533b62fcd306186f88c76c6",
+      "blob_sha": "0af8b23fc85c67c67ee532446b7dbffdadbb58b3",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "benchmark后端适配、计时与正确性入口"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/minho-fan/kernel-opt-agent/blob/21f10bbe3c2dc854e533b62fcd306186f88c76c6/skills/kernel-profile/scripts/correctness_check.py",
+      "title": "minho-fan/kernel-opt-agent: skills/kernel-profile/scripts/correctness_check.py",
+      "ref": "21f10bbe3c2dc854e533b62fcd306186f88c76c6",
+      "blob_sha": "72974c3ea9e145d29949ef8cfae14820afe9b368",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "候选setup、签名解析与输入生成"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/minho-fan/kernel-opt-agent/blob/21f10bbe3c2dc854e533b62fcd306186f88c76c6/skills/kernel-profile/scripts/ncu_profile.py",
+      "title": "minho-fan/kernel-opt-agent: skills/kernel-profile/scripts/ncu_profile.py",
+      "ref": "21f10bbe3c2dc854e533b62fcd306186f88c76c6",
+      "blob_sha": "5c027720c93d77e5152881816add208e7810537b",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "独立计时与NCU"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/minho-fan/kernel-opt-agent/blob/21f10bbe3c2dc854e533b62fcd306186f88c76c6/.codex-plugin/plugin.json",
+      "title": "minho-fan/kernel-opt-agent: .codex-plugin/plugin.json",
+      "ref": "21f10bbe3c2dc854e533b62fcd306186f88c76c6",
+      "blob_sha": "07f689dc345f4a14cb4ad7f970a4436548061e95",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "Codex兼容manifest"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/NVIDIA/skills/blob/fea423859bdc70e92d95d0b1e84ac4e0c630db24/skills/tilegym-improve-cutile-kernel-perf/SKILL.md",
+      "title": "NVIDIA/skills: skills/tilegym-improve-cutile-kernel-perf/SKILL.md",
+      "ref": "fea423859bdc70e92d95d0b1e84ac4e0c630db24",
+      "blob_sha": "9489ded99001e20b6ef266740a2b161223cc4216",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "官方cuTile优化工作流"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/NVIDIA/skills/blob/fea423859bdc70e92d95d0b1e84ac4e0c630db24/skills/tilegym-improve-cutile-kernel-perf/BENCHMARK.md",
+      "title": "NVIDIA/skills: skills/tilegym-improve-cutile-kernel-perf/BENCHMARK.md",
+      "ref": "fea423859bdc70e92d95d0b1e84ac4e0c630db24",
+      "blob_sha": "2040388e0363fb7441faff751dd31a783face5b3",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "小样本skill评估覆盖范围"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/NVIDIA/skills/blob/fea423859bdc70e92d95d0b1e84ac4e0c630db24/skills/tilegym-cutile-autotuning/SKILL.md",
+      "title": "NVIDIA/skills: skills/tilegym-cutile-autotuning/SKILL.md",
+      "ref": "fea423859bdc70e92d95d0b1e84ac4e0c630db24",
+      "blob_sha": "5e5c472e9756d9042f1b240538d2e74e65836fab",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "autotune参数搜索与停止规则"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/NVIDIA/skills/blob/fea423859bdc70e92d95d0b1e84ac4e0c630db24/skills/tilegym-cutile-python/orchestration/kernel_agent.md",
+      "title": "NVIDIA/skills: skills/tilegym-cutile-python/orchestration/kernel_agent.md",
+      "ref": "fea423859bdc70e92d95d0b1e84ac4e0c630db24",
+      "blob_sha": "4fac7fbfe482da5eb17f7c3ecbca9bd3a5d91076",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "生成子agent与主agent职责"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/NVIDIA/skills/blob/fea423859bdc70e92d95d0b1e84ac4e0c630db24/skills/compute-sanitizer-diagnose-cuda-bugs/SKILL.md",
+      "title": "NVIDIA/skills: skills/compute-sanitizer-diagnose-cuda-bugs/SKILL.md",
+      "ref": "fea423859bdc70e92d95d0b1e84ac4e0c630db24",
+      "blob_sha": "14da2afa514a564bb122dbaab2e647bde3b2a6e8",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "sanitizer诊断路由与覆盖限制"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/mit-han-lab/ncu-report-skill/blob/c7980a43cb88a8734d113b22b57ff66746cf5719/SKILL.md",
+      "title": "mit-han-lab/ncu-report-skill: SKILL.md",
+      "ref": "c7980a43cb88a8734d113b22b57ff66746cf5719",
+      "blob_sha": "2cd16b7d5d0d5c6c428b54031c1c56b361e47383",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "Blackwell NCU诊断路径"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/mit-han-lab/ncu-report-skill/blob/c7980a43cb88a8734d113b22b57ff66746cf5719/helpers/ncu_utils.py",
+      "title": "mit-han-lab/ncu-report-skill: helpers/ncu_utils.py",
+      "ref": "c7980a43cb88a8734d113b22b57ff66746cf5719",
+      "blob_sha": "ec4308e61b621a2814c41afba1f8abaf6776e600",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "报告action枚举、指标缺失与PC归因"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/cfregly/gpu-perf-tune/blob/25d74d031732e2f76d30a43e44c3434b588f06b3/plugins/profile-and-optimize/server/mcp_surface.py",
+      "title": "cfregly/gpu-perf-tune: plugins/profile-and-optimize/server/mcp_surface.py",
+      "ref": "25d74d031732e2f76d30a43e44c3434b588f06b3",
+      "blob_sha": "0cd627cebf7136c1a77790d2b73e5d2c90b12b0e",
+      "evidence_level": "implementation-or-workflow-inspected",
+      "supports": [
+        "从CLI contract派生MCP接口"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://developers.openai.com/plugins/concepts/skills",
+      "title": "OpenAI Skills",
+      "ref": "live documentation retrieved 2026-11-04",
+      "evidence_level": "official-documentation",
+      "supports": [
+        "Skill和MCP职责"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://learn.chatgpt.com/docs/extend/mcp?surface=cli",
+      "title": "OpenAI MCP",
+      "ref": "live documentation retrieved 2026-11-04",
+      "evidence_level": "official-documentation",
+      "supports": [
+        "Codex MCP配置与传输"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://developers.openai.com/plugins/build/plugins",
+      "title": "OpenAI plugin packaging",
+      "ref": "live documentation retrieved 2026-11-04",
+      "evidence_level": "official-documentation",
+      "supports": [
+        "portable与兼容manifest区别"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://developer.nvidia.com/nsight-ai",
+      "title": "NVIDIA Nsight AI",
+      "ref": "live documentation retrieved 2026-11-04",
+      "evidence_level": "official-documentation",
+      "supports": [
+        "知识MCP与Blueprint、Compute整合区别"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html",
+      "title": "NVIDIA Profiling Guide",
+      "ref": "live documentation retrieved 2026-11-04",
+      "evidence_level": "official-documentation",
+      "supports": [
+        "采集开销和replay条件"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://docs.nvidia.com/compute-sanitizer/ComputeSanitizer/index.html",
+      "title": "NVIDIA Compute Sanitizer",
+      "ref": "live documentation retrieved 2026-11-04",
+      "evidence_level": "official-documentation",
+      "supports": [
+        "工具覆盖和error-exitcode"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/ScalingIntelligence/KernelBench/blob/423217d9fda91e0c2d67e4a43bf62f96f6d104f1/README.md",
+      "title": "ScalingIntelligence/KernelBench README",
+      "ref": "423217d9fda91e0c2d67e4a43bf62f96f6d104f1",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "任务层次与fast_p指标，README级核查"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/SakanaAI/robust-kbench/blob/078f5bab29934a822268d59a4e707d449abf9b4e/README.md",
+      "title": "SakanaAI/robust-kbench README",
+      "ref": "078f5bab29934a822268d59a4e707d449abf9b4e",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "初始化/输入变化检查，README级核查"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    },
+    {
+      "url": "https://github.com/flashinfer-ai/flashinfer-bench/blob/15618a67e8d7b7f49ca61b5ba3b9f26a876d0bee/README.md",
+      "title": "flashinfer-ai/flashinfer-bench README",
+      "ref": "15618a67e8d7b7f49ca61b5ba3b9f26a876d0bee",
+      "evidence_level": "maintainer-documentation",
+      "supports": [
+        "Trace数据集与workload格式，README级核查"
+      ],
+      "accessed_at": "2026-11-04 Asia/Shanghai"
+    }
+  ],
+  "coverage_gaps": [
+    "No GPU execution",
+    "No plugin installation or MCP endpoint authentication",
+    "Only gate CPU audit executed",
+    "No complete FlashInfer-Bench source audit"
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "coverage": "选定来源定点核验；非全域或完整90天扫描",
+  "experiments": "未安装或运行GPU、模型、故障实验",
+  "global_cutoffs_changed": false,
+  "domain": "D11 存储与异构内存",
+  "audit": [
+    "旧讲座整理长文第14节",
+    "旧04 C2C/NUMA/DPU/条件记忆",
+    "新05/06容量、分层、恢复与KVStream反例"
+  ],
+  "discovery": {
+    "organizations": [
+      "Hot Chips memory/CXL/PIM程序",
+      "Linux CXL/kernel官方文档",
+      "NVIDIA CUDA/GDS 官方设计与方法博客"
+    ],
+    "queries": [
+      "\"2026\" \"LLM\" \"memory pooling\" \"arxiv\"",
+      "site.kernel.org \"CXL\" \"DAX\" \"System RAM\"",
+      "\"GPU\" \"memory oversubscription\" \"prefetch\" \"page faults\" site:developer.nvidia.com"
+    ],
+    "chain": "问题检索得到CMM-MP二手索引线索后打开arXiv固定正文和日期",
+    "followed_known": [
+      "KVStream v1旧10/26证据"
+    ],
+    "scope": "不枚举全部文件/对象存储、设备与近期论文"
+  },
+  "sources": [
+    {
+      "id": "D11-S01",
+      "title": "CUDA Runtime API",
+      "url": "https://docs.nvidia.com/cuda/archive/12.8.1/cuda-runtime-api/group__CUDART__HIGHLEVEL.html",
+      "version": "12.8.1",
+      "event_date": "2025-03-04",
+      "date_basis": "文档Last updated，不是机制首次日期",
+      "read_scope": "cudaMallocHost代价、managed memory能力/驱逐/按访问迁移、advise/prefetch",
+      "evidence_level": "一手固定API文档",
+      "limits": "无设备实测，不外推所有平台",
+      "role": "baseline"
+    },
+    {
+      "id": "D11-S02",
+      "title": "Linux CXL Memory Devices",
+      "url": "https://www.kernel.org/doc/html/v6.12/driver-api/cxl/memory-devices.html",
+      "version": "v6.12",
+      "event_date": null,
+      "date_basis": "固定文档；首次日期未核",
+      "read_scope": "开篇CXL.mem、HDM、Theory of Operation、解码/条带拓扑",
+      "evidence_level": "一手固定内核文档",
+      "limits": "非完整内核源码审计，不引用latest新功能",
+      "role": "baseline"
+    },
+    {
+      "id": "D11-S03",
+      "title": "CMM-MP",
+      "url": "https://arxiv.org/html/2610.22716v1",
+      "version": "arXiv v1",
+      "event_date": "2026-10-15",
+      "date_basis": "arXiv提交2026-10-15T22:39:38Z；北京时间10/16 06:39:38",
+      "read_scope": "III架构/地址映射、IV主机接口共享一致性、V原型、VII微基准/Valkey/YCSB/DiskANN",
+      "evidence_level": "作者设备原型与实验论文",
+      "limits": "共享不保证主机请求顺序，上层处理一致性；CPU应用结果不外推GPU端到端",
+      "role": "newly_discovered_research"
+    },
+    {
+      "id": "D11-S04",
+      "title": "KVStream",
+      "url": "https://arxiv.org/html/2610.31827v1",
+      "version": "arXiv v1",
+      "event_date": "2026-10-22",
+      "date_basis": "arXiv提交2026-10-22T19:05:39Z；北京时间10/23 03:05:39",
+      "read_scope": "并行读取/复制写入、Scope and Limitations、第6.5和附录A.3的Chutes反例",
+      "evidence_level": "作者原型与负载实验",
+      "limits": "节点内自适应不等于全局协调/跨节点KV共享/完整PD；无独立复现",
+      "role": "inherited_20261026_evidence_rechecked"
+    },
+    {
+      "id": "D11-S05",
+      "title": "Improving GPU Memory Oversubscription Performance",
+      "url": "https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/",
+      "version": "2021-10-05 官方文章",
+      "event_date": "2021-10-05",
+      "date_basis": "正文日期；历史方法，不记2026新发布",
+      "read_scope": "真实正文setup/access patterns、CPU先初始化、GPU缺页/驱逐迁移、三平台与ondemand/zero-copy/partition对比；未采用AI生成摘要",
+      "evidence_level": "一手厂商微基准方法与自报实验",
+      "limits": "旧V100/A100/Power9组合不代表当前所有平台；4KiB教学单位非固定CUDA迁移页；无独立复现",
+      "role": "independent_problem_search_foundational_method"
+    },
+    {
+      "id": "D11-S06",
+      "title": "GPUDirect Storage Design Guide",
+      "url": "https://docs.nvidia.com/gpudirect-storage/design-guide/index.html",
+      "version": null,
+      "event_date": null,
+      "date_basis": "2026-11-04访问动态文档；未追认首次发布",
+      "read_scope": "direct DMA vs CPU bounce；CPU控制路径；PCIe拓扑；第5节IO关键路径/首末消费者/显式传输适用条件",
+      "evidence_level": "一手动态设计文档",
+      "limits": "未核 具体驱动/文件系统的backend和fallback；未运行cuFile；页面不同段落分配类型口径需按版本配置复核，不外推全部buffer",
+      "role": "method_gap_partially_closed"
+    }
+  ],
+  "limited_reads": [
+    {
+      "url": "https://www.kernel.org/doc/html/latest/driver-api/cxl/linux/cxl-driver.html",
+      "result": "读了regions/DAX与拓扑，但正文基线选择固定v6.12，不采用可变版本新能力"
+    }
+  ],
+  "gaps": [
+    "GDS与文件/对象存储元数据",
+    "C2C/NUMA页面放置争用",
+    "一致性和多主机故障",
+    "PIM近存计算",
+    "GPU业务/尾部实测"
+  ],
+  "deepening_round": {
+    "round": "mechanism-and-worked-example-deepening",
+    "date": "2026-11-04",
+    "scope": "不含项目名的问题检索→一手方法/源码定点核读；非全域扫描；未改全局截止或冻结证据",
+    "experiments_performed": [],
+    "failed_reads": [],
+    "queries": [
+      "\"GPU\" \"memory oversubscription\" \"prefetch\" \"page faults\" site:developer.nvidia.com"
+    ],
+    "organizations": [
+      "NVIDIA CUDA/GDS 官方设计与方法博客"
+    ],
+    "calculations": [
+      "1GiB/25GB/s=42.94967296ms，预取窗口30ms时裸载荷至少暴露12.9497ms",
+      "128B/4KiB=1/32 useful；4KiB为教学假设",
+      "100kIOPS×4KiB=409.6MB/s，1GiB至少2.62144s；100k/s×100us=10在途",
+      "独立100块各99%按时，整批0.99^100≈36.6%；不是线上P99预测",
+      "2副本1GiB=2GiB应用写；4KiB改写导致1MiB重写=256倍，NAND内部另计"
+    ],
+    "closed_explanatory_gaps": [
+      "SSD到GPU的完整准备/消费路径",
+      "NUMA与页面设备放置",
+      "UVM缺页/迁移/驱逐/预取窗口及直接访问条件",
+      "IOPS/元数据/队列尾部/写放大",
+      "共享池原子性不等于发布顺序与引用寿命"
+    ],
+    "candidate_disposition": [
+      {
+        "title": "GDS",
+        "disposition": "设计层纳入；具体直接路径/回退仍待核"
+      },
+      {
+        "title": "CPU NUMA绑定官方动态文档",
+        "url": "https://docs.pytorch.org/docs/stable/elastic/numa.html",
+        "disposition": "搜索结果已返回，未完整核读，不据搜索收益百分比作结论"
+      },
+      {
+        "title": "CMM-MP/KVStream",
+        "disposition": "原固定论文保留；新扩展为机制解释，不改原收录或发布日期"
+      }
+    ]
+  },
+  "gaps_after_deepening": [
+    "GDS具体文件系统/驱动实际路径与fallback",
+    "缓存行一致性具体实现与C2C争用",
+    "复杂元数据服务和近存计算",
+    "共享池/GPU组合与持久故障语义的实证"
+  ],
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-10",
+          "title": "DeepInfer Q&A v0.2：Engram 与缓存层的成本边界",
+          "domains": [
+            "D11",
+            "D06"
+          ],
+          "kind": "已知来源新增说明，非新部署上线证明",
+          "first_public": "引擎首次公开沿用历史；此次新增文字以commit diff确认。",
+          "event_date": "2026-11-03T07:31:40Z，Q&A v0.2说明更新。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "DeepInfer a679bb86ce36e883a98a97733492b686e5b9a08e，父提交553741557a57df44a46fb3ab72b6aafeaf945337",
+          "sources": [
+            [
+              "固定Q&A",
+              "https://github.com/deepseek-ai/DeepInfer/blob/a679bb86ce36e883a98a97733492b686e5b9a08e/doc/inference_deployment_qa.md"
+            ],
+            [
+              "新增说明diff",
+              "https://github.com/deepseek-ai/DeepInfer/commit/a679bb86ce36e883a98a97733492b686e5b9a08e"
+            ]
+          ],
+          "read_scope": "完整该commit diff及固定Q&A的Engram、KV兼容、写回和CXL段；未独立审计生产实现。",
+          "change": "Engram ENP沿词表分片；GPU路径从注册host内存由kernel发起单边RDMA，NIC搬到GPU，scales驻GPU经NVLink；NPU尚无CPUoffload。KV兼容绑定部署配置/权重/用户组，tokenizer、布局和影响值的框架变化会失效。",
+          "limits": "部署机制为厂商自述，文档日期不是机制首次投入日期。KV采用write-back，失败不通知engine而读时严格验证，不能扩大为任意损坏均被证明可检测。CXL L2仅讨论减少SSD写入与磨损的潜在收益、当前未采用；不推导CXL普遍无效或主存卸载全平台可用。",
+          "judgment": "✅强化／⚠️平台边界",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

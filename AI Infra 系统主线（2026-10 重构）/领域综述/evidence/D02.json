@@ -1,0 +1,391 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "status": "mechanism-deepened",
+  "writes_scope": "Only assigned domain note and its evidence JSON. Historical evidence cards, logs and topic studies unchanged.",
+  "date_policy": "Only explicitly dated events at or before 2026-11-04 enter the main frontier section. Foundational revisions are not counted as new events; undated main/release status is not established.",
+  "not_performed": [
+    "No models downloaded.",
+    "No packages installed.",
+    "No training, serving, dataset processing or hardware benchmark executed.",
+    "No exhaustive 90-day publication scan.",
+    "PDF figures were not visually checked; claims used textual methods and settings.",
+    "No native low-precision, loader-recovery, distributed or RL implementation was executed.",
+    "No claims of full-domain coverage or exhausted discovery."
+  ],
+  "domain_id": "D02",
+  "note": "D02 分布式训练与模型状态.md",
+  "boundary": "State ownership, sharding, collective dependencies, activation lifetime, dense/long-context/MoE parallel routes and composition; cluster placement/recovery linked to D12.",
+  "audit": [
+    {
+      "file": "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 01 训练状态与并行.md",
+      "headings": [
+        "2. 并行轴不是标签，而是 ownership 变换",
+        "3. 三条常见因果链",
+        "3.3 Parallel Folding：不同子图需要不同 mesh",
+        "4. 拓扑决定并行轴的可行域"
+      ],
+      "lines": [
+        38,
+        110
+      ],
+      "depth": "Existing DP/FSDP/TP/SP/CP/PP/EP route map, lifecycle and topology reasoning. Individual version statements not refreshed."
+    },
+    {
+      "file": "AI Infra 系统主线（2026-10 重构）/正文/03 一张卡放不下跑不完以后.md",
+      "headings": [
+        "把样本分开，为什么只分走了部分压力",
+        "不再每卡保存完整状态，执行时缺什么",
+        "如果让多张卡共同算一层，会缺什么"
+      ],
+      "depth": "Worked local DP/FSDP/TP/PP derivations; not full long-context/expert/planner review."
+    }
+  ],
+  "discovery": [
+    {
+      "entry": "Primary arXiv problem search",
+      "queries": [
+        "2026 distributed training system parallelism memory scheduling site:arxiv.org/abs",
+        "\"2026\" \"distributed training\" \"activation\" site:arxiv.org/abs",
+        "site:arxiv.org/abs/2610 \"training\" \"parallelism\"",
+        "site:arxiv.org/abs/2609 \"training\" \"FSDP\"",
+        "site:arxiv.org/abs/2610 \"training\" \"pipeline\" \"system\""
+      ],
+      "found": [
+        "2609.21594",
+        "2609.20359",
+        "2601.02311"
+      ],
+      "selection": "Selected HyperParallel-FSDP because it ties topology, sharded tensor execution and whole-matrix optimizer semantics."
+    },
+    {
+      "date": "2026-11-04",
+      "entry": "Independent problem-led search before known-source deepening",
+      "queries": [
+        "site:arxiv.org/abs/26 long context training parallel all-to-all ring communication recomputation expert",
+        "\"2026\" \"context parallel\" training site:arxiv.org/abs",
+        "\"2026\" \"context parallelism\" \"training\" site:arxiv.org/abs",
+        "site:arxiv.org DeepSpeed Ulysses sequence parallelism 2309.14509"
+      ],
+      "selection": "New source methods and evaluation deep-read; old candidate queue not used as boundary.",
+      "new_primary_sources": [
+        "https://arxiv.org/html/2309.14509v1",
+        "https://arxiv.org/html/2609.34318v1"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "D02-S1",
+      "title": "ZeRO",
+      "url": "https://arxiv.org/html/1910.02054v3",
+      "fixed_revision": "arXiv:1910.02054v3",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§3 memory objects; §4–5 ownership partitioning; communication analysis"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D02-S2",
+      "title": "Megatron-LM large-scale training",
+      "url": "https://arxiv.org/html/2104.04473v5",
+      "fixed_revision": "arXiv:2104.04473v5",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§2–3 DP/TP/PP and microbatching; bubble and topology/communication tradeoffs"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D02-S3",
+      "title": "Reducing Activation Recomputation",
+      "url": "https://arxiv.org/html/2205.05198v1",
+      "fixed_revision": "arXiv:2205.05198v1",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Abstract; activation-memory and SP/recomputation organization",
+        "Deepening: §4.1–4.2 tensor/SP boundaries and conjugate collectives."
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D02-S4",
+      "title": "Ring Attention",
+      "url": "https://arxiv.org/html/2310.01889v1",
+      "fixed_revision": "arXiv:2310.01889v1",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Abstract; §2–3 block/sequence distribution and overlap; experimental scope"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "TPU author experiments; no GPU threshold transfer or independent execution."
+      ]
+    },
+    {
+      "id": "D02-S5",
+      "title": "HyperParallel-FSDP",
+      "url": "https://arxiv.org/html/2609.21594v1",
+      "fixed_revision": "arXiv:2609.21594v1",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "dated_frontier",
+      "event_date": "2026-09-18",
+      "event_date_basis": {
+        "kind": "arXiv submission history v1",
+        "url": "https://arxiv.org/abs/2609.21594",
+        "detail": "v1 submitted 2026-09-18 10:24:42 UTC."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Abstract/design; §4 boundaries; §5 communication domains/schedule; §6 overview; §7.2–7.3 scope and whole-system comparison",
+        "Deepening: §4.4–4.5 gradient/layout checks and opaque contracts; §5.1–5.3 two-tier zero-copy/fusion and delayed AllReduce."
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "Atlas 900 A3 SuperPoD author results; no NVIDIA portability benchmark.",
+        "Whole-system comparisons do not isolate each feature.",
+        "Largest-scale demonstration lacks matched baseline.",
+        "Short equivalence and loss correlation are not universal long-horizon convergence proof."
+      ]
+    },
+    {
+      "id": "D02-S6",
+      "title": "DeepSpeed Ulysses",
+      "url": "https://arxiv.org/html/2309.14509v1",
+      "fixed_revision": "arXiv:2309.14509v1",
+      "commit": null,
+      "commit_basis": "Fixed paper revision; no repository commit or source execution claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Core sequence-to-head all-to-all design; communication discussion and scope"
+      ],
+      "verification_strength": "Primary methods and stated evaluation read; author results, not independently reproduced.",
+      "limits": [
+        "Head-count/GQA replication restrictions are implementation-specific; no hardware result imported into teaching example."
+      ]
+    },
+    {
+      "id": "D02-S7",
+      "title": "HyDra: Demystifying and Taming Dynamic Context Parallelism at Production Scale",
+      "url": "https://arxiv.org/html/2609.34318v1",
+      "fixed_revision": "arXiv:2609.34318v1",
+      "commit": null,
+      "commit_basis": "Fixed paper revision; no repository commit or source execution claimed.",
+      "role": "dated_frontier",
+      "event_date": "2026-09-28",
+      "event_date_basis": {
+        "kind": "arXiv v1 submission history",
+        "url": "https://arxiv.org/abs/2609.34318",
+        "detail": "History opened and v1 date checked on 2026-11-04."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§3.1–3.5 production trace methodology and imbalance",
+        "§5.1 equations 3–10 and Algorithm 1 load/degree/packing; lazy-heap scheduler",
+        "§5.2 Ulysses × ring, traffic floor and Q/V/K overlap dependency",
+        "§6.1–6.4 hardware versus simulator experiments and confidential model scope"
+      ],
+      "verification_strength": "Primary methods and stated evaluation read; author results, not independently reproduced.",
+      "limits": [
+        "512 H20/2048 H800 hardware results distinguished from 8K–40K simulations.",
+        "Internal evaluated MLA model not fully disclosed; 11K-GPU measurement is characterization, not same as evaluation comparison.",
+        "No source or GPU execution independently audited; bubble reduction is whole system evidence."
+      ]
+    }
+  ],
+  "coverage": {
+    "mechanisms": [
+      "Peak live state versus static state",
+      "Local partial results imply collectives",
+      "SP/CP distinction",
+      "Microbatch lifetime and exposed communications",
+      "Optimizer layout requirements"
+    ],
+    "routes": [
+      "DP/ZeRO/FSDP/HSDP",
+      "TP+SP",
+      "Ring-type CP and All-to-All-type overview",
+      "PP schedules",
+      "EP/expert replicas and subgraph meshes",
+      "Recomputation/offload/automatic planning"
+    ]
+  },
+  "cross_domains": [
+    "D04",
+    "D10",
+    "D12"
+  ],
+  "gaps": [
+    "Matched GPU comparisons of ring/Ulysses/hybrid under GQA/MLA, causal layouts and contended topology.",
+    "Audit expert/attention mesh transitions, dropless overload and recovery code.",
+    "Measure live activation/materialization peaks and recompute/offload windows under combined traffic.",
+    "Independent long-horizon optimizer/numerical checks, not only loss correlation."
+  ],
+  "candidates": [
+    {
+      "title": "Accelerating Sharded Data Parallelism at Scale with Federated Learning",
+      "url": "https://arxiv.org/abs/2609.20359",
+      "read_scope": "Search abstract only",
+      "status": "Not promoted; changed update/aggregation semantics and quality need primary-method review."
+    }
+  ],
+  "deepening_pass": {
+    "date": "2026-11-04",
+    "user_requirement": "Explain principles, competing routes, frontier and causal cross-domain choices beyond frameworks and paper abstracts.",
+    "closed_explanation_gaps": [
+      "32B model-state ledger and full versus hybrid sharding capacity",
+      "TP/SP forward/backward layout and partial-sum semantics",
+      "CP ring/all-to-all windows, scale floor and causal imbalance",
+      "PP/EP imbalance, recompute/offload, hierarchy/contended link combination and recovery semantics"
+    ],
+    "read_scope_policy": "New sources list exact successful methods/protocol reading; previous scopes preserved.",
+    "code_scope": "Paper methods/algorithms and pseudocode read. No repository implementation audit or execution claimed.",
+    "candidate_disposition": "Existing candidates unchanged: no additional substantive method read of their sources this pass. Newly discovered sources above enter domain research with stated date and limits; central IDs maintained by root.",
+    "no_completion_claim": "Mechanism gaps explained; empirical and implementation gaps remain."
+  },
+  "arithmetic_verification": {
+    "performed_on": "2026-11-04",
+    "method": "Python3 arithmetic and unit cross-check only; teaching assumptions, not measured benchmark",
+    "checks": {
+      "state": "32e9*16=512e9 bytes; /64=8GB, /8=64GB, excludes live activation/materialization",
+      "ring_128k_p8": "4398046511104 FLOPs/block; 64MiB KV; 21.990ms @200TF/s and 1.342ms @50GB/s",
+      "ring_128k_p64": "68719476736 FLOPs/block; 8MiB KV; 0.344ms compute and 0.168ms transfer",
+      "ring_8k_p8": "0.086ms compute and 0.084ms transfer before startup/causal imbalance",
+      "pipeline": "32/(32+8-1)=0.8205128 under ideal equal-stage fill/drain assumptions",
+      "expert_payload": "4096*2*4096*2 bytes=64MiB dispatch for whole group, not per card"
+    }
+  },
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-03",
+          "title": "TorchTPU：API复用后的图通信与数值边界",
+          "domains": [
+            "D13",
+            "D02",
+            "D09"
+          ],
+          "kind": "旧候选推进／机制补录",
+          "first_public": "最早已核官方介绍2026-04-07，当时公开源码仍为计划；非绝对首次证明。",
+          "event_date": "10/20开源阶段公告，页面10/21更新；固定实现提交11/07 21:20:19Z。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "google-pytorch/torch_tpu 680b8436e61baf6f832f32d2bc8ca55615ff619e",
+          "sources": [
+            [
+              "4/7介绍",
+              "https://developers.googleblog.com/torchtpu-running-pytorch-natively-on-tpus-at-google-scale/"
+            ],
+            [
+              "10/20公告",
+              "https://pytorch.org/blog/introducing-torchtpu/"
+            ],
+            [
+              "固定通信支持",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/distributed_support.md"
+            ],
+            [
+              "固定功能矩阵",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/feature_set.md"
+            ],
+            [
+              "精度",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/numerical_precision.md"
+            ],
+            [
+              "握手实现",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/src/torch_tpu/_internal/distributed/handshake.py"
+            ]
+          ],
+          "read_scope": "三份固定文档、precision_context.cc默认值与handshake should_handshake条件；未全仓审计。",
+          "change": "collective降低为StableHLO；默认skinny collective分图以容纳MPMD，代价是失去图内计算通信重叠。spmd_safe/handshake为融合前提，当前握手仅global PG。默认FP32 matmul走BF16输入精度、FP32累加，更高精度增加MXU passes。",
+          "limits": "公开main，项目自分类SimpleFSDP validated，FSDPv2/MPMD experimental或低性能，RL near-term；不能由API或no-crash计数推导所有模型训练正确或完整RL生产支持。GitHub无release不代表无PyPI包，0.2.0包日期未核。",
+          "judgment": "⚠️明确边界",
+          "independent_experiments": false
+        },
+        {
+          "id": "AIINFRA-E-20261109-08",
+          "title": "Reshard Collective：训练—生成交接按目标分片搬运",
+          "domains": [
+            "D02",
+            "D03",
+            "D10"
+          ],
+          "kind": "新增机制报告＋既有实现补录",
+          "first_public": "绝对首次公开未穷尽；NeMo RL PR#2971创建06/27、07/29已合并。",
+          "event_date": "2026-11-06官方说明；不能把11/06当首次实现上线。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "NCCL extensions b4d59251cd0e3e99d19e9d92261e669b8c75b2bc（11/08提交）；NeMo RL合并e40aa046e5fd4af30f93c27acdcdb9cc748670ab；nightly文档按11/09所见",
+          "sources": [
+            [
+              "11/06机制报告",
+              "https://developer.nvidia.com/blog/accelerating-reinforcement-learning-weight-refit-with-the-reshard-collective/"
+            ],
+            [
+              "固定M2N README",
+              "https://github.com/NVIDIA/nccl-extensions/blob/b4d59251cd0e3e99d19e9d92261e669b8c75b2bc/nccl_m2n/README.md"
+            ],
+            [
+              "集成PR与日期",
+              "https://github.com/NVIDIA-NeMo/RL/pull/2971"
+            ],
+            [
+              "nightly refit指南",
+              "https://docs.nvidia.com/nemo/rl/nightly/guides/refit.html"
+            ]
+          ],
+          "read_scope": "官方报告全文；固定M2N布局/API/生命周期契约；PR正文与API日期；nightly transport表和限制。未全实现审计。",
+          "change": "两端mesh/placement描述分片交集，直接重分片并利用NVLink域内副本转发，避免全量gather-broadcast冗余。M2N是独立NCCL扩展库，不称新增稳定NCCL核心API。",
+          "limits": "固定M2N要求等大连续块、匹配globalshape、1–2D mesh和1–3D tensor。NeMo报告混合路径只将主导FFN权重交给Reshard，QKV/Mamba/小权重走旧路。报告2.7–5.7倍为H100/GB200所列Qwen3-235B/DeepSeekV3-671B/NemotronUltraV3与明确TP/PP/EP/DP组合的refit自报，未记录完整质量/SLO/精度矩阵，正文不采用倍数。成员变化当前需重建group，shrink/grow为计划；不是RL总成本/质量结论。",
+          "judgment": "🔄演进",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

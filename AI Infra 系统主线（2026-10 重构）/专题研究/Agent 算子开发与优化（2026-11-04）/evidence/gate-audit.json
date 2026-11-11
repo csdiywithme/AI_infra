@@ -1,0 +1,12 @@
+{
+  "audit": "format gate accepts explicit failed/no-measurement artifacts",
+  "source_repo": "minho-fan/kernel-opt-agent",
+  "source_commit": "21f10bbe3c2dc854e533b62fcd306186f88c76c6",
+  "source_git_blob_sha": "ba6ab5e7362923651b95521264f7711ce0d68f9f",
+  "source_sha256": "1ab922a4a876eeb256f07094b7c42dbbcc0fa44385eb653e550e19c096977a93",
+  "exit_code": 0,
+  "state": "v1",
+  "gpu_execution": false,
+  "scope": "only gate script executed; no candidate code, profiler, API or GPU job",
+  "audit_protocol_date": "2026-11-04"
+}

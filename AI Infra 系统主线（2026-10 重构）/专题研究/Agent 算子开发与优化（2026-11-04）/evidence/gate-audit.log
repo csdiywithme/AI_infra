@@ -1,0 +1,27 @@
+=== Kernel-loop Transition Gate: v0 ===
+[0;32m[OK][0m   current_iteration.txt initialized to v0
+=== Checking v0 ===
+[0;32m[OK][0m   correctness.md exists and is non-empty
+[0;32m[OK][0m   ncu_summary.md exists and is non-empty
+[0;32m[OK][0m   ncu_details.md exists and is non-empty
+[0;32m[OK][0m   kbs_evidence.md exists and is non-empty
+[0;32m[OK][0m   hypothesis.txt exists and is non-empty
+[0;32m[OK][0m   hypothesis.txt heading order: Version:
+[0;32m[OK][0m   hypothesis.txt heading order: Current evidence:
+[0;32m[OK][0m   hypothesis.txt heading order: Decision link:
+[0;32m[OK][0m   hypothesis.txt heading order: Single change:
+[0;32m[OK][0m   hypothesis.txt heading order: Rationale:
+[0;32m[OK][0m   hypothesis.txt heading order: Expected metric movement:
+[0;32m[OK][0m   hypothesis.txt heading order: Risk:
+[0;32m[OK][0m   hypothesis.txt heading order: Evidence used:
+[0;32m[OK][0m   hypothesis.txt heading order: Decision rule:
+[0;32m[OK][0m   kbs_evidence.md heading order: # KBS Evidence
+[0;32m[OK][0m   kbs_evidence.md heading order: ## NCU Facts
+[0;32m[OK][0m   kbs_evidence.md heading order: ## Queries
+[0;32m[OK][0m   kbs_evidence.md heading order: ## Selected Evidence
+[0;32m[OK][0m   kbs_evidence.md heading order: ## Rejected / Limits
+[0;32m[OK][0m   kbs_evidence.md heading order: ## Decision Link
+[0;32m[OK][0m   kernel file exists and is non-empty: kernel.py
+[0;32m[OK][0m   v0 has no previous kernel to compare
+
+[0;32m=== Gate PASSED: v0 complete; next allowed version is v1 ===[0m

@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "coverage": "选定来源定点核验；非全域或完整90天扫描",
+  "experiments": "未安装或运行GPU、模型、故障实验",
+  "global_cutoffs_changed": false,
+  "domain": "D10 通信与互联",
+  "audit": [
+    "旧讲座整理长文第12/14节；未重取PDF/SRT全文",
+    "旧04通信与内存层级全文",
+    "新03通信量推导、新09进展语义"
+  ],
+  "discovery": {
+    "organizations": [
+      "UEC官方发布/规范历史",
+      "NVIDIA GTC 2026活动搜索",
+      "Hot Chips 2026程序",
+      "NVIDIA NCCL 官方方法博客",
+      "ICPP 2026 配套 arXiv",
+      "arXiv 作者版本历史"
+    ],
+    "queries": [
+      "site.nvidia.com GTC 2026 collective communication GPU initiated networking storage reliability AI factory",
+      "site.ultraethernet.org 2026 specification release AI congestion collective",
+      "\"2026\" \"GPU cluster\" \"fault tolerance\" \"arxiv\"",
+      "\"2026\" \"MoE\" \"communication computation overlap\" \"arxiv\""
+    ],
+    "followed_known": [
+      "DeepEP固定commit/README",
+      "NVSHMEM releases"
+    ],
+    "scope": "独立组织/问题检索先于已知库跟踪；未枚举全部规范、PR和兼容设备"
+  },
+  "sources": [
+    {
+      "id": "D10-S01",
+      "title": "NVSHMEM Memory Ordering",
+      "url": "https://docs.nvidia.com/nvshmem/archives/nvshmem-203/api/docs/gen/api/ordering.html",
+      "version": "2.0.3",
+      "event_date": null,
+      "date_basis": "历史固定版本；首次日期未核",
+      "read_scope": "fence/quiet、CPU/GPU作用域、目标端同步",
+      "evidence_level": "一手固定文档",
+      "limits": "仅作语义基线，不外推全部现代transport",
+      "role": "baseline"
+    },
+    {
+      "id": "D10-S02",
+      "title": "UE 1.1 official announcement",
+      "url": "https://ultraethernet.org/ultra-ethernet-consortium-releases-specification-1-1-advancing-ai-and-hpc-networking/",
+      "version": "UE 1.1公告",
+      "event_date": "2026-10-12",
+      "date_basis": "官方正文日期，时区未给",
+      "read_scope": "scale-up、UET兼容/同步组、INC、CSIG、PCM",
+      "evidence_level": "一手组织公告",
+      "limits": "未读完整规范/认证或核验NIC交换机联合实现",
+      "role": "newly_discovered_selected_event"
+    },
+    {
+      "id": "D10-S03",
+      "title": "REACT",
+      "url": "https://arxiv.org/html/2609.04417v1",
+      "version": "arXiv v1",
+      "event_date": "2026-09-03",
+      "date_basis": "arXiv提交2026-09-03T19:32:40Z；北京时间09/04 03:32:40",
+      "read_scope": "第4–7节、P2P/tuner、实机Slingshot及附录C.1直接NCCL对照",
+      "evidence_level": "作者原型与模拟论文",
+      "limits": "实机/模拟分开；wrapper在部分模式慢于直接NCCL；无独立复现",
+      "role": "newly_discovered_research",
+      "read_scope_deepening": "补读第4.1–5.4：控制时标、流FCT反馈、语义安全变换、关键路径与不可绕过出口；原第6–7和附录C.1范围保留"
+    },
+    {
+      "id": "D10-S04",
+      "title": "NVSHMEM release",
+      "url": "https://github.com/NVIDIA/nvshmem/releases/tag/v3.8.0-0",
+      "version": "v3.8.0-0",
+      "event_date": "2026-09-22",
+      "date_basis": "GitHub published_at 2026-09-22T21:42:08Z；北京时间09/23 05:42:08",
+      "read_scope": "RMA regions、signal wait可见性、CFT同步/完成修复",
+      "evidence_level": "一手正式release说明",
+      "limits": "未审全部实现/硬件组合，不声称运行验证",
+      "role": "known_project_followup"
+    },
+    {
+      "id": "D10-S05",
+      "title": "DeepEP V2.5",
+      "url": "https://github.com/deepseek-ai/DeepEP/commit/def865146e95aa9ea223e277c0a8a4c6b81e5ac7",
+      "version": "def865146e95aa9ea223e277c0a8a4c6b81e5ac7",
+      "event_date": "2026-09-29",
+      "date_basis": "GitHub author/committer同为2026-09-29T05:22:15Z",
+      "read_scope": "commit metadata；固定README的GIN/依赖、EP/deferred epilogue、冗余专家API/Engram",
+      "evidence_level": "一手固定源码文档",
+      "limits": "旧库10/19已收录；不是11/4新发布，不把全库叫零SM；无GPU实验",
+      "role": "inherited_evidence_rechecked",
+      "readme_url": "https://github.com/deepseek-ai/DeepEP/blob/def865146e95aa9ea223e277c0a8a4c6b81e5ac7/README.md"
+    },
+    {
+      "id": "D10-S06",
+      "title": "NCCL 2.4 double binary trees",
+      "url": "https://developer.nvidia.com/blog/massively-scale-deep-learning-training-nccl-2-4/",
+      "version": "2019-02-04 官方文章",
+      "event_date": "2019-02-04",
+      "date_basis": "正文日期；历史机制基线，不作近期发布",
+      "read_scope": "正文 ring/2D hierarchical/double-tree 构造、各半数据、跨交换层路由、stream 完成和异步错误",
+      "evidence_level": "一手厂商方法说明及作者实验",
+      "limits": "未复现实验；教学单树算例与NCCL双树不同；不引用AI自动摘要",
+      "role": "foundational_method_newly_read"
+    },
+    {
+      "id": "D10-S07",
+      "title": "Fine-grained Computation-Communication Overlap via Tile-level Signaling and Scheduling for Mixture-of-Experts",
+      "url": "https://arxiv.org/html/2607.19539v1",
+      "version": "arXiv v1",
+      "event_date": "2026-07-21",
+      "date_basis": "abs提交历史 2026-07-21T19:40:06Z；ICPP 2026会期09/28–10/01；两日期不混用",
+      "read_scope": "第2节依赖/设备发起、第3节owner对齐/调度/epilogue信号/segment/SM配比；第4.1设置与4.2.1小维度反例，资源争用范围",
+      "evidence_level": "作者单节点4×A100 NVLink前向原型实验",
+      "limits": "未读全部源码；非多节点/训练反向验证；小隐藏维度落后部分基线；无独立复现",
+      "role": "independently_discovered_method"
+    },
+    {
+      "id": "D10-S08",
+      "title": "Weave",
+      "url": "https://arxiv.org/html/2609.21483v1",
+      "version": "arXiv v1",
+      "event_date": "2026-09-18",
+      "date_basis": "abs历史v1 2026-09-18T08:34:24Z；已发现v3 2026-09-25T13:06:26Z但未核变更",
+      "read_scope": "第2节五阶段依赖、配比实验，第3节空间/时间调度及(c,K)输入，第5.4/5.5 profiling/选择误差，第6节范围限制",
+      "evidence_level": "作者单节点4×H100 SXM EP4原型实验",
+      "limits": "未核v2/v3差异；无多节点网络拥塞证据；未把论文旧DeepEP基线当V2.5；无独立复现",
+      "role": "independently_discovered_method"
+    }
+  ],
+  "failed_reads": [
+    {
+      "url": "https://docs.nvidia.com/nvshmem/api/gen/api/ordering.html",
+      "result": "无可读正文；改用固定2.0.3归档"
+    }
+  ],
+  "gaps": [
+    "UE规范正文与互通部署",
+    "UCCL/EFA/NIXL/GPUNetIO当前组合",
+    "动态成员、故障及持续拥塞",
+    "真实资源占用与尾部"
+  ],
+  "deepening_round": {
+    "round": "mechanism-and-worked-example-deepening",
+    "date": "2026-11-04",
+    "scope": "不含项目名的问题检索→一手方法/源码定点核读；非全域扫描；未改全局截止或冻结证据",
+    "experiments_performed": [],
+    "failed_reads": [],
+    "queries": [
+      "\"2026\" \"MoE\" \"communication computation overlap\" \"arxiv\""
+    ],
+    "organizations": [
+      "NVIDIA NCCL 官方方法博客",
+      "ICPP 2026 配套 arXiv",
+      "arXiv 作者版本历史"
+    ],
+    "calculations": [
+      "4rank ring: 6α+1.5S/b；教学未分段树:4α+4S/b；α5us,b50GB/s。4KiB=30.12288/20.32768us；100MiB=3.175728/8.408608ms",
+      "2段compute6ms/return4ms：流水16ms vs串行20ms；共享后8/5ms流水21ms；均示意",
+      "100MiB/3.175728ms≈33.0GB/s算法带宽，1.5倍发送口径≈49.5GB/s"
+    ],
+    "closed_explanatory_gaps": [
+      "集合结果约定与P2P执行区别",
+      "ring/tree/hierarchical的启动、载荷、共享边条件",
+      "GPU发起/推进/完成和缓冲轮次",
+      "dispatch-GEMM-combine细粒度依赖与SM/HBM/网络争用",
+      "拥塞反馈时标与测量分子"
+    ],
+    "candidate_disposition": [
+      {
+        "title": "Weave v3",
+        "url": "https://arxiv.org/abs/2609.21483",
+        "disposition": "发现09/25 v3；本文固定读v1，版本差异待核，不标全版本完成"
+      },
+      {
+        "title": "tile-level overlap 与 Weave",
+        "disposition": "纳入本域方法正文；单节点范围，不升级成多节点部署证据"
+      },
+      {
+        "title": "UE1.1 / DeepEP V2.5",
+        "disposition": "保留原证据；UE为新发现规范公告，DeepEP为9/29旧证据补核，两者不合并成新发布"
+      }
+    ]
+  },
+  "gaps_after_deepening": [
+    "UE1.1规范全文/互通实现",
+    "跨节点重叠、持续拥塞和动态成员失败",
+    "Weave v3差异",
+    "UCCL/EFA/NIXL/GPUNetIO具体当前组合"
+  ],
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-06",
+          "title": "Weave v1→v3：关闭关键版本差异待办，补计时边界",
+          "domains": [
+            "D10"
+          ],
+          "kind": "边界补充／版本复核，不是新性能发布",
+          "first_public": "arXiv v1 2026-09-18。",
+          "event_date": "v2 09/24，v3 09/25；本轮只改变核验状态。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "arXiv 2609.21483v1与v3",
+          "sources": [
+            [
+              "版本历史",
+              "https://arxiv.org/abs/2609.21483"
+            ],
+            [
+              "v1",
+              "https://arxiv.org/html/2609.21483v1"
+            ],
+            [
+              "v3",
+              "https://arxiv.org/html/2609.21483v3"
+            ]
+          ],
+          "read_scope": "两版设计、实现与§5.1–5.6评测；未做TeX逐字diff。",
+          "change": "关键机制、配置、基线和主要数字未见影响判断的改动。§5.3称E2E的时间来自SGLang pre-MoE/attention实测加独立MoE kernel时间，不能作为整合在线服务实跑。",
+          "limits": "单机4×H100 SXM5、BF16、EP4、ShareGPT路由、batch1；DeepEP基线v1.2.1。未确认代码公开/独立复现/多节点服务结果。旧卡AIINFRA-E-20261104-31无在线性能误述，因此追加边界而非勘误，旧卡冻结。",
+          "judgment": "✅强化／⚠️计时边界",
+          "independent_experiments": false
+        },
+        {
+          "id": "AIINFRA-E-20261109-08",
+          "title": "Reshard Collective：训练—生成交接按目标分片搬运",
+          "domains": [
+            "D02",
+            "D03",
+            "D10"
+          ],
+          "kind": "新增机制报告＋既有实现补录",
+          "first_public": "绝对首次公开未穷尽；NeMo RL PR#2971创建06/27、07/29已合并。",
+          "event_date": "2026-11-06官方说明；不能把11/06当首次实现上线。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "NCCL extensions b4d59251cd0e3e99d19e9d92261e669b8c75b2bc（11/08提交）；NeMo RL合并e40aa046e5fd4af30f93c27acdcdb9cc748670ab；nightly文档按11/09所见",
+          "sources": [
+            [
+              "11/06机制报告",
+              "https://developer.nvidia.com/blog/accelerating-reinforcement-learning-weight-refit-with-the-reshard-collective/"
+            ],
+            [
+              "固定M2N README",
+              "https://github.com/NVIDIA/nccl-extensions/blob/b4d59251cd0e3e99d19e9d92261e669b8c75b2bc/nccl_m2n/README.md"
+            ],
+            [
+              "集成PR与日期",
+              "https://github.com/NVIDIA-NeMo/RL/pull/2971"
+            ],
+            [
+              "nightly refit指南",
+              "https://docs.nvidia.com/nemo/rl/nightly/guides/refit.html"
+            ]
+          ],
+          "read_scope": "官方报告全文；固定M2N布局/API/生命周期契约；PR正文与API日期；nightly transport表和限制。未全实现审计。",
+          "change": "两端mesh/placement描述分片交集，直接重分片并利用NVLink域内副本转发，避免全量gather-broadcast冗余。M2N是独立NCCL扩展库，不称新增稳定NCCL核心API。",
+          "limits": "固定M2N要求等大连续块、匹配globalshape、1–2D mesh和1–3D tensor。NeMo报告混合路径只将主导FFN权重交给Reshard，QKV/Mamba/小权重走旧路。报告2.7–5.7倍为H100/GB200所列Qwen3-235B/DeepSeekV3-671B/NemotronUltraV3与明确TP/PP/EP/DP组合的refit自报，未记录完整质量/SLO/精度矩阵，正文不采用倍数。成员变化当前需重建group，shrink/grow为计划；不是RL总成本/质量结论。",
+          "judgment": "🔄演进",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

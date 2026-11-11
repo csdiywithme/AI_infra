@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: developing
 source_status: slides-only-user-skipped
 course: Weiming HPC Training Camp × LCPU AI Infra Seminars
 lecture: 5

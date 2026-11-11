@@ -3,7 +3,7 @@ type: map-of-content
 status: evergreen
 course: HPCGame 2026 赛前讲座
 area: systems
-map_updated: 2026-09-15
+map_updated: 2026-10-12
 topics:
   - "[[Distributed Training]]"
   - "[[LLM Inference]]"
@@ -13,13 +13,15 @@ aliases:
   - HPCGame 2026 diffusion map
 ---
 
-# HPCGame 2026：MLSys 知识地图
+# HPCGame 2026：MLSys 课程导读
 
 > [!abstract] 先看全景，再按问题局部细化
 > 每次从一个症状、对象或问题进入，先固定**质量与完成目标**，再沿工作量、状态、搬运、调度和反馈展开。每轮阅读都回到同一张关系图。
 
 > [!nav] 从当前关心的层次进入
-> **现在怎么看**：[[HPCGame 2026 - 06 前沿追踪|当前判断]] · [[MLSys - 2026-09 周度更新|2026-09 变化]] · [[MLSys - 月度复盘|周期复盘]]
+> **查找近期研究**：[[领域地图与覆盖缺口|AI Infra 领域地图]]
+>
+> **回看历史核查**：[[MLSys - 2026-10 周度更新|2026-10 记录]] · [[MLSys - 月度复盘#2026-10|2026-10 复盘]]
 >
 > **执行机制**：[[HPCGame 2026 - 01 训练状态与并行|训练]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型与精度]] · [[HPCGame 2026 - 03 推理状态与调度|推理]] · [[HPCGame 2026 - 04 通信与内存层级|通信和内存]] · [[HPCGame 2026 - 05 Kernel、DSL 与硬件|编译和硬件]]
 >
@@ -51,6 +53,18 @@ flowchart TD
 
 减少不可隐藏的数据移动是关键手段之一；改变所需工作量、提高反馈有效性、减少排队和故障损失，也会改变答案。具体机制见 [[HPCGame 2026 - 07 数据与后训练闭环]] 与 [[HPCGame 2026 - 08 集群效率与可靠性]]。
 
+### 2026-10：在整张图上叠一层“状态承诺”
+
+不再加一条新闻链，而对每个对象反复问：**谁知道它是否还有效，谁仍可能读写，何时可以提交、回收或重放？**
+
+| 同一问题的不同落点 | 应一起思考的关系 |
+| --- | --- |
+| trainer失败、MoE overflow | 保存哪份未更新/已提交状态，哪些样本或token会被重放？→ [[HPCGame 2026 - 07 数据与后训练闭环]] |
+| agent删除消息、PD取消、draft mirror | 逻辑死亡与物理驱逐不同，在途访问与共享引用何时结束？→ [[HPCGame 2026 - 09 多模态与新工作负载]] / [[HPCGame 2026 - 03 推理状态与调度]] |
+| AI补丁、量化backend、平台迁移 | 局部测试、实际dispatch、完整请求与故障路径是否都通过？→ [[HPCGame 2026 - 05 Kernel、DSL 与硬件]] / [[HPCGame 2026 - 08 集群效率与可靠性]] |
+
+[[MLSys - 月度复盘#2026-10|2026 年 10 月复盘]]把独立质量—成本和长期有效产出列为待补证据。
+
 ## 2. 五个稳定变量
 
 项目名会变，下面五个变量可以反复使用：
@@ -81,7 +95,7 @@ flowchart TD
 | TTFT 与 TPOT 为什么互相打架 | [[HPCGame 2026 - 03 推理状态与调度]] | batching、PD、KV transfer、goodput |
 | GPU 为什么在等、网络为什么跑不满 | [[HPCGame 2026 - 04 通信与内存层级]] | control path、progress、placement |
 | 一个 kernel 快 2× 为什么不可信 | [[HPCGame 2026 - 05 Kernel、DSL 与硬件]] | shape、Amdahl、正确性、代际绑定 |
-| 哪些结论已经过时 | [[HPCGame 2026 - 06 前沿追踪]] | release、论文、公开 issue、勘误 |
+| 如何对照课上的版本与近期研究 | [[领域地图与覆盖缺口|AI Infra 领域地图]] | [[MLSys - 证据台账|HPCGame 历史证据]]、固定 release 和勘误 |
 | rollout 快了，为什么达到同等评测质量仍慢 | [[HPCGame 2026 - 07 数据与后训练闭环]] | 环境长尾、样本陈旧、权重同步、数值一致性 |
 | 卡很多，为什么有效完成的工作少 | [[HPCGame 2026 - 08 集群效率与可靠性]] | 排队/放置、冷启动、慢节点、恢复、多租户 |
 | 视频/音频/agent 为什么不能直接套用 token/s | [[HPCGame 2026 - 09 多模态与新工作负载]] | 阶段、流式时序、质量、任务完成 |
@@ -139,7 +153,7 @@ kernel 视角：tensor core、scale layout、Q/DQ fusion
 4. **时间轮**：什么在 critical path，排队、启动、故障和重试算进去了吗？
 5. **证据轮**：事实对应哪个版本和日期，在哪种功能组合成立，由谁验证？
 
-最后一轮回到 [[MLSys - 证据台账]]；阅读所得的判断变化回到 [[HPCGame 2026 - 06 前沿追踪]]。每个月用 [[MLSys - 月度复盘]] 重新组织这些联系。
+课后跟进的原始依据与勘误见 [[MLSys - 证据台账]]。
 
 ## 6. 讲座时间入口
 
@@ -161,6 +175,5 @@ kernel 视角：tensor core、scale layout、Q/DQ fusion
 - [讲座视频](https://www.bilibili.com/video/BV1vmzXBBESY/)
 - [公开 Slides](https://disk.pku.edu.cn/link/AA79261A850FCC49EAAF63FC4EC4159211)
 - [[HPCGame 2026 - 大模型训练、推理与 Infra 概览|原始线性长文（保留作完整资料库）]]
-- [[HPCGame 2026 - 06 前沿追踪|当前判断与研究主线]]
 - [[MLSys - 2026-08 至 09 旧版基线与日志|旧版基线与历史原文]] · [[MLSys - 证据台账|勘误和事实核验]]
-- [[MLSys - 追踪规则与来源|执行规则与来源登记]] · [[MLSys - 运行记录|实际核查覆盖]]
+- [[MLSys - 追踪规则与来源|旧来源登记]] · [[MLSys - 运行记录|历史核查覆盖]]

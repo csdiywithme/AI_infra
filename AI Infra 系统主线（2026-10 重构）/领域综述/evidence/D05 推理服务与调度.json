@@ -1,0 +1,383 @@
+{
+  "reviewed_on": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "event_cutoff_for_this_pass": "2026-11-04",
+  "coverage_status": "bounded_deepening_not_network_complete",
+  "date_policy": "区分 arXiv 提交或版本日、PR 合入日、文章署名日与本轮阅读日；当前可见 main 或仓库元数据不倒推为截至 11/04 已交付。",
+  "evidence_policy": "一手正文支持机制；性能仍为作者实验，无本轮 GPU 实验或独立复跑。经典机制、旧线索重核和独立新发现分别标注。",
+  "untouched": "没有修改旧证据台账、候选、运行日志、专题或其覆盖截止。",
+  "domain": "D05",
+  "article": "D05 推理服务与调度.md",
+  "boundary": "请求/阶段的准入、组批、抢占、路由与异构执行；不代替集群作业放置和模型生命周期综述。",
+  "local_audit": {
+    "read_files": [
+      "courses/hpcgame/HPCGame 2026 - 大模型训练、推理与 Infra 概览.md §§0、9–11",
+      "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 03 推理状态与调度.md",
+      "正文/06 当许多请求同时到来.md"
+    ],
+    "interpretation": "讲座整理长文含后续增补，并非全部属于原讲座。旧03有多规模、状态合约、E/P/D和异构offload；新06有时间线，但不能代替路线研究。"
+  },
+  "queries": [
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"LLM serving\" \"2026\" after:2026-09-01 before:2026-11-05",
+      "purpose": "独立事件发现",
+      "observed_outcome": "首批混合结果以投机相关论文为主，未据此声称服务域完成扫描"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"LLM serving\" \"2026\" \"Oct\"",
+      "purpose": "补充服务路线发现",
+      "observed_outcome": "发现DualPace、HEAR、DynaCore、临床fleet/routing研究；选择DualPace深读，其余未全读"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "Sarathi-Serve arxiv 2403.02310",
+      "purpose": "核准经典机制的正式标识",
+      "observed_outcome": "随后打开arxiv.org固定v3正文，不使用搜索中的镜像与二手总结作结论"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "LLM serving deadline fair scheduling elastic model routing arxiv October 2026",
+      "purpose": "不含项目名的独立服务发现",
+      "observed_outcome": "发现Vesta等线索；本批结果混杂，未依据二手摘要下部署结论"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"Vesta\" \"Queueing-Aware\"",
+      "purpose": "追查独立发现的候选",
+      "observed_outcome": "本批未得到足够明确的一手正文，保留未核"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org \"fairness\" \"LLM serving\" virtual token counter",
+      "purpose": "公平路线的已知机制与新分支追查",
+      "observed_outcome": "返回VTC、FairServe、DLPM、FairInference；选择VTC/FairInference打开固定正文"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org/abs/ \"RouteLLM\"",
+      "purpose": "核准质量路由入口",
+      "observed_outcome": "短批返回了同名BGP无关论文，随后改用完整题名检索"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "\"RouteLLM: Learning to Route LLMs\" arxiv",
+      "purpose": "完整题名核准",
+      "observed_outcome": "定位2406.18665，打开固定v1正文"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "\"ServerlessLLM\" arxiv",
+      "purpose": "弹性与启动/迁移经典机制",
+      "observed_outcome": "定位2401.14351，打开固定v1；不使用先前误猜的无关ID"
+    },
+    {
+      "tool": "web.run.search_query",
+      "query": "site:arxiv.org/abs/ \"LLM serving\" \"token latency\" \"2026\"",
+      "purpose": "不含项目名的独立路线补查",
+      "observed_outcome": "直接命中FairInference与DualPace，也发现SLOWeave/parallelism tradeoff候选；前两项已深读，后两项本轮未采纳结论"
+    }
+  ],
+  "sources": [
+    {
+      "id": "D05-S01",
+      "title": "Sarathi-Serve",
+      "primary_url": "https://arxiv.org/html/2403.02310v3",
+      "fixed_version": "arXiv v3",
+      "event_date": "2024-06-17",
+      "event_date_kind": "arxiv_version_date",
+      "date_evidence": "https://arxiv.org/html/2403.02310v3",
+      "organization_entry": "Georgia Tech / Microsoft Research India；正文作者署名",
+      "discovery_origin": "已知经典来源回访",
+      "read_scope": [
+        "§2 调度分类与多GPU",
+        "§4 分块、混合批和token预算；含算法3"
+      ],
+      "verification_strength": "primary_method_read_classic",
+      "independent_reproduction": false,
+      "open_questions": [
+        "未重新核当前开源分支完整功能，不把历史vLLM对照当当前产品状态"
+      ]
+    },
+    {
+      "id": "D05-S02",
+      "title": "DistServe",
+      "primary_url": "https://arxiv.org/html/2401.09670v3",
+      "fixed_version": "arXiv v3",
+      "event_date": "2024-06-06",
+      "event_date_kind": "arxiv_version_date",
+      "date_evidence": "https://arxiv.org/html/2401.09670v3",
+      "organization_entry": "论文作者团队；固定论文署名",
+      "discovery_origin": "已知经典来源回访",
+      "read_scope": [
+        "§2 干扰与资源耦合",
+        "§3–4 放置、带宽与资源配置分析"
+      ],
+      "verification_strength": "primary_method_read_classic",
+      "independent_reproduction": false,
+      "open_questions": [
+        "不据经典结果宣称PD普遍优于共置；未复跑作者实验"
+      ]
+    },
+    {
+      "id": "D05-S03",
+      "title": "DualPace",
+      "primary_url": "https://arxiv.org/html/2610.33501v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2026-10-24",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2610.33501v1",
+      "organization_entry": "浙江大学宁波国际科创中心；正文作者affiliation",
+      "discovery_origin": "独立arXiv事件检索→固定论文",
+      "read_scope": [
+        "§4 请求所有权、两个调度时钟、主存容量合约与Dense Assist",
+        "§5 实现",
+        "§6.1–6.2 工作负载、对照与Azure-Code负例",
+        "本轮补读§4.1逐层Prefill-to-CPU、传输后可见、finish-peak swap-in与主存耦合；§2.3–3仅用于理解GPU-gated对照，不推广其设备倍数"
+      ],
+      "verification_strength": "primary_method_and_selected_evaluation_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "长度保持合成输入，不是在线任务质量对照",
+        "vLLM0.22.1与NEO补丁等对照条件；未核完整代码制品",
+        "CPU配额限定单NUMA；没有能耗/TCO或独立复测"
+      ]
+    },
+    {
+      "id": "D05-S04",
+      "title": "Fairness in Serving Large Language Models",
+      "primary_url": "https://arxiv.org/html/2401.00588v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2023-12-31",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2401.00588v1",
+      "organization_entry": "UC Berkeley / Stanford / Duke；固定论文署名",
+      "discovery_origin": "经典公平机制定向补读",
+      "read_scope": [
+        "§3 服务量和backlogged公平定义",
+        "§4.1 VTC、客户端counter lift；相关保证条件",
+        "未穷尽全部§5/附录证明"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "加权token度量不自动等于不同形状下真实GPU时间",
+        "不将长期服务份额保证写成token延迟保证"
+      ]
+    },
+    {
+      "id": "D05-S05",
+      "title": "Token Latency Fairness: Performance Isolation for Multi-Tenant LLM Serving",
+      "primary_url": "https://arxiv.org/html/2609.18112v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2026-09-16",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/abs/2609.18112v1",
+      "organization_entry": "UC Berkeley；固定论文署名",
+      "discovery_origin": "公平路线检索发现；不含项目名的token-latency查询复命中",
+      "read_scope": [
+        "§4 时限分解与隔离假设",
+        "§5.1–5.2 调度Algorithm2与KV恢复预算/保留",
+        "§5.4–5.7 时间模型、孤立模拟和模型误差",
+        "§6 SGLang v0.3.0原型、调度开销和突发处理",
+        "§7选定表及实验目标，未深读全部负载逐项图"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "保证需要需求边界、模型与恢复预算条件",
+        "模拟的公平隔离参照不是所有硬件上的实际物理分区实验",
+        "没有独立复跑或当前代码commit核验"
+      ]
+    },
+    {
+      "id": "D05-S06",
+      "title": "RouteLLM: Learning to Route LLMs with Preference Data",
+      "primary_url": "https://arxiv.org/html/2406.18665v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2024-06-26",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2406.18665v1",
+      "organization_entry": "UC Berkeley / Anyscale / Canva；固定论文署名",
+      "discovery_origin": "已知质量路由经典补读",
+      "read_scope": [
+        "§2.1 获胜概率、阈值与调用前选模型",
+        "§2.2 质量/调用成本曲线与目标",
+        "§3.1偏好训练数据入口；未深读所有router实现或全部实验"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "相对偏好预测不是绝对正确性保证",
+        "未验证队列感知路由、当前模型对和领域校准",
+        "平均质量与调用比例不能代替实时服务SLO"
+      ]
+    },
+    {
+      "id": "D05-S07",
+      "title": "ServerlessLLM: Locality-Enhanced Serverless Inference for Large Language Models",
+      "primary_url": "https://arxiv.org/html/2401.14351v1",
+      "fixed_version": "arXiv v1",
+      "event_date": "2024-01-25",
+      "event_date_kind": "arxiv_v1_submission_date",
+      "date_evidence": "https://arxiv.org/html/2401.14351v1",
+      "organization_entry": "University of Edinburgh / NTU Singapore；固定论文署名",
+      "discovery_origin": "已知弹性/迁移路线题名核准后补读",
+      "read_scope": [
+        "§4加载机制结构及§6.1–6.3本地性、队列与加载/迁移估时",
+        "§5.2两阶段token迁移和路由切换",
+        "§5.3选定完成/失败处理，未视为完整协议正确性证明"
+      ],
+      "verification_strength": "fixed_primary_method_and_selected_limits_read_author_results",
+      "independent_reproduction": false,
+      "open_questions": [
+        "未运行实现或复核当前分支",
+        "只采用机制，不使用最大启动倍数",
+        "本轮未完成多池扩缩闭环稳定性或故障恢复验证"
+      ]
+    }
+  ],
+  "coverage_gaps": [
+    "已补公平份额/token deadline/质量路由/两阶段迁移的机制；尚无统一负载比较",
+    "长度预测误差下的抢占/重算/换出与长期公平",
+    "跨模型质量路由的领域校准和队列联合控制",
+    "多池弹性副本变化、端侧能耗及闭环稳定性",
+    "各引擎runner/connector最新支持组合尚未完整核验"
+  ],
+  "failed_reads": [
+    {
+      "url": "https://arxiv.org/html/2401.14351v1",
+      "operation": "web.run.find(### 5.2)",
+      "failure": "UnexpectedStatusCode",
+      "resolution": "随后web.run.open定位§5.2成功，实际核读的方法另列read_scope"
+    },
+    {
+      "url": "https://arxiv.org/html/2401.00828v1",
+      "operation": "直接打开误猜标识",
+      "failure": "topic_mismatch_not_fetch_failure",
+      "resolution": "发现为量子场论无关文章，排除；随后用完整题名定位ServerlessLLM，未从无关源取结论"
+    }
+  ],
+  "candidates_disposition": [
+    {
+      "item": "Vesta: Queueing-Aware LLM Scheduling for Real-World Workloads",
+      "status": "pending_primary_identification",
+      "reason": "独立结果来自二手索引，未深读一手，不入正文结论"
+    },
+    {
+      "item": "Deadline-Aware Adaptive Prefill Chunking / SLOWeave, 2609.07883",
+      "status": "abstract_only_not_promoted",
+      "reason": "近期自适应chunk线索，未深读方法/迭代级GPU runtime范围，保留下一轮"
+    },
+    {
+      "item": "Scaling LLM Inference via Parallelism, 2610.19405",
+      "status": "abstract_only_not_promoted",
+      "reason": "没有核验作者方法和反例，未采用TP/PP优劣结论"
+    },
+    {
+      "item": "2608.22812 ROUTELLM BGP security",
+      "status": "closed_out_of_scope",
+      "reason": "同名但研究BGP异常，不是LLM模型质量路由"
+    },
+    {
+      "item": "2401.00828 quantum-field paper",
+      "status": "closed_wrong_identifier",
+      "reason": "误猜ID已排除，无技术结论沿用"
+    }
+  ],
+  "followup_reads": [
+    {
+      "reviewed_on": "2026-11-04",
+      "tools": [
+        "web.run.open",
+        "web.run.find"
+      ],
+      "urls": [
+        "https://arxiv.org/html/2401.00588v1",
+        "https://arxiv.org/html/2609.18112v1",
+        "https://arxiv.org/html/2406.18665v1",
+        "https://arxiv.org/html/2401.14351v1"
+      ],
+      "purpose": "逐域机制深化；实际读取的范围以sources.read_scope为准，不声称全域或全部版本覆盖",
+      "article_change": "增加假设时间线、同预算拆池、抢占与公平缓存、路由和弹性全过程；保留DualPace Azure-Code负例"
+    }
+  ],
+  "derivation_checks": {
+    "kind": "analytical_teaching_examples_not_measurements",
+    "timeline_ms": {
+      "nonpreempt_gap": 440,
+      "alternating_gap": 90,
+      "prefill_completion": 680
+    },
+    "same_four_gpu_ideal_requests_per_second": {
+      "colocated": 5.333333333333333,
+      "one_prefill_three_decode": 4.0,
+      "two_prefill_two_decode": 4.0
+    },
+    "kv_512MiB_at_50GBps_ms": 10.73741824,
+    "excluded": "混合批函数、切换/分块重读、网络/格式/可见性开销、实际硬件性能及尾分布均非此算例测得"
+  },
+  "revision_status": "expanded_mechanism_draft_pending_cross_review",
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-05",
+          "title": "llm-d 1.0：协调上线需要容量，传输支持需要回收终态",
+          "domains": [
+            "D05",
+            "D06",
+            "D12",
+            "D16"
+          ],
+          "kind": "正式发布补录＋公开工程问题",
+          "first_public": "项目首次公开未重核；本次版本GitHub published_at已核。",
+          "event_date": "v1.0.0正式发布2026-10-20T02:30:10Z；#2857 10/25更新manifest，11/09仍open/未合并。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "llm-d v1.0.0 / 378b42d18dabe0b9c4ced4e6f3670d93b52db08e；LWS v1.0.0；修复PR head 61530b711c9221a1cd52ef209dbc0af1265d1215",
+          "sources": [
+            [
+              "正式release",
+              "https://github.com/llm-d/llm-d/releases/tag/v1.0.0"
+            ],
+            [
+              "固定PD支持",
+              "https://github.com/llm-d/llm-d/blob/378b42d18dabe0b9c4ced4e6f3670d93b52db08e/guides/pd-disaggregation/README.md"
+            ],
+            [
+              "固定SGLang运维",
+              "https://github.com/llm-d/llm-d/blob/378b42d18dabe0b9c4ced4e6f3670d93b52db08e/docs/operations/disaggregation/sglang.md"
+            ],
+            [
+              "LWS默认值",
+              "https://github.com/kubernetes-sigs/lws/pull/1169"
+            ],
+            [
+              "故障#2854",
+              "https://github.com/llm-d/llm-d/issues/2854"
+            ],
+            [
+              "修复#2857",
+              "https://github.com/llm-d/llm-d/pull/2857"
+            ]
+          ],
+          "read_scope": "release正文/API日期、固定PD与SGLang文档、LWS release/#1169与#2854/#2857正文和状态；flow-control细节404未补齐。",
+          "change": "DisaggregatedSet协调P/D revision/readiness，但LWS默认maxSurge/maxUnavailable由1/0变0/1，single-prefill可能无完整revision而503；surge-first需要备用GPU。SGLang+NIXL中decode在传输启动前取消或死亡，prefill KV可滞留至pod重启；控制记录清理不等于GPU回收。",
+          "limits": "正式release不代表原计划目标全部完成。nightly E2E validated与社区配置分开。SGLang此路径为prefill push，不能混用Mooncake/Mori timeout或vLLM释放能力；未故障注入，未采纳公告泛化性能数字。",
+          "judgment": "⚠️反证限定／🔄演进",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

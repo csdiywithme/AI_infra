@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "coverage": "选定来源定点核验；非全域或完整90天扫描",
+  "experiments": "未安装或运行GPU、模型、故障实验",
+  "global_cutoffs_changed": false,
+  "domain": "D12 集群资源可靠性与隔离",
+  "audit": [
+    "旧08集群效率与可靠性全文：TAS/伸缩/NVRx/DCP/恢复终点/隔离",
+    "新09时间账与异步保存边界"
+  ],
+  "discovery": {
+    "organizations": [
+      "NVIDIA GTC cluster/factory operations搜索索引，仅作发现",
+      "USENIX NSDI/OSDI 官方论文与会议程序",
+      "PyTorch 固定v2.9.0源码",
+      "NVIDIA NVRx 固定v0.7.0源码"
+    ],
+    "queries": [
+      "\"2026\" \"GPU\" \"checkpoint\" \"isolation\" \"arxiv\"",
+      "\"2026\" \"GPU cluster\" \"fault tolerance\" \"arxiv\"",
+      "site.arxiv.org \"2026\" \"checkpoint\" \"GPU\" \"Oct\"",
+      "\"dominant resource fairness\" \"NSDI\"",
+      "site:usenix.org training elastic scheduling checkpoint goodput Pollux OSDI21",
+      "site:usenix.org \"2026\" \"GPU\" \"failure\" checkpoint"
+    ],
+    "outcome": "新事件检索命中多项不相关应用/能源论文，未强凑收录；随后定点核对已知工程来源",
+    "followed_known": [
+      "Kueue v0.14.0",
+      "NVRx v0.7.0",
+      "DCP async recipe",
+      "MIG guide"
+    ],
+    "scope": "没有全版本/PR或系统论文完整扫描"
+  },
+  "sources": [
+    {
+      "id": "D12-S01",
+      "title": "Kueue release",
+      "url": "https://github.com/kubernetes-sigs/kueue/releases/tag/v0.14.0",
+      "version": "v0.14.0",
+      "event_date": "2025-09-30",
+      "date_basis": "GitHub published_at 2025-09-30T16:09:57Z；北京时间10/01 00:09:57",
+      "read_scope": "TAS beta、弹性、配额/抢占修复与升级说明",
+      "evidence_level": "一手固定release说明",
+      "limits": "历史基线不是2026新发布；未核全部当前功能，未执行升级",
+      "role": "inherited_baseline_date_rechecked"
+    },
+    {
+      "id": "D12-S02",
+      "title": "NVIDIA Resiliency Extension",
+      "url": "https://github.com/NVIDIA/nvidia-resiliency-ext/releases/tag/v0.7.0",
+      "version": "v0.7.0",
+      "event_date": "2026-09-16",
+      "date_basis": "GitHub published_at 2026-09-16T01:09:19Z",
+      "read_scope": "CPU tensor clone、IPC缓存、hot-spare/rendezvous、segment health、归因/Restart Agent及limitations",
+      "evidence_level": "一手正式release说明；归因experimental",
+      "limits": "旧库已有同版；未通读实现或做故障实验，不给任意脚本容错保证",
+      "role": "inherited_recent_release_rechecked"
+    },
+    {
+      "id": "D12-S03",
+      "title": "DCP asynchronous saving recipe",
+      "url": "https://docs.pytorch.org/tutorials/recipes/distributed_async_checkpoint_recipe.html",
+      "version": null,
+      "event_date": null,
+      "date_basis": "2026-11-04访问；DefaultStager称2.9引入，未另核首次日期",
+      "read_scope": "主存/pinned staging、在途数量、DefaultStager、staging_completion与upload_completion示例",
+      "evidence_level": "一手动态官方教程",
+      "limits": "不是固定源码核验或新发布；API应绑定实际运行版本",
+      "role": "current_mechanism_documentation",
+      "observed_documentation_surface": "2.15.0+cu132"
+    },
+    {
+      "id": "D12-S04",
+      "title": "MIG User Guide Introduction",
+      "url": "https://docs.nvidia.com/datacenter/tesla/mig-user-guide/introduction.html",
+      "version": null,
+      "event_date": "2026-10-13",
+      "date_basis": "页面Last updated，不是MIG功能首次发布",
+      "read_scope": "处理器/L2/内存控制器/DRAM路径隔离、支持配置边界",
+      "evidence_level": "一手动态官方指南",
+      "limits": "未验全部GPU/profile/driver；不外推CPU/NIC/整机故障隔离",
+      "role": "baseline_documentation_refreshed"
+    },
+    {
+      "id": "D12-S05",
+      "title": "Dominant Resource Fairness",
+      "url": "https://www.usenix.org/events/nsdi11/tech/full_papers/Ghodsi.pdf",
+      "version": "NSDI 2011正式论文",
+      "event_date": null,
+      "date_basis": "NSDI11历史基线；未核具体首发日",
+      "read_scope": "摘要/第1节dominant share/max-min定义、固定需求与多资源分配假设；非全篇证明审计",
+      "evidence_level": "一手正式论文",
+      "limits": "理想需求模型不保证离散GPU拓扑、JCT或统计进展公平",
+      "role": "foundational_method_newly_read"
+    },
+    {
+      "id": "D12-S06",
+      "title": "Pollux",
+      "url": "https://www.usenix.org/conference/osdi21/presentation/qiao",
+      "version": "OSDI 2021官方论文入口及官方proceedings模型节",
+      "event_date": null,
+      "date_basis": "官方BibTeX July2021；未核具体日",
+      "read_scope": "官方入口；官方完整proceedings检索返回第3节goodput=throughput×efficiency与allocation/microbatch/accumulation模型；未全读单篇PDF",
+      "evidence_level": "一手官方会议摘要与原论文模型节",
+      "limits": "仅用于弹性语义推导；不引用摘要收益；不当当前生产实现或RL reward通用模型",
+      "role": "foundational_method_newly_read"
+    },
+    {
+      "id": "D12-S07",
+      "title": "DCP v2.9.0 save coordination and filesystem commit",
+      "url": "https://github.com/pytorch/pytorch/blob/v2.9.0/torch/distributed/checkpoint/state_dict_saver.py",
+      "version": "v2.9.0",
+      "event_date": null,
+      "date_basis": "固定tag源码；未核release首日",
+      "read_scope": "state_dict_saver.py 203–234,359–374,468–483；filesystem.py写sync_files及754–786 metadata tmp/fsync/rename",
+      "evidence_level": "一手固定源码核读",
+      "limits": "默认collective文件路径；未审所有storage_writer，不把rename当跨后端事务；代码不等于故障实验",
+      "role": "source_method_deepening",
+      "related_urls": [
+        "https://github.com/pytorch/pytorch/blob/v2.9.0/torch/distributed/checkpoint/filesystem.py"
+      ]
+    },
+    {
+      "id": "D12-S08",
+      "title": "NVRx async writer CPU snapshot clone",
+      "url": "https://github.com/NVIDIA/nvidia-resiliency-ext/blob/v0.7.0/src/nvidia_resiliency_ext/checkpointing/async_ckpt/filesystem_async.py",
+      "version": "v0.7.0",
+      "event_date": "2026-09-16",
+      "date_basis": "沿用已核release时间2026-09-16T01:09:19Z；此轮仅源码补核",
+      "read_scope": "_clone_or_dequantize_if_needed/resolve_data约290–313，持久写/fsync约924–966；非1451行全审",
+      "evidence_level": "一手固定源码",
+      "limits": "仅相关CPU tensor clone分支；应用仍需同更新状态与完整状态收集；未做故障实验",
+      "role": "inherited_release_source_rechecked"
+    },
+    {
+      "id": "D12-S09",
+      "title": "TrainMover",
+      "url": "https://www.usenix.org/system/files/osdi26-lao.pdf",
+      "version": "OSDI2026正式19页PDF",
+      "event_date": null,
+      "event_date_range": [
+        "2026-07-13",
+        "2026-07-15"
+      ],
+      "date_basis": "正式PDF封面会期July13–15；未核预印本首次日",
+      "read_scope": "第3节预期/突发事件流程、第4节sandbox概念、第5节两阶段delta CCL、第6节general standby、第7节状态同步、第8.1/8.2规模/推演及比较口径；非完整复现",
+      "evidence_level": "一手作者原型/1024GPU实验与大规模推演",
+      "limits": "64K节省是推演；状态冗余/检查点仍需要；未覆盖用户bug/相关多节点故障；框架/c10d/NCCL需修改，非部署验证",
+      "role": "independently_discovered_recent_method"
+    }
+  ],
+  "gaps": [
+    "新调度公平策略研究补核",
+    "每租户竞争尾部",
+    "弹性后数据/优化语义",
+    "全故障域恢复实验",
+    "llm-d旧材料当前版本整合"
+  ],
+  "deepening_round": {
+    "round": "mechanism-and-worked-example-deepening",
+    "date": "2026-11-04",
+    "scope": "不含项目名的问题检索→一手方法/源码定点核读；非全域扫描；未改全局截止或冻结证据",
+    "experiments_performed": [],
+    "failed_reads": [],
+    "queries": [
+      "\"dominant resource fairness\" \"NSDI\"",
+      "site:usenix.org training elastic scheduling checkpoint goodput Pollux OSDI21",
+      "site:usenix.org \"2026\" \"GPU\" \"failure\" checkpoint"
+    ],
+    "organizations": [
+      "USENIX NSDI/OSDI 官方论文与会议程序",
+      "PyTorch 固定v2.9.0源码",
+      "NVIDIA NVRx 固定v0.7.0源码"
+    ],
+    "calculations": [
+      "8GPU64CPU，A(1,16),B(2,8)：每份dominant share均1/4；连续x=8/3，各2份留6GPU48CPU后存在离散公平选择",
+      "拓扑选择示意：立即20min vs等2+17min，后者早1min",
+      "C1min,F600min，C/I+I/(2F)：I10/30/60=>10.833/5.833/6.667%；理想最优sqrt1200=34.641min",
+      "排队2+准备3+无故障等价60+检测1+替换2+载入3+预热1+重做5=77min；未把queue当GPU用量"
+    ],
+    "closed_explanatory_gaps": [
+      "多资源公平、离散与拓扑准入",
+      "伸缩到达时刻及全局batch更新约束",
+      "快照冻结/复制/分片/提交/恢复/重放协议",
+      "checkpoint频率权衡与故障归因",
+      "热备准备与切换及状态来源边界"
+    ],
+    "candidate_disposition": [
+      {
+        "title": "TrainMover",
+        "disposition": "从不含项目名检索发现，纳入正文方法；1024GPU实测/64K推演分开，可供中央新发现编号"
+      },
+      {
+        "title": "OSDI26 RobustRL",
+        "url": "https://www.usenix.org/conference/osdi26/technical-sessions",
+        "disposition": "技术程序检索结果发现；未打开单篇论文，不作方法/性能证据，留候选"
+      },
+      {
+        "title": "Kueuev0.14/NVRxv0.7",
+        "disposition": "继承旧证据；Kueue是2025历史release，NVRx是9/16旧收录，本轮源码补核不算新发布"
+      }
+    ]
+  },
+  "gaps_after_deepening": [
+    "拓扑/配额控制器真实持久化与分区隔离",
+    "共享压力与相关故障实际验证",
+    "有状态在线服务恢复契约",
+    "调度器当前版本横向实现深读"
+  ],
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-05",
+          "title": "llm-d 1.0：协调上线需要容量，传输支持需要回收终态",
+          "domains": [
+            "D05",
+            "D06",
+            "D12",
+            "D16"
+          ],
+          "kind": "正式发布补录＋公开工程问题",
+          "first_public": "项目首次公开未重核；本次版本GitHub published_at已核。",
+          "event_date": "v1.0.0正式发布2026-10-20T02:30:10Z；#2857 10/25更新manifest，11/09仍open/未合并。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "llm-d v1.0.0 / 378b42d18dabe0b9c4ced4e6f3670d93b52db08e；LWS v1.0.0；修复PR head 61530b711c9221a1cd52ef209dbc0af1265d1215",
+          "sources": [
+            [
+              "正式release",
+              "https://github.com/llm-d/llm-d/releases/tag/v1.0.0"
+            ],
+            [
+              "固定PD支持",
+              "https://github.com/llm-d/llm-d/blob/378b42d18dabe0b9c4ced4e6f3670d93b52db08e/guides/pd-disaggregation/README.md"
+            ],
+            [
+              "固定SGLang运维",
+              "https://github.com/llm-d/llm-d/blob/378b42d18dabe0b9c4ced4e6f3670d93b52db08e/docs/operations/disaggregation/sglang.md"
+            ],
+            [
+              "LWS默认值",
+              "https://github.com/kubernetes-sigs/lws/pull/1169"
+            ],
+            [
+              "故障#2854",
+              "https://github.com/llm-d/llm-d/issues/2854"
+            ],
+            [
+              "修复#2857",
+              "https://github.com/llm-d/llm-d/pull/2857"
+            ]
+          ],
+          "read_scope": "release正文/API日期、固定PD与SGLang文档、LWS release/#1169与#2854/#2857正文和状态；flow-control细节404未补齐。",
+          "change": "DisaggregatedSet协调P/D revision/readiness，但LWS默认maxSurge/maxUnavailable由1/0变0/1，single-prefill可能无完整revision而503；surge-first需要备用GPU。SGLang+NIXL中decode在传输启动前取消或死亡，prefill KV可滞留至pod重启；控制记录清理不等于GPU回收。",
+          "limits": "正式release不代表原计划目标全部完成。nightly E2E validated与社区配置分开。SGLang此路径为prefill push，不能混用Mooncake/Mori timeout或vLLM释放能力；未故障注入，未采纳公告泛化性能数字。",
+          "judgment": "⚠️反证限定／🔄演进",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

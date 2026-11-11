@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: developing
 source_status: transcript-and-slides-reviewed
 course: Weiming HPC Training Camp × LCPU AI Infra Seminars
 lecture: W1

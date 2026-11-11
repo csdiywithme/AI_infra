@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: developing
 course: Weiming HPC Training Camp × LCPU AI Infra Seminars
 lecture: 4
 lecture_date: 2026-08-09

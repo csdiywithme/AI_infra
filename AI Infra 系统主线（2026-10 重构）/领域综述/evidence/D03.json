@@ -1,0 +1,365 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "status": "mechanism-deepened",
+  "writes_scope": "Only assigned domain note and its evidence JSON. Historical evidence cards, logs and topic studies unchanged.",
+  "date_policy": "Only explicitly dated events at or before 2026-11-04 enter the main frontier section. Foundational revisions are not counted as new events; undated main/release status is not established.",
+  "not_performed": [
+    "No models downloaded.",
+    "No packages installed.",
+    "No training, serving, dataset processing or hardware benchmark executed.",
+    "No exhaustive 90-day publication scan.",
+    "PDF figures were not visually checked; claims used textual methods and settings.",
+    "No native low-precision, loader-recovery, distributed or RL implementation was executed.",
+    "No claims of full-domain coverage or exhausted discovery."
+  ],
+  "domain_id": "D03",
+  "note": "D03 后训练与推理时计算.md",
+  "boundary": "SFT/preference/online RL objectives; full/low-rank adaptation and distillation; rollout-feedback-update flow; test-time search/verification; exact speculative acceleration belongs to D07.",
+  "audit": [
+    {
+      "file": "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 07 数据与后训练闭环.md",
+      "headings": [
+        "4. 同步与异步：时间重叠会产生版本差",
+        "5. 同一份权重，也可能不是同一个行为策略",
+        "6. Test-time compute：把预算花在哪里"
+      ],
+      "lines": [
+        100,
+        172
+      ],
+      "depth": "Substantial prior failure-denominator, policy/probability, layout/refit and recovery cases; not discarded or re-dated."
+    },
+    {
+      "file": "AI Infra 系统主线（2026-10 重构）/正文/07 当生成结果又参与模型更新.md",
+      "headings": [
+        "先把同步运行的一轮画出来",
+        "让阶段重叠，为什么还需要限制？"
+      ],
+      "depth": "Worked sync-loop timing and version contract; limited objective and adaptation-route comparison."
+    }
+  ],
+  "discovery": [
+    {
+      "entry": "Primary arXiv asynchronous rollout / heterogeneous scheduling problem search",
+      "queries": [
+        "2026 reinforcement learning system rollout asynchronous training new site:arxiv.org/abs"
+      ],
+      "found": [
+        "2604.26256",
+        "2601.12784",
+        "2609.36899"
+      ],
+      "selection": "CadenceRL selected for hardware-throughput versus trajectory-completion conflict; no reuse of old framework tracking as a new discovery."
+    },
+    {
+      "date": "2026-11-04",
+      "entry": "Independent problem-led search before known-source deepening",
+      "queries": [
+        "site:arxiv.org/abs/26 off policy language model reinforcement learning importance sampling distillation inference budget",
+        "\"2026\" \"off-policy\" \"language\" reinforcement site:arxiv.org/abs"
+      ],
+      "selection": "New source methods and evaluation deep-read; old candidate queue not used as boundary.",
+      "new_primary_sources": [
+        "https://arxiv.org/html/2602.19362v1"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "D03-S1",
+      "title": "DPO",
+      "url": "https://arxiv.org/html/2305.18290v2",
+      "fixed_revision": "arXiv:2305.18290v2",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§3–4 preference objective and no-online-RL formulation"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D03-S2",
+      "title": "PPO",
+      "url": "https://arxiv.org/pdf/1707.06347v2",
+      "fixed_revision": "arXiv:1707.06347v2",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "PDF §2 policy gradient; §3 clipped probability ratios; revision metadata"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D03-S3",
+      "title": "LoRA",
+      "url": "https://arxiv.org/html/2106.09685v2",
+      "fixed_revision": "arXiv:2106.09685v2",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Abstract; §4 low-rank parametrization; unchanged frozen-base computation distinction"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D03-S4",
+      "title": "Scaling test-time compute",
+      "url": "https://arxiv.org/html/2408.03314v1",
+      "fixed_revision": "arXiv:2408.03314v1",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§2 proposer/verifier; §3 allocation; selected verifier/distribution-shift discussion"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D03-S5",
+      "title": "CadenceRL",
+      "url": "https://arxiv.org/html/2609.36899v1",
+      "fixed_revision": "arXiv:2609.36899v1",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "dated_frontier",
+      "event_date": "2026-09-29",
+      "event_date_basis": {
+        "kind": "arXiv submission history v1",
+        "url": "https://arxiv.org/abs/2609.36899",
+        "detail": "v1 submitted 2026-09-29 07:23:48 UTC."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§2 workflow; §3.3–3.4 pacing/staleness; §4 pending/placement/KV; §6.1 setup; §6.3 quality check; appendix capacity/bottleneck assumptions",
+        "Deepening: §4.1–4.4 pending version, headroom thresholds, concentration and staged KV/fallback; §5 credit admission; §6.1–6.4 spare trainer, same configs, 30-iteration reward and migration overhead."
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "Pacing displaces trajectories rather than dropping difficult tasks.",
+        "Admission credit is not a per-trajectory wall-clock age guarantee.",
+        "Quality check cited is Qwen3-8B mean reward over 30 iterations, not independent task quality or full convergence.",
+        "Author rollout-bottleneck configurations; no independent system run."
+      ]
+    },
+    {
+      "id": "D03-S6",
+      "title": "LLMs Can Learn to Reason Via Off-Policy RL / OAPL",
+      "url": "https://arxiv.org/html/2602.19362v1",
+      "fixed_revision": "arXiv:2602.19362v1",
+      "commit": null,
+      "commit_basis": "Fixed paper revision; no repository commit or source execution claimed.",
+      "role": "newly_discovered_prior_research",
+      "event_date": "2026-02-22",
+      "event_date_basis": {
+        "kind": "arXiv v1 submission history",
+        "url": "https://arxiv.org/abs/2602.19362",
+        "detail": "History opened and v1 date checked on 2026-11-04."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§2 behavior/trainer probability mismatch and IS factors",
+        "§3 KL optimum, value estimator, regression, Algorithm 1 sync and buffer clearing",
+        "§5.1–5.2 math/code protocols, filtering and checkpoint selection",
+        "§6.1–6.2 independent-task evaluation, sample accounting and unreproduced DeepCoder result; appendix hyperparameters"
+      ],
+      "verification_strength": "Primary methods and stated evaluation read; author results, not independently reproduced.",
+      "limits": [
+        "Outside latest 90 days; v1 fixed despite v2 available.",
+        "Algorithm changes objective rather than simply removing importance ratios from GRPO.",
+        "Code: all-failure prompts filtered; best checkpoint selected; behavior sync approximately one epoch/400 updates in this setup, not universal age limit.",
+        "200K versus 650K generations differ in lengths; author could not reproduce DeepCoder original 60.6%; no equal-cost independent replication."
+      ]
+    }
+  ],
+  "coverage": {
+    "mechanisms": [
+      "SFT masks and probability objective",
+      "Preference versus online gradient feedback",
+      "Behavior probabilities and normalization",
+      "Frozen-base low-rank adaptation state/computation",
+      "Sampling/verification budget versus exact execution speed"
+    ],
+    "routes": [
+      "SFT",
+      "Offline preference optimization",
+      "Online policy optimization",
+      "Full-parameter/PEFT axis",
+      "Distillation overview",
+      "Parallel sampling/sequential revision/verifier search"
+    ]
+  },
+  "cross_domains": [
+    "D01",
+    "D05",
+    "D04"
+  ],
+  "gaps": [
+    "Matched independent-task and total-cost SFT/DPO/RL/distillation/PEFT comparison.",
+    "Long-horizon CadenceRL quality, behavior logprob and failure/recovery audit.",
+    "Test OAPL under support limitations, all-failure prompts and fixed checkpoint selection; no universal lag limit.",
+    "Budget actual tokens/tool/verifier/failed branches and test selectors beyond oracle pass@k."
+  ],
+  "candidates": [
+    {
+      "title": "DORA",
+      "url": "https://arxiv.org/abs/2604.26256",
+      "read_scope": "Search abstract only",
+      "status": "Candidate, not deep-read or used for performance claims."
+    },
+    {
+      "title": "StaleFlow",
+      "url": "https://arxiv.org/abs/2601.12784",
+      "read_scope": "Search abstract only",
+      "status": "Candidate, not deep-read or used for performance claims."
+    }
+  ],
+  "deepening_pass": {
+    "date": "2026-11-04",
+    "user_requirement": "Explain principles, competing routes, frontier and causal cross-domain choices beyond frameworks and paper abstracts.",
+    "closed_explanation_gaps": [
+      "SFT/preference/RL signal-to-computation dependencies; LoRA versus full-parameter and distillation amortization",
+      "Trajectory IS/prefix coverage, length variance, clipping and ESS limits",
+      "Failure/group/length denominators, multi-turn credit, environment waiting and committed updates",
+      "Inference budget/oracle pass@k versus actual selection and independent task quality"
+    ],
+    "read_scope_policy": "New sources list exact successful methods/protocol reading; previous scopes preserved.",
+    "code_scope": "Paper methods/algorithms and pseudocode read. No repository implementation audit or execution claimed.",
+    "candidate_disposition": "Existing candidates unchanged: no additional substantive method read of their sources this pass. Newly discovered sources above enter domain research with stated date and limits; central IDs maintained by root.",
+    "no_completion_claim": "Mechanism gaps explained; empirical and implementation gaps remain."
+  },
+  "arithmetic_verification": {
+    "performed_on": "2026-11-04",
+    "method": "Python3 arithmetic and unit cross-check only; teaching assumptions, not measured benchmark",
+    "checks": {
+      "lora": "4096^2=16777216 versus rank16*(4096+4096)=131072 (1/128)",
+      "trajectory_ratio": "constant per-token log difference 0.02 gives exp(0.4)=1.492 at length20; exp(20)=4.85165e8 at length1000",
+      "ess": "weights(1,1,1,9):12^2/84=1.7142857",
+      "group_denominator": "2/8 successes: advantages 1.732,-0.577; after deleting3 failures (2/5):1.225,-0.816 with population standard deviation",
+      "distillation": "1000GPUh*3600/(2-0.5)GPU-s/task=2.4e6 tasks at matched quality"
+    }
+  },
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-04",
+          "title": "TitanRL：数值契约触及 KV 页面和依赖版本",
+          "domains": [
+            "D03",
+            "D04",
+            "D06",
+            "D16"
+          ],
+          "kind": "旧候选机制补录＋新增工程修复",
+          "first_public": "10/21旧公告（10/22更新）回顾多项工作，不统一作为各功能首发日；PR首次公开分别11/08 22:08:15Z与22:24:57Z。",
+          "event_date": "PR#5955合并11/08 23:05:36Z；#5958合并11/09 03:46:35Z。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "共同快照3da9eac83509091503e48534c9e3ca06b4d76fd7；布局修复b6d2c534123e3a658ebaef66bbe277562199fb51；vLLM固定1.0.0.dev20261107+cu132（9f03b510c）",
+          "sources": [
+            [
+              "固定parity契约",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/torchtitan/rl/BITWISE_PARITY.md"
+            ],
+            [
+              "支持范围",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/torchtitan/rl/README.md"
+            ],
+            [
+              "KV修复#5955",
+              "https://github.com/pytorch/torchtitan/pull/5955"
+            ],
+            [
+              "依赖固定#5958",
+              "https://github.com/pytorch/torchtitan/pull/5958"
+            ],
+            [
+              "固定安装脚本",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/scripts/install_rl_env.sh"
+            ]
+          ],
+          "read_scope": "固定README/parity、batch_invariant.py、公开parity测试；两PR正文/metadata及安装脚本。",
+          "change": "同权重仍可因batch/kernel/归约不同产生logprob偏差；限定BF16 forward、FP32 master、同TP禁SP及匹配kernel/reduction。Kimi K3不同K/V head size遗漏head_size_v导致页面padding与FA4固定16-token块不匹配；修复补真实V维。新vLLM删内部API后暂锁旧nightly维持组合。",
+          "limits": "公开main/active development；README支持表为debug模型两步测试，Kimi K3仍coming soon。布局修复维护者仅报GB300三步RL/logprob diff=0，部分测试在rebase前或含后续修复；不是长期质量或H100/B200保证。依赖pin验证含GB300 aarch64安装及CPU单测，不证明适配最新vLLM；仅cu132固定wheel。",
+          "judgment": "⚠️明确组合／🔄修复",
+          "independent_experiments": false
+        },
+        {
+          "id": "AIINFRA-E-20261109-08",
+          "title": "Reshard Collective：训练—生成交接按目标分片搬运",
+          "domains": [
+            "D02",
+            "D03",
+            "D10"
+          ],
+          "kind": "新增机制报告＋既有实现补录",
+          "first_public": "绝对首次公开未穷尽；NeMo RL PR#2971创建06/27、07/29已合并。",
+          "event_date": "2026-11-06官方说明；不能把11/06当首次实现上线。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "NCCL extensions b4d59251cd0e3e99d19e9d92261e669b8c75b2bc（11/08提交）；NeMo RL合并e40aa046e5fd4af30f93c27acdcdb9cc748670ab；nightly文档按11/09所见",
+          "sources": [
+            [
+              "11/06机制报告",
+              "https://developer.nvidia.com/blog/accelerating-reinforcement-learning-weight-refit-with-the-reshard-collective/"
+            ],
+            [
+              "固定M2N README",
+              "https://github.com/NVIDIA/nccl-extensions/blob/b4d59251cd0e3e99d19e9d92261e669b8c75b2bc/nccl_m2n/README.md"
+            ],
+            [
+              "集成PR与日期",
+              "https://github.com/NVIDIA-NeMo/RL/pull/2971"
+            ],
+            [
+              "nightly refit指南",
+              "https://docs.nvidia.com/nemo/rl/nightly/guides/refit.html"
+            ]
+          ],
+          "read_scope": "官方报告全文；固定M2N布局/API/生命周期契约；PR正文与API日期；nightly transport表和限制。未全实现审计。",
+          "change": "两端mesh/placement描述分片交集，直接重分片并利用NVLink域内副本转发，避免全量gather-broadcast冗余。M2N是独立NCCL扩展库，不称新增稳定NCCL核心API。",
+          "limits": "固定M2N要求等大连续块、匹配globalshape、1–2D mesh和1–3D tensor。NeMo报告混合路径只将主导FFN权重交给Reshard，QKV/Mamba/小权重走旧路。报告2.7–5.7倍为H100/GB200所列Qwen3-235B/DeepSeekV3-671B/NemotronUltraV3与明确TP/PP/EP/DP组合的refit自报，未记录完整质量/SLO/精度矩阵，正文不采用倍数。成员变化当前需重建group，shrink/grow为计划；不是RL总成本/质量结论。",
+          "judgment": "🔄演进",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

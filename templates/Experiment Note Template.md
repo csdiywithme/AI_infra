@@ -1,6 +1,5 @@
 ---
 type: experiment
-status: seed
 phase: planned
 area:
 topics: []

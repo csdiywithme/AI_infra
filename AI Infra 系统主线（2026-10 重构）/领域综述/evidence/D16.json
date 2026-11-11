@@ -1,0 +1,286 @@
+{
+  "queries": [
+    "site.mlflow.org blog 2026 model registry deployment evaluation",
+    "2026 model registry lineage evaluation lifecycle synchronization"
+  ],
+  "sources": [
+    {
+      "url": "https://aws.amazon.com/blogs/machine-learning/govern-models-with-mlflow-and-amazon-sagemaker-ai-model-registry-sync-part-1/",
+      "date": "2026-09-08",
+      "date_basis": "official publication date",
+      "read": "sync metadata, lifecycle vs approval and plugin/platform boundaries",
+      "status": "managed-platform documentation, not OSS universal feature"
+    },
+    {
+      "url": "https://mlflow.org/docs/latest/ml/model-registry/",
+      "date": null,
+      "read": "versions, mutable aliases and managed-vs-OSS scope",
+      "status": "dynamic documentation; no deployment validation"
+    },
+    {
+      "url": "https://github.com/onnx/onnx/blob/v1.17.0/docs/Versioning.md",
+      "event_date": null,
+      "date_basis": "Fixed v1.17.0 baseline",
+      "read_date": "2026-11-04",
+      "read_scope": "Lines 1–130: IR/operator/model versions, operator identity and binding, implementation outside format contract",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/engine-compatibility.html",
+      "event_date": null,
+      "date_basis": "Dynamic official documentation read 2026-11-04",
+      "read_date": "2026-11-04",
+      "read_scope": "Version/hardware compatibility, build flags, tactics exclusion and plugin conditions; no plan or historical-support verification",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://kserve.github.io/website/docs/model-serving/storage/providers/oci",
+      "event_date": null,
+      "date_basis": "Dynamic official page labelled 0.20, read 2026-11-04",
+      "read_date": "2026-11-04",
+      "read_scope": "OCI Modelcar distribution/enabling; not a newly dated release or GPU readiness guarantee",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://kserve.github.io/website/docs/next/model-serving/generative-inference/llmisvc/canary-rollout",
+      "event_date": null,
+      "date_basis": "Explicit Next design, date/release not established",
+      "read_date": "2026-11-04",
+      "read_scope": "Group, proportional weights, HTTPRoute backendRefs, lifecycle and zero-weight warming warning; no deployed end-to-end guarantee",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://github.com/kserve/modelmesh-serving/blob/v0.12.0/docs/runtimes/custom_runtimes.md",
+      "event_date": null,
+      "date_basis": "Fixed historical tag, first date not audited",
+      "read_date": "2026-11-04",
+      "read_scope": "Runtime SPI: capacity, predicted/loaded size, load/unload completion and static model-memory scope; no LLM KV admission claim",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    }
+  ],
+  "gaps": [
+    "KServe controller release/source not matched to teaching protocol",
+    "Multi-model/gateway same-contract comparison pending",
+    "Cross-runtime numerical, artifact provenance and rollback fault validation pending"
+  ],
+  "domain": "D16",
+  "checked_on": "2026-11-04",
+  "coverage": "Mechanism deepening with concrete derivations, fixed source and selected frontier; implementation/measurement gaps remain",
+  "independent_experiments": false,
+  "deepening_rounds": [
+    {
+      "round": "mechanism-deepening-20261104",
+      "date": "2026-11-04",
+      "queries": [
+        "LLM model artifact rolling deployment in flight requests cache invalidation rollback inference platform",
+        "site.kserve.github.io model rollout canary modelcar storage runtime modelmesh",
+        "site.kserve.github.io website modelmesh cache model evict loaded runtime"
+      ],
+      "sources_added": [
+        "https://github.com/onnx/onnx/blob/v1.17.0/docs/Versioning.md",
+        "https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/engine-compatibility.html",
+        "https://kserve.github.io/website/docs/model-serving/storage/providers/oci",
+        "https://kserve.github.io/website/docs/next/model-serving/generative-inference/llmisvc/canary-rollout",
+        "https://github.com/kserve/modelmesh-serving/blob/v0.12.0/docs/runtimes/custom_runtimes.md"
+      ],
+      "explanation_gaps_addressed": [
+        "Graph/executable/application compatibility",
+        "Manifest identity and immutable request binding",
+        "Distribution vs loading/warming/readiness",
+        "Canary/session/drain/reclaim/rollback protocol",
+        "Platform ownership boundaries and rare-failure evidence"
+      ],
+      "coverage": "Focused method/source review, not all-family or 90-day enumeration",
+      "not_performed": [
+        "GPU or deployment experiment",
+        "independent task-quality validation",
+        "all backend/source audit"
+      ]
+    }
+  ],
+  "failed_reads": [
+    {
+      "url": "https://docs.nvidia.com/deeplearning/tensorrt/10.13.3/inference-library/advanced.html",
+      "result": "404; current official Engine Compatibility used as dynamic mechanism, not historical fixed support"
+    }
+  ],
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-02",
+          "title": "Rerank 5：文档内证据预算依赖实际 API",
+          "domains": [
+            "D15",
+            "D16"
+          ],
+          "kind": "补录＋新增集成边界",
+          "first_public": "最早已核官方release为2026-10-21；不声明穷尽绝对首次。",
+          "event_date": "2026-10-21模型发布；11/04 OpenRouter集成公告。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "rerank-v5.0-pro / rerank-v5.0-fast；官方API动态文档按11/09所见",
+          "sources": [
+            [
+              "10/21 release",
+              "https://docs.cohere.com/v2/changelog/rerank-v5"
+            ],
+            [
+              "机制与实验",
+              "https://cohere.com/blog/rerank-5"
+            ],
+            [
+              "模型文档",
+              "https://docs.cohere.com/docs/rerank"
+            ],
+            [
+              "集成发布索引",
+              "https://docs.cohere.com/v2/changelog"
+            ],
+            [
+              "OpenRouter接口边界",
+              "https://docs.cohere.com/docs/cohere-on-openrouter"
+            ]
+          ],
+          "read_scope": "官方release、Context Focus机制/实验、模型参数与平台集成限制正文；未调用API。",
+          "change": "Context Focus可返回字符区间和分数，默认关闭，可用threshold/max_spans分配输入证据预算。虽可经OpenRouter调用同一模型，却不提供relevant_spans；这项能力须用Cohere API。",
+          "limits": "专有模型/API正式发布，不是开源模型。作者agent实验为17数据集各50题、GLM5-3-flash与search工具；token统计含输入/输出/reasoning/cached。缺硬件、并发、SLO和重排开销拆分，不能把token减少改写成同比费用或延迟下降。",
+          "judgment": "🔄演进",
+          "independent_experiments": false
+        },
+        {
+          "id": "AIINFRA-E-20261109-04",
+          "title": "TitanRL：数值契约触及 KV 页面和依赖版本",
+          "domains": [
+            "D03",
+            "D04",
+            "D06",
+            "D16"
+          ],
+          "kind": "旧候选机制补录＋新增工程修复",
+          "first_public": "10/21旧公告（10/22更新）回顾多项工作，不统一作为各功能首发日；PR首次公开分别11/08 22:08:15Z与22:24:57Z。",
+          "event_date": "PR#5955合并11/08 23:05:36Z；#5958合并11/09 03:46:35Z。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "共同快照3da9eac83509091503e48534c9e3ca06b4d76fd7；布局修复b6d2c534123e3a658ebaef66bbe277562199fb51；vLLM固定1.0.0.dev20261107+cu132（9f03b510c）",
+          "sources": [
+            [
+              "固定parity契约",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/torchtitan/rl/BITWISE_PARITY.md"
+            ],
+            [
+              "支持范围",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/torchtitan/rl/README.md"
+            ],
+            [
+              "KV修复#5955",
+              "https://github.com/pytorch/torchtitan/pull/5955"
+            ],
+            [
+              "依赖固定#5958",
+              "https://github.com/pytorch/torchtitan/pull/5958"
+            ],
+            [
+              "固定安装脚本",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/scripts/install_rl_env.sh"
+            ]
+          ],
+          "read_scope": "固定README/parity、batch_invariant.py、公开parity测试；两PR正文/metadata及安装脚本。",
+          "change": "同权重仍可因batch/kernel/归约不同产生logprob偏差；限定BF16 forward、FP32 master、同TP禁SP及匹配kernel/reduction。Kimi K3不同K/V head size遗漏head_size_v导致页面padding与FA4固定16-token块不匹配；修复补真实V维。新vLLM删内部API后暂锁旧nightly维持组合。",
+          "limits": "公开main/active development；README支持表为debug模型两步测试，Kimi K3仍coming soon。布局修复维护者仅报GB300三步RL/logprob diff=0，部分测试在rebase前或含后续修复；不是长期质量或H100/B200保证。依赖pin验证含GB300 aarch64安装及CPU单测，不证明适配最新vLLM；仅cu132固定wheel。",
+          "judgment": "⚠️明确组合／🔄修复",
+          "independent_experiments": false
+        },
+        {
+          "id": "AIINFRA-E-20261109-05",
+          "title": "llm-d 1.0：协调上线需要容量，传输支持需要回收终态",
+          "domains": [
+            "D05",
+            "D06",
+            "D12",
+            "D16"
+          ],
+          "kind": "正式发布补录＋公开工程问题",
+          "first_public": "项目首次公开未重核；本次版本GitHub published_at已核。",
+          "event_date": "v1.0.0正式发布2026-10-20T02:30:10Z；#2857 10/25更新manifest，11/09仍open/未合并。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "llm-d v1.0.0 / 378b42d18dabe0b9c4ced4e6f3670d93b52db08e；LWS v1.0.0；修复PR head 61530b711c9221a1cd52ef209dbc0af1265d1215",
+          "sources": [
+            [
+              "正式release",
+              "https://github.com/llm-d/llm-d/releases/tag/v1.0.0"
+            ],
+            [
+              "固定PD支持",
+              "https://github.com/llm-d/llm-d/blob/378b42d18dabe0b9c4ced4e6f3670d93b52db08e/guides/pd-disaggregation/README.md"
+            ],
+            [
+              "固定SGLang运维",
+              "https://github.com/llm-d/llm-d/blob/378b42d18dabe0b9c4ced4e6f3670d93b52db08e/docs/operations/disaggregation/sglang.md"
+            ],
+            [
+              "LWS默认值",
+              "https://github.com/kubernetes-sigs/lws/pull/1169"
+            ],
+            [
+              "故障#2854",
+              "https://github.com/llm-d/llm-d/issues/2854"
+            ],
+            [
+              "修复#2857",
+              "https://github.com/llm-d/llm-d/pull/2857"
+            ]
+          ],
+          "read_scope": "release正文/API日期、固定PD与SGLang文档、LWS release/#1169与#2854/#2857正文和状态；flow-control细节404未补齐。",
+          "change": "DisaggregatedSet协调P/D revision/readiness，但LWS默认maxSurge/maxUnavailable由1/0变0/1，single-prefill可能无完整revision而503；surge-first需要备用GPU。SGLang+NIXL中decode在传输启动前取消或死亡，prefill KV可滞留至pod重启；控制记录清理不等于GPU回收。",
+          "limits": "正式release不代表原计划目标全部完成。nightly E2E validated与社区配置分开。SGLang此路径为prefill push，不能混用Mooncake/Mori timeout或vLLM释放能力；未故障注入，未采纳公告泛化性能数字。",
+          "judgment": "⚠️反证限定／🔄演进",
+          "independent_experiments": false
+        },
+        {
+          "id": "AIINFRA-E-20261109-07",
+          "title": "RTP-LLM：模型接入与共享 runtime 以状态契约相接",
+          "domains": [
+            "D16",
+            "D06"
+          ],
+          "kind": "新技术报告补录，非引擎首次发布",
+          "first_public": "arXiv v1提交2026-10-31 14:10:54Z；PDF写Preprint Oct30，不替代提交日；首次公开瞬间未穷尽。",
+          "event_date": "2026-10-31：论文v1。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "arXiv 2611.00967v1；未绑定或审计源码commit",
+          "sources": [
+            [
+              "报告版本/日期",
+              "https://arxiv.org/abs/2611.00967"
+            ],
+            [
+              "固定正文",
+              "https://arxiv.org/html/2611.00967v1"
+            ]
+          ],
+          "read_scope": "§1–4、§5.1及部分5.2；不采用完整评测或生产规模数字。",
+          "change": "Python/PyTorch承接模型前向和权重解释，C++ runtime承担调度/状态，CUDA Graph摊薄host开销。每层状态描述与cache view连接两侧，新状态类型仍可能要求双方修改；请求、connector与retention引用分别决定物理释放。",
+          "limits": "作者系统报告/生产自述，不是独立生产审计。异步output是decode-only且non-speculative特定路径；资源不足可终止请求，不自动保证抢占续跑。模型可接入不等于所有状态类型开箱支持。",
+          "judgment": "🔄演进",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

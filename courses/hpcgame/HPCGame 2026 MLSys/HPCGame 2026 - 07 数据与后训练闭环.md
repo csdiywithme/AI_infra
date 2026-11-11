@@ -3,7 +3,7 @@ type: topic-note
 status: evergreen
 created: 2026-09-15
 source_checked: 2026-09-15
-incremental_checked: 2026-09-21
+incremental_checked: 2026-10-19
 area: data-and-post-training
 tracking_axes:
   - 数据与 recipe
@@ -17,7 +17,7 @@ tracking_axes:
 > 系统效率最终要回答：**从原始数据或任务出发，达到同等模型质量、任务成功率，需要多少时间和总成本？** 数据、训练、生成、环境与评估共同决定这个答案。
 
 > [!nav] 从关系进入
-> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 01 训练状态与并行|训练状态]] · [[HPCGame 2026 - 03 推理状态与调度|生成与调度]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群效率]] · [[HPCGame 2026 - 06 前沿追踪|追踪入口]]
+> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 01 训练状态与并行|训练状态]] · [[HPCGame 2026 - 03 推理状态与调度|生成与调度]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群效率]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
 
 ```mermaid
 flowchart LR
@@ -68,6 +68,12 @@ Packing 把多个短样本放进一个计算块，可减少 padding；独立 SFT
 
 因此验证 packing 要同时看有效 token 数、loss reduction、边界 mask 与质量；布局是否适配 attention kernel、CP/TP 和 CUDA Graph，连接 [[HPCGame 2026 - 01 训练状态与并行]] 与 [[HPCGame 2026 - 05 Kernel、DSL 与硬件]]。
 
+### 数据选择和后续可训练性，也属于系统验收
+
+2026-10-19补核Curator：FP16加速相似度计算后，误差可能跨过去重阈值，改变保留集合；即使删除集合几乎相同，代表文档关系也未必相同。应先定义下游用的是IDs、代表映射还是整个邻接结构，再决定可接受误差。数据准备不是不影响学习的透明加速层。[[MLSys - 证据台账#E-20261019-02]] · [受控决策比较](https://github.com/NVIDIA-NeMo/Curator/pull/2388)
+
+新midtraining报告给出另一层验收：基座proxy不一定预测后训练效果，固定短SFT更接近要优化的终点。但“相同SFT后更好”还未计前置midtraining成本，“公开recipe报告”也不等于处理脚本/数据metadata已发布。保留数据选择→匹配后训练→独立任务质量→总成本这条链，不能直接跳到最后。[[MLSys - 证据台账#E-20261019-01]] · [论文与开放性边界](https://arxiv.org/html/2610.22019v1)
+
 ### 恢复训练，也要恢复“读到了哪里”
 
 权重和 optimizer 恢复成功，只说明模型状态回来。完整数据状态还可能包括 sampler/RNG、worker 游标、shuffle buffer、未完成的 pack、mixture 阶段和数据版本。
@@ -115,7 +121,27 @@ Partial rollout 在同步后继续未完成轨迹，能够改变等待时间，�
 
 这也限定了性能解读：固定训练步数变快，只证明该执行区间缩短；还要核对策略陈旧、有效样本和独立质量。具体支持组合与作者实验见 [[MLSys - 证据台账#E-20260921-01]]、[verl 0.9.1](https://github.com/verl-project/verl/releases/tag/v0.9.1)。上文旧 fully_async experimental 路径保留为机制历史；本版已将这些旧 trainer 入口标记 deprecated，不能当作当前推荐接口。
 
+### 恢复的是已提交工作，还是只恢复了进程
+
+2026-10-12核验：slime的持久样本池允许重放checkpoint之后的数据，但模型更新执行过不等于已经持久提交；只有在正确提交点才能释放重放数据。另一个层次是MaxText overflow：先返回未更新state，再host replay，避免把部分更新当成功。两者粒度不同，但共同要求先定义失败前后哪些工作仍算有效。
+
+验收时分开问：**模型/optimizer回来了没有，接受的样本是否重复，随机生成能否重现，环境动作是否会再次执行？** slime不恢复冷启动KV/generation RNG，也不提供任意Ray故障自动接管；TPU step replay的定向一致性测试不能推出真实RL已经支持。[[MLSys - 证据台账#E-20261012-01]] · [[MLSys - 证据台账#E-20261012-06]] · [固定恢复指南](https://github.com/THUDM/slime/blob/v0.4.0/docs/en/advanced/fault-tolerance.md)。连接 [[HPCGame 2026 - 08 集群效率与可靠性#从快照一致性到三种恢复终点]]。
+
 ## 5. 同一份权重，也可能不是同一个行为策略
+
+### 失败政策也是数据选择政策
+
+2026-09-28 增量核验：AReaL 对不完整 rollout 组的保留规则把系统故障接到了学习分母。丢整组、只留成功成员、把模型失败计零分，是不同的训练分布；即便成功轨迹内容不变，也不宜直接比较平均 reward。需要分别记录原始任务数、完整组/部分组、模型失败、基础设施失败与训练实际使用数。
+
+这是对系统影响学习的分析，不是“部分保留一定更好”的结论。新 main 路径尚缺真实模型学习验证，receipt 失败分类还存在未闭合风险，详见 [[MLSys - 证据台账#E-20260928-01]]、[AReaL #1750](https://github.com/areal-project/AReaL/pull/1750)。这种分母问题也连接 [[HPCGame 2026 - 09 多模态与新工作负载|服务拒绝样本的统计]]。
+
+### 同 shape 不等于同布局，loss 下降不等于同算法
+
+2026-09-28 增量核验：verl 的 refit 修复说明，shape/dtype 不变的 storage 重排也需要恢复 kernel layout；不能仅以传输成功判断 rollout 权重正确。DeepSpeed 的旧 Muon 问题补录则说明，即使 loss 在下降，也可能根本没进入所配 optimizer 分支。
+
+验收应同时检查**逻辑对象身份、物理布局、实际执行分支和学习结果**。具体 GPU/CPU 验证范围不可拼接，见 [[MLSys - 证据台账#E-20260928-02]]、[[MLSys - 证据台账#E-20260928-10]]；[verl 原 PR](https://github.com/verl-project/verl/pull/7986) · [Muon 原 PR](https://github.com/deepspeedai/DeepSpeed/pull/8442)。
+
+### 数值与采样协议仍需对齐
 
 训练与 rollout 可能采用不同精度、attention kernel、归约顺序和后端；这些差异可能改变 token 概率。还要区分 tokenizer、chat template、temperature/top-p 和 mask 不一致造成的语义差异。
 
@@ -124,6 +150,10 @@ Partial rollout 在同步后继续未完成轨迹，能够改变等待时间，�
 [verl rollout correction 文档](https://github.com/verl-project/verl/blob/main/docs/algo/rollout_corr.md)分别列出实现差异与模型陈旧，并提供 importance weighting / rejection 的组合。该文档本身的更新时间标签为 **2025-10-30**；这里引用机制，不推断各后续增补的首次发布日期。
 
 分析顺序：先确认 token/mask/采样协议 → 对齐同一输入的 log-prob → 测量差异与极端比率 → 再评估修正对方差、有效样本和质量的影响。修正算法不能替代实现正确性检查。
+
+2026-10-12增量：score centering尝试修正sampler/trainer分布差造成的梯度漂移，不能误读为reward归一化或两个runtime已经等价。slime发布路径与verl main支持范围不同；作者held-out实验仍是小模型单seed且有额外weight-sync修复依赖。它强化了“吞吐预算和学习目标要联合核验”的问题，而未关闭同质量成本缺口。[[MLSys - 证据台账#E-20261012-02]] · [verl实现与实验](https://github.com/verl-project/verl/pull/8010)。
+
+2026-10-19跟进：verl #8196已合入main，完整性由provider逐token receipt证明，而非根据top-p配置或记录k值猜测；receipt必须跟随partial resume/运输/padding保持对应。缺失或不完整数据仍走近似估计，不能称已恢复真实sampler分布。配置支持、metadata完整、估计误差和学习质量是四道独立检查。[[MLSys - 证据台账#E-20261019-03]] · [原PR](https://github.com/verl-project/verl/pull/8196)
 
 这让 [[HPCGame 2026 - 02 稀疏模型与数值格式|FP8/FP4 与数值格式]]、[[HPCGame 2026 - 05 Kernel、DSL 与硬件|Kernel/编译]] 同时影响速度与学习信号，成为需要联合验证的系统边界。
 
@@ -151,7 +181,7 @@ Partial rollout 在同步后继续未完成轨迹，能够改变等待时间，�
 | 低精度是否破坏训练—推理一致性？ | 同输入 log-prob 对照、长程训练稳定性、修正消融 | 数值格式、kernel、后端 |
 | 更多 test-time 计算是否划算？ | 难度分层的质量—成本曲线，含搜索/验证开销 | serving、多模态、agent |
 
-新结果先进入 [[HPCGame 2026 - 06 前沿追踪]] 的证据与周报流程，再修订本篇稳定判断。记录“首次出现日期、具体版本、核查日期”；滚动文档被今天访问，不构成今天发布的证据。
+后续研究见 [[D01 数据工程与训练配方]]、[[D03 后训练与推理时计算]]。
 
 ## 8. 截至 2026-09-15 的来源边界
 

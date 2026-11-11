@@ -1,0 +1,26 @@
+{
+  "schema": "b300-gemm-contract.v1",
+  "operation": "D[M,N] = A[M,K] @ B[N,K].T",
+  "gpu": "B300",
+  "arch": "sm_103a",
+  "stages": 2,
+  "input_dtype": "bfloat16",
+  "output_dtype": "float32",
+  "accumulation": "float32",
+  "shapes": [
+    {"m": 512, "n": 768, "k": 320, "role": "validation"},
+    {"m": 4096, "n": 4096, "k": 4096, "role": "acceptance"},
+    {"m": 2048, "n": 4096, "k": 1024, "role": "acceptance"}
+  ],
+  "seeds": [0, 1, 2],
+  "numeric": {"atol": 0.002, "rtol": 0.0002, "integer_exact": true},
+  "timing": {"blocks": 12, "warmup": 30, "iterations": 100, "order_seed": 20261104},
+  "acceptance": {
+    "minimum_latency_reduction": 0.03,
+    "minimum_shape_ratio": 1.0,
+    "require_each_shape_ci_lower_gt_one": true,
+    "require_both_order_patterns_gt_one": true,
+    "bootstrap_resamples": 3000,
+    "bootstrap_seed": 20261104
+  }
+}

@@ -12,7 +12,7 @@ topics:
 # HPCGame 2026：Kernel、DSL 与硬件
 
 > [!nav] 返回与扩散
-> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型/精度]] · [[HPCGame 2026 - 04 通信与内存层级|通信/层级]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群与冷启动]] · [[HPCGame 2026 - 09 多模态与新工作负载|新工作负载]] · [[HPCGame 2026 - 06 前沿追踪|前沿追踪]]
+> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型/精度]] · [[HPCGame 2026 - 04 通信与内存层级|通信/层级]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群与冷启动]] · [[HPCGame 2026 - 09 多模态与新工作负载|新工作负载]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
 
 > [!abstract] 核心问题
 > Kernel 优化不是把同一份代码编译到新 GPU，而是针对新的 **compute/memory/synchronization ratio** 重新映射数据。DSL 和 AI agent 改变开发方式，但没有取消硬件知识与正确性验证。
@@ -71,7 +71,7 @@ launch 数与 graph breaks
 
 CUDA 13.2/13.3 已把 CUDA Tile 扩到官方 Python/C++ 工具链；FlashAttention-4 用 CuTe DSL 达到 Blackwell 上限附近。更高层 abstraction 缩短表达路径，不会自动找到正确映射。
 
-## 4. Rubin 的软件 enablement：什么已经有，什么还没有
+## 4. Rubin 早期工具链案例
 
 ### Triton 3.8.0：稳定 release 中的初始支持
 
@@ -90,7 +90,7 @@ Triton `3.8.0` 正式发布并加入：
 
 CUTLASS `4.8.0dev` 首次提供 Rubin SM107 的 dense/block-scaled FP8/FP4 GEMM、B collector reuse、更大 SMEM/TMEM、mixed precision，以及 CuTe DSL/C++ building blocks。
 
-但 `cute_ext` compiler pipeline 与 Operator API Rubin 支持均是 preview/preliminary；执行 Rubin kernel 还要求未来 CUDA 13.4 GA 随附的 R615 driver，当前 Developer Preview 的 R610 不足。正确表述是“可以提前研究 kernel 形态”，不是“Rubin 已可生产部署”。
+2026 年 9 月核查的 CUTLASS `v4.8.0` 正式版仍将相关编译管线和 Rubin Operator API 设为预览能力，新管线需显式启用。具体的驱动和工具链记录见 [[MLSys - 证据台账#E-20260928-08]]。后续支持组合见 [[D13 硬件与跨平台系统]]。
 
 ## 5. 2:4 sparsity 要先问稀疏对象
 
@@ -139,6 +139,14 @@ Triton FpSan/ConSan/GSan 的出现很关键：kernel DSL 开始把数值语义�
 2026-09-21 增量核验：cuTile Rust 的迁移报告提供“参考实现 → 共享 IR 结构 → 数值/性能检查”的实例。中间表示能够增加检查约束，但不代替极值、同步与跨 shape 测试，也不证明 AI 自动找到了更好的算法。[[MLSys - 证据台账#E-20260921-05]] · [官方报告](https://developer.nvidia.com/blog/translating-cuda-tile-operations-from-python-to-rust-using-agentic-ai/)
 
 另一个边界是发布制品：FA4 main 的修复要进入 wheel，再由 runtime 实际调用才形成可用组合。TorchTitan 对 b31 的验证还显式记录实际 FA4 调用，避免“配置已激活，实际走了其他 engine”。这让 source、wheel、依赖环境、dispatch 和边界输入成为连续验收链。[[MLSys - 证据台账#E-20260921-08]] · [上游验证 #4737](https://github.com/pytorch/torchtitan/pull/4737)
+
+### 验证终点还应到达真实请求
+
+2026-10-19补核cuDNN提醒：backend升级可能改变数学合约。QK norm的clamped denominator与additive epsilon，在小范数输入下并不等价；只测常规随机输入、shape或dtype会漏掉差异。应把公式、实际backend、前后向支持和特殊值一起固定；正式包里的某条修复不能被推广到所有engine。[[MLSys - 证据台账#E-20261019-09]] · [固定版本说明](https://github.com/NVIDIA/cudnn-frontend/releases/tag/v1.31.0)
+
+2026-10-12补核SWE-Serve：同一批补丁在去掉真实模型服务测试后通过率上升，排除没有剩余测试的任务后差距仍存在。这为“kernel/单元通过→模型载入→调度/cache→公开请求输出”的整链验收提供了量化实例；不是证明某模型可以独立维护生产系统。作者benchmark的任务构成、closed-book与单H100范围见 [[MLSys - 证据台账#E-20261012-08]]、[论文A.4.1](https://arxiv.org/html/2609.26777v1)。
+
+这种验收也适用于backend切换：FlashInfer新路径能共用prepared weights，却未改变默认dispatch，层级benchmark也不等于完整请求收益。见 [[MLSys - 证据台账#E-20261012-10]]；连接 [[HPCGame 2026 - 03 推理状态与调度]]。
 
 ## 8. 审核“快 2×”的清单
 
@@ -193,6 +201,20 @@ PyTorch 官方文档说明 `dynamic=None` 会在 shape 变化触发重编译后�
 
 持续追问：**一次更强的编译优化，需要多少次调用才能摊薄准备成本？** 在短命 worker、突发流量和多模型切换中，应把答案连到 [[HPCGame 2026 - 08 集群效率与可靠性|扩缩与冷启动]]；在训练中，应连到 [[HPCGame 2026 - 07 数据与后训练闭环|总实验周期]]。
 
+### 缓存的是准备工作，不是一个无条件可复用的答案
+
+2026-09-28 增量核验：FlashInfer Autotuner v2 与 cuDNN Frontend 的跨进程缓存，让准备成本有机会跨 worker 生命周期摊销，但保存的对象不同：
+
+| 对象 | 复用时必须对齐 | 不能自动推出 |
+| --- | --- | --- |
+| 调优 tactic | 操作/输入 bucket、软件硬件、eager 或 graph 测量模式 | 真实路由分布下仍最快、所有 runner 均已验证 |
+| 编译后的执行制品 | 源码/DSL/driver/GPU 身份、布局与绑定合约 | 任意升级兼容、未知 manifest 可继续执行 |
+| 驻留的模型权重 | 参数分片、量化布局、存储与进程所有权 | KV、原会话或整机故障也已恢复 |
+
+前两项的实例见 [[MLSys - 证据台账#E-20260928-06]]、[[MLSys - 证据台账#E-20260928-07]]，第三项连接 [[MLSys - 证据台账#E-20260928-03|Fast Start]] 和 [[HPCGame 2026 - 08 集群效率与可靠性|恢复终点]]。[FlashInfer 设计](https://github.com/flashinfer-ai/flashinfer/pull/3861) · [cuDNN cache](https://github.com/NVIDIA/cudnn-frontend/pull/1031)
+
+比较时分开计 **调优窗口、总启动时间、首次请求与稳态执行**；CPU 主机开销在 eager 与 CUDA Graph 中的权重不同，测量方式本身就可能改变候选排序。正式 release 中的实验缓存也不能被误读为框架默认启用或同 SLO 吞吐已提高。
+
 ## 11. 非 NVIDIA 平台：分别验证三种可移植性
 
 | 层次 | 能复用什么 | 还需证明什么 |
@@ -211,4 +233,4 @@ AMD 与 TPU 提供两个不同的观察窗口：
 
 **当前判断**：可移植的算法与调度思想越来越多，达到相近的端到端效率仍依赖硬件专门化。值得跟踪的是新增功能是否补齐实际部署缺口、同等质量成本是否改善，以及迁移后调试/维护工作量是否下降。
 
-本节链接当前官方文档和仓库，用于建立比较维度；未经固定 release/commit 与事件日期核查，不把 `main` 文档里的能力写成当周新发布。增量证据进入 [[HPCGame 2026 - 06 前沿追踪]]。
+本节链接当前官方文档和仓库，用于建立比较维度；未经固定 release/commit 与事件日期核查，不把 `main` 文档里的能力写成当周新发布。后续核查见 [[D09 编译 DSL 与自动优化]]、[[D13 硬件与跨平台系统]]。

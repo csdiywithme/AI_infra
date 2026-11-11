@@ -1,8 +1,6 @@
 ---
 type: topic
-status: developing
 area: inference
-mastery: explain
 aliases:
   - LLM 推理
   - Language Model Inference
@@ -36,13 +34,12 @@ topics:
 
 ### Serving 与系统优化
 
-- Continuous Batching
-- PagedAttention
-- Quantization
-- Speculative Decoding
-- Tensor Parallel
-
-这些主题将在出现足够课程材料、推导或实验后升级为独立主题笔记；当前不创建空壳文件。
+- [[05 从模型权重到一次生成#先数容量，再数每轮要搬多少|Decode 的计算、带宽与容量账]]。用具体模型和设备估算增大 batch 后何时可能转为算力受限，再检查显存容量是否先限制 batch。
+- [[06 当许多请求同时到来|组批与阶段拆分的入门算例]] → [[D05 推理服务与调度|准入、路由与尾延迟]]。
+- [[D06 KV 与模型状态系统|PagedAttention、前缀共享、压缩和换出]]。
+- [[D04 模型结构与数值表示#只改变数的表示，先把有效位数算清|量化的数值表示与搬运成本]]。
+- [[D07 投机执行与解码加速|投机解码的正确性和验证成本]]。
+- [[03 一张卡放不下跑不完以后#如果让多张卡共同算一层，会缺什么|Tensor Parallel 的切分与通信]]。
 
 ### 从生成分布到系统决策
 
@@ -72,7 +69,6 @@ topics:
 
 ## 待解决问题
 
-- [ ] #question [CMU Lecture 01 23:20：Hardware for inference](https://www.youtube.com/watch?v=F-mduXzNcRQ&t=1400s)——什么条件下 decode 会从 memory-bound 转向 compute-bound？这是从课程硬件背景延伸出的系统问题。
 - [ ] #question 如何用统一指标比较 speculative decoding、quantization 与 continuous batching？
 
 ## 来源课程

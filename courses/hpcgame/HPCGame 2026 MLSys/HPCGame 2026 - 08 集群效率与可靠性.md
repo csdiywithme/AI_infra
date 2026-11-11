@@ -4,7 +4,7 @@ status: evergreen
 course: HPCGame 2026 赛前讲座
 area: cluster-systems
 baseline_checked: 2026-09-15
-incremental_checked: 2026-09-21
+incremental_checked: 2026-10-19
 topics:
   - "[[Distributed Training]]"
   - "[[LLM Inference]]"
@@ -14,7 +14,7 @@ topics:
 # HPCGame 2026：集群效率与可靠性
 
 > [!nav] 返回与扩散
-> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 01 训练状态与并行|并行作业]] · [[HPCGame 2026 - 03 推理状态与调度|请求调度]] · [[HPCGame 2026 - 04 通信与内存层级|数据路径]] · [[HPCGame 2026 - 07 数据与后训练闭环|数据与后训练]] · [[HPCGame 2026 - 09 多模态与新工作负载|新工作负载]] · [[HPCGame 2026 - 06 前沿追踪|证据与变化]]
+> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 01 训练状态与并行|并行作业]] · [[HPCGame 2026 - 03 推理状态与调度|请求调度]] · [[HPCGame 2026 - 04 通信与内存层级|数据路径]] · [[HPCGame 2026 - 07 数据与后训练闭环|数据与后训练]] · [[HPCGame 2026 - 09 多模态与新工作负载|新工作负载]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
 
 > [!abstract] 30 秒全景
 > 集群的产出由整个生命周期决定：**拿到合适资源 → 准备状态 → 推进有效工作 → 从中断恢复 → 完成质量与时延目标。** 排队、拓扑碎片、慢 rank、冷启动和重算，都可能吃掉 kernel 带来的收益。
@@ -79,6 +79,8 @@ flowchart LR
 
 持续追问：一个 placement 策略降低了通信时间多少，又增加了排队时间多少？是否仅把等待从作业内部移到了队列外部？
 
+2026-09-28 增量核验：Kueue 的 reclaim 修复提醒，**配置的 parallelism、实际预约数、存活 Pod、已完成 Pod**不是同一计数。回收必须和预约采用一致单位；过早释放会造成虚假空闲，缩零后仍占配额则造成虚假繁忙。这是资源账本的不变量，不是单向追求“越早释放越好”。[[MLSys - 证据台账#E-20260928-05]] · [原修复](https://github.com/kubernetes-sigs/kueue/pull/16111)
+
 ## 4. 开始运行：扩容速度受状态准备约束
 
 从增加副本到实际接流量，中间至少要区分：获取节点、镜像/依赖、加载权重、建立 communicator、编译与 autotune、graph capture、cache 预热。各阶段的可重用状态不同。
@@ -90,9 +92,11 @@ flowchart LR
 
 扩缩信号应连到 queue、到达率、在途工作、KV 压力与实际时延；GPU busy 程度不能单独说明还有多少可用服务容量。缩容还要处理 draining、长 session、adapter 与 KV 的再分布。
 
-**当前工程入口**：llm-d 的 `dev` 文档分别描述 EPP queue/running request 驱动的 KEDA 路径与 WVA 路径；后者纳入 KV、异构资源及分离式角色，但 SLO targets / strong latency SLO 仍有 **experimental** 标记。此处记录的是文档可见能力，具体部署需固定版本核查。[llm-d autoscaling matrix](https://llm-d.ai/docs/dev/architecture/advanced/autoscaling)
+llm-d 的 [autoscaling matrix](https://llm-d.ai/docs/dev/architecture/advanced/autoscaling) 可用来定位 KEDA、WVA 和分离式角色的配置入口。具体可用的信号和 SLO 能力按目标版本核验。后续案例见 [[D12 集群资源可靠性与隔离]]。
 
 冷启动中编译与 shape 的部分见 [[HPCGame 2026 - 05 Kernel、DSL 与硬件#10. 整图编译：把局部收益变成可重复的运行时行为]]；agent session 和实时流的退出条件见 [[HPCGame 2026 - 09 多模态与新工作负载]]。
+
+2026-10-19补核llm-d token-aware实验指南：把prefill的未命中token积压换算为本部署的工作秒数，decode另看KV占用；P/D分开扩角色，共置取更大的资源需求。换算常数必须包含实际transfer路径，稳定窗口又要对齐模型启动时间。**正确测量需求、正确标定容量、及时交付容量**是三个环节；只有GPU-less模拟伸缩测试还不能证明p99或成本改善。[[MLSys - 证据台账#E-20261019-06]] · [固定指南](https://github.com/llm-d/llm-d/blob/v0.10.0/guides/workload-autoscaling/keda-epp-token-aware/README.md)
 
 ## 5. 推进与中断：最慢 rank 和故障是两类问题
 
@@ -104,12 +108,12 @@ flowchart LR
 
 ### Checkpoint 是一致性边界
 
-| 应恢复的对象 | 漏掉后的风险 |
-| --- | --- |
-| model、optimizer、step、scheduler、精度相关状态 | 恢复后更新规则改变 |
-| RNG、sampler/data cursor、packing/shuffle 状态 | 数据重复、跳过或不可比较 |
-| shard/mesh 与保存版本元数据 | resize 或换拓扑后无法正确加载 |
-| RL policy 版本、在途 rollout、reward/environment 状态 | 陈旧样本混入、重复反馈或闭环断裂 |
+| 应恢复的对象                                        | 漏掉后的风险             |
+| --------------------------------------------- | ------------------ |
+| model、optimizer、step、scheduler、精度相关状态         | 恢复后更新规则改变          |
+| RNG、sampler/data cursor、packing/shuffle 状态    | 数据重复、跳过或不可比较       |
+| shard/mesh 与保存版本元数据                           | resize 或换拓扑后无法正确加载 |
+| RL policy 版本、在途 rollout、reward/environment 状态 | 陈旧样本混入、重复反馈或闭环断裂   |
 
 异步 checkpoint 把冻结状态、CPU staging、后台写盘、提交完成分开；训练能继续时，最新恢复点未必已持久化。PyTorch DCP 官方 recipe 说明 staging 增加 CPU/pinned memory 压力，建议控制在途保存数量。[DCP async-save recipe](https://docs.pytorch.org/tutorials/recipes/distributed_async_checkpoint_recipe.html)
 
@@ -148,12 +152,22 @@ Serving 至少要区分：进程重启、重新接流量、原请求/会话正�
 
 ## 8. 当前判断与后续观察
 
+### 控制面与诊断也在故障域内
+
+2026-09-28 增量核验：分离式 diffusion 的 SGLang CVE 将验收范围从请求入口扩展到内部消息接口；不能因为 HTTP 已认证，就信任所有跨阶段消息。CNA 的已列版本与未知修复边界见 [[MLSys - 证据台账#E-20260928-11]]、[原始记录](https://cveawg.mitre.org/api/cve/CVE-2026-93088)，不推定用户系统受影响。
+
+本周补核的 ROCm MI300A profiling 问题则说明诊断工具不一定是被动观察者，多 GPU 并发 profiling 可影响整节点共驻作业。部署前应明确诊断权限、作用范围、隔离方式与恢复责任；这里只记录风险，不在用户环境做复现。[[MLSys - 证据台账#E-20260928-09]] · [官方问题](https://github.com/ROCm/TheRock/issues/8229)
+
+这些边界与 [[HPCGame 2026 - 09 多模态与新工作负载|多阶段工作流]] 相连：分离增加可调度单元，也增加必须验证的控制连接。
+
+### 当前判断
+
 | 当前判断 | 会强化判断的证据 | 会迫使修正的证据 |
 | --- | --- | --- |
 | 中断或突发负载会削弱局部提速转为产出的比例 | 同等质量下排队、启动、故障损失吞掉收益 | 在这些负载上仍能接近等比转化，应收窄成立条件 |
 | placement、autoscaling、cache locality 常需要联合考虑 | 扩容后冷 cache 或拓扑变化造成 SLO 波动 | 独立调节的轻量策略在多 workload 下达到同样目标 |
 | 复杂分片与 RL 在途状态仍是恢复的薄弱点 | resize、async save、在途 rollout 暴露一致性问题 | 明确适用范围内可复现的无损恢复、稳定质量与故障实验 |
 
-以上是本笔记的系统分析框架。项目功能是证据入口；新增 release、论文或 issue 应进入 [[HPCGame 2026 - 06 前沿追踪]]，核对事件日期和版本后，再更新这里的判断与条件。
+后续研究见 [[D12 集群资源可靠性与隔离]]、[[D16 工程交付与模型生命周期]]。
 
 扩散路径：[[HPCGame 2026 - 01 训练状态与并行|谁拥有状态]] → [[HPCGame 2026 - 04 通信与内存层级|状态怎样迁移]] → 本篇“何时能产出” → [[HPCGame 2026 - 07 数据与后训练闭环|产出是否提高质量]]。

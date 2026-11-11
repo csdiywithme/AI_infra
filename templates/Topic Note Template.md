@@ -1,8 +1,6 @@
 ---
 type: topic
-status: seed
 area:
-mastery: explain
 aliases: []
 topics: []
 last_reviewed:

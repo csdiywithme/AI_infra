@@ -1,6 +1,5 @@
 ---
 type: course-note
-status: developing
 course: Weiming HPC Training Camp × LCPU AI Infra Seminars
 session: "2.2"
 speaker: 周宇轩

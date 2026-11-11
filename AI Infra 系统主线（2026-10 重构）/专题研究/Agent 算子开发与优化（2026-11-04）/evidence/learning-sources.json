@@ -1,0 +1,244 @@
+{
+  "scope": "GPU kernel agents: learning models search and memory",
+  "as_of": "2026-11-04",
+  "gpu_reproduction": false,
+  "sources": [
+    {
+      "id": "L01",
+      "title": "Kevin arXiv v1",
+      "url": "https://arxiv.org/html/2507.11948v1",
+      "ref": "2507.11948v1",
+      "supports": [
+        "QwQ-32B multi-turn GRPO recipe",
+        "correctness gated score and discounted future credit",
+        "fixed 128-generation serial vs parallel evaluation"
+      ],
+      "level": "paper_author_report",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L02",
+      "title": "Kevin official early blog",
+      "url": "https://cognition.com/blog/kevin-32b",
+      "ref": "2025-05-06 blog",
+      "supports": [
+        "early blog evaluation differs from later arXiv protocol",
+        "reward hacking examples"
+      ],
+      "level": "official_author_report",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L03",
+      "title": "Kevin-32B official model files",
+      "url": "https://huggingface.co/cognition-ai/Kevin-32B/tree/7264025",
+      "ref": "7264025 (short HF revision)",
+      "supports": [
+        "29 safetensors shards",
+        "131 GB displayed artifact size",
+        "model card and downloadable weights"
+      ],
+      "level": "artifact_inventory",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L04",
+      "title": "CUDA Agent paper",
+      "url": "https://arxiv.org/pdf/2602.24286v1",
+      "ref": "2602.24286v1",
+      "supports": [
+        "Seed1.6 architecture",
+        "PPO RFT and value warmup",
+        "milestone rewards",
+        "H20 evaluation pool",
+        "150/200 turns and correct-only geomean protocol"
+      ],
+      "level": "paper_author_report",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L05",
+      "title": "CUDA Agent official repository recursive inventory",
+      "url": "https://github.com/BytedTsinghua-SIA/CUDA-Agent/tree/473025c8af7878e928525138b5cb327d6bcdf9dd",
+      "ref": "473025c8af7878e928525138b5cb327d6bcdf9dd",
+      "supports": [
+        "only README assets and example agent_workdir in inspected tree",
+        "no full trainer or weights in inspected tree"
+      ],
+      "level": "code_static_inventory",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L06",
+      "title": "CUDA Agent verification",
+      "url": "https://github.com/BytedTsinghua-SIA/CUDA-Agent/blob/473025c8af7878e928525138b5cb327d6bcdf9dd/agent_workdir/utils/verification.py",
+      "ref": "473025c8af7878e928525138b5cb327d6bcdf9dd",
+      "supports": [
+        "5 correctness checks",
+        "atol rtol 1e-2",
+        "functional monkey patch during candidate forward"
+      ],
+      "level": "code_static",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L07",
+      "title": "CUDA Agent profiling",
+      "url": "https://github.com/BytedTsinghua-SIA/CUDA-Agent/blob/473025c8af7878e928525138b5cb327d6bcdf9dd/agent_workdir/utils/profiling.py",
+      "ref": "473025c8af7878e928525138b5cb327d6bcdf9dd",
+      "supports": [
+        "torch.profiler CUDA device-time sum",
+        "warmup 5 default iters 10",
+        "not unprofiled end-to-end makespan"
+      ],
+      "level": "code_static_plus_analysis",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L08",
+      "title": "CUDA-Agent-Ops-6K dataset",
+      "url": "https://huggingface.co/datasets/BytedTsinghua-SIA/CUDA-Agent-Ops-6K",
+      "ref": "live dataset card and viewer 2026-11-04",
+      "supports": [
+        "6000 training tasks",
+        "ops data_source code columns",
+        "PyTorch task problems rather than demonstrated expert CUDA solutions"
+      ],
+      "level": "artifact_inventory",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L09",
+      "title": "KernelEvolve current arXiv paper",
+      "url": "https://arxiv.org/html/2512.23236v4",
+      "ref": "2512.23236v4; arXiv landing says revised 2026-07-06",
+      "supports": [
+        "graph search and universal operator",
+        "persistent metadata object store knowledge base",
+        "hardware interpreters and evaluation"
+      ],
+      "level": "paper_author_report",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L10",
+      "title": "Meta KernelEvolve engineering blog",
+      "url": "https://engineering.fb.com/2026/04/02/developer-tools/kernelevolve-how-metas-ranking-engineer-agent-optimizes-ai-infrastructure/",
+      "ref": "2026-04-02",
+      "supports": [
+        "production deployment and throughput claims are author reports",
+        "trajectory data used for specialized training direction"
+      ],
+      "level": "official_author_report",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L11",
+      "title": "KernelClaw current paper",
+      "url": "https://arxiv.org/html/2603.10085v2",
+      "ref": "2603.10085v2 2026-10-18",
+      "supports": [
+        "formerly KernelSkill",
+        "A100 GPT-5.1 3 seeds and 15 rounds",
+        "audited average speedups 3.47 3.92 1.94",
+        "non-equivalent and degenerate high-speedup examples"
+      ],
+      "level": "paper_author_report",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L12",
+      "title": "KernelMem main loop linked by KernelClaw",
+      "url": "https://github.com/0satan0/KernelMem/blob/8b57ccc9adc2ae2f11fc487fd458a7ecc1ea014d/main_memory_latest.py",
+      "ref": "8b57ccc9adc2ae2f11fc487fd458a7ecc1ea014d 2026-02-14",
+      "supports": [
+        "repair and optimization control flow",
+        "history and NCU integration",
+        "default 10 rounds differs from paper"
+      ],
+      "level": "code_static",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L13",
+      "title": "KernelMem benchmark code",
+      "url": "https://github.com/0satan0/KernelMem/blob/8b57ccc9adc2ae2f11fc487fd458a7ecc1ea014d/utils/compile_and_run.py",
+      "ref": "8b57ccc9adc2ae2f11fc487fd458a7ecc1ea014d",
+      "supports": [
+        "CUDA event timing",
+        "allclose numerical testing",
+        "compile timeout"
+      ],
+      "level": "code_static",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L14",
+      "title": "CUDA-L1 v12",
+      "url": "https://arxiv.org/html/2507.14111v12",
+      "ref": "2507.14111v12 2026-08-05",
+      "supports": [
+        "contrastive exemplar buckets",
+        "SFT self-training and RL sequence",
+        "shared softmax shift analysis"
+      ],
+      "level": "paper_plus_independent_formula_analysis",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L15",
+      "title": "CUDA-L1 relocated official repository",
+      "url": "https://github.com/ornith-ai/CUDA-L1/tree/51e8356bf844101cab2aeeca4bdff47ebb1953b8",
+      "ref": "51e8356bf844101cab2aeeca4bdff47ebb1953b8",
+      "supports": [
+        "old deepreinforce repository API moved",
+        "eval more_baselines optimized_cuda_code inventory",
+        "no trainer or weights in inspected root"
+      ],
+      "level": "code_static_inventory",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L16",
+      "title": "OpenEnv KernRL implementation",
+      "url": "https://github.com/openenv/OpenEnv/blob/f6c004341cd82ccc488fb6fde14b575ae212caa2/envs/kernrl/server/kernrl_environment.py",
+      "ref": "f6c004341cd82ccc488fb6fde14b575ae212caa2 2026-11-03",
+      "supports": [
+        "reset step state environment",
+        "reward clipping and solved threshold 1.05"
+      ],
+      "level": "code_static",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    },
+    {
+      "id": "L17",
+      "title": "OpenEnv KernRL versioned docs",
+      "url": "https://huggingface.co/docs/openenv/v0.9.0/environments/kernrl",
+      "ref": "v0.9.0",
+      "supports": [
+        "CUDA Triton task environment",
+        "client server integration",
+        "not a demonstrated optimizer model"
+      ],
+      "level": "official_documentation",
+      "accessed": "2026-11-04",
+      "reproduced": false
+    }
+  ]
+}

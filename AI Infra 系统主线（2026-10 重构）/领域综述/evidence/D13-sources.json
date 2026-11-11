@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "coverage": "选定来源定点核验；非全域或完整90天扫描",
+  "experiments": "未安装或运行GPU、模型、故障实验",
+  "global_cutoffs_changed": false,
+  "domain": "D13 硬件与跨平台系统",
+  "audit": [
+    "旧05全篇，重点代际映射与三种可移植性",
+    "新02理想预算与精度适用边界"
+  ],
+  "discovery": {
+    "organizations": [
+      "Hot Chips 2026官方程序",
+      "Google Cloud架构发布",
+      "Intel OCP官方press release",
+      "ONNX Runtime QNN EP官方文档",
+      "JAX Pallas TPU官方文档",
+      "PyTorch Inductor CPU官方方法教程"
+    ],
+    "queries": [
+      "site.hotchips.org 2026 conference program AMD TPU interconnect memory",
+      "site.amd.com \"2026\" \"Hot Chips\" \"MI400\"",
+      "site.cloud.google.com/blog \"2026\" \"TPU\" \"8\"",
+      "site.intel.com \"Crescent Island\" \"2026\"",
+      "site.intel.com \"October 12, 2026\" \"D-series\" \"Crescent\"",
+      "site.intel.com \"Intel Accelerates Open Infrastructure\" \"2026\"",
+      "\"NPU\" \"operator\" \"CPU fallback\" site:onnxruntime.ai",
+      "site:docs.pytorch.org CPU inference bfloat16 AMX performance tuning NUMA"
+    ],
+    "followed_known": [
+      "ROCm/AITER解析main为固定commit后读取",
+      "Pallas GPU/TPU文档"
+    ],
+    "scope": "会议程序不等于幻灯片；未枚举全部厂商和90天事件"
+  },
+  "sources": [
+    {
+      "id": "D13-S01",
+      "title": "Pallas: a JAX kernel language",
+      "url": "https://docs.jax.dev/en/latest/pallas/index.html",
+      "version": null,
+      "event_date": null,
+      "date_basis": "2026-11-04访问，首次日期未核",
+      "read_scope": "用途、共享Ref/BlockSpec/pipelining、不同hardware-specific API与GPU/TPU入口",
+      "evidence_level": "一手动态官方文档",
+      "limits": "未通读backend，不认定同kernel自动最优",
+      "role": "baseline_refreshed"
+    },
+    {
+      "id": "D13-S02",
+      "title": "TPU 8t and TPU 8i technical deep dive",
+      "url": "https://cloud.google.com/blog/products/compute/tpu-8t-and-tpu-8i-technical-deep-dive/?hl=en",
+      "version": "2026-04-22官方文章",
+      "event_date": "2026-04-22",
+      "date_basis": "官方正文日期，时区未给",
+      "read_scope": "8t/8i分化、SRAM、CAE/Boardfly、训练互联与software enablement",
+      "evidence_level": "一手厂商架构/自报描述",
+      "limits": "未核可订购容量、完整对比配置、独立性能质量/运维",
+      "role": "dated_architecture_background"
+    },
+    {
+      "id": "D13-S03",
+      "title": "Intel OCP infrastructure announcement",
+      "url": "https://www.intc.com/news-events/press-releases/detail/1783/intel-accelerates-open-infrastructure-for-the-agentic-ai-era",
+      "version": "2026-10-12公告",
+      "event_date": "2026-10-12",
+      "date_basis": "官方Released Oct12 3:32PM EDT，UTC19:32，北京时间10/13 03:32",
+      "read_scope": "D-series/Crescent Island LPDDR/PCIe/风冷和采样；脚注自有160GB/ODM上限480GB",
+      "evidence_level": "一手厂商产品架构公告",
+      "limits": "无独立服务比较；不将设计上限等同自有卡配置，不将采样当普遍供货",
+      "role": "newly_discovered_selected_event"
+    },
+    {
+      "id": "D13-S04",
+      "title": "AITER README and MLA CI/perf sweep change",
+      "url": "https://github.com/ROCm/aiter/blob/7fda458d631dcf2eede3558f6448a14293f51639/README.md",
+      "version": "7fda458d631dcf2eede3558f6448a14293f51639",
+      "event_date": "2026-11-04",
+      "date_basis": "GitHub commit committer 2026-11-04T05:10:41Z；北京时间13:10:41",
+      "read_scope": "README后端/硬件分级；本提交aiter_test.sh和test_mla_v4_nm.py差异",
+      "evidence_level": "一手固定源码及项目自述",
+      "limits": "支持矩阵非独立验证；未运行pytest或性能扫描，本提交不作新增算子/性能提升",
+      "role": "known_project_fixed_snapshot_and_new_maintenance_event",
+      "commit_url": "https://github.com/ROCm/aiter/commit/7fda458d631dcf2eede3558f6448a14293f51639"
+    },
+    {
+      "id": "D13-S05",
+      "title": "Hot Chips 2026 official program",
+      "url": "https://hc2026.hotchips.org/",
+      "version": "2026 program",
+      "event_date": null,
+      "date_basis": "官方程序日期(PDT)",
+      "read_scope": "memory/RISC-V/CPU/GPU/interconnect讲题与讲者",
+      "evidence_level": "一手会议发现索引",
+      "limits": "未下载视频/proceedings，不由讲题认定芯片能力",
+      "role": "discovery_only",
+      "event_date_range": [
+        "2026-08-23",
+        "2026-08-25"
+      ]
+    },
+    {
+      "id": "D13-S06",
+      "title": "Writing TPU kernels with Pallas",
+      "url": "https://docs.jax.dev/en/latest/pallas/tpu/details.html",
+      "version": null,
+      "event_date": null,
+      "date_basis": "2026-11-04访问动态文档，不记新发布",
+      "read_scope": "VMEM/SMEM与HBM搬运、网格连续输出/reduction维约束、向量布局padding/转置、core partition约束",
+      "evidence_level": "一手官方方法文档",
+      "limits": "v6布局例不外推所有TPU；未运行kernel；动态文档未固定commit",
+      "role": "physical_mapping_method"
+    },
+    {
+      "id": "D13-S07",
+      "title": "Using Max-Autotune Compilation on CPU",
+      "url": "https://docs.pytorch.org/tutorials/unstable/max_autotune_on_CPU_tutorial.html",
+      "version": null,
+      "event_date": null,
+      "date_basis": "2026-11-04动态访问；未核首次发布日期",
+      "read_scope": "编译期候选选择、frozen inference权重预打包与FREEZING/no_grad条件、生成AMX代码示意、prototype边界",
+      "evidence_level": "一手官方方法教程/示例代码",
+      "limits": "未用演示时间推性能；未确认本机ISA或运行；页面原型声明保留",
+      "role": "independently_discovered_CPU_method"
+    },
+    {
+      "id": "D13-S08",
+      "title": "QNN Execution Provider",
+      "url": "https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html",
+      "version": null,
+      "event_date": null,
+      "date_basis": "2026-11-04动态访问，未核首次日期或固定commit",
+      "read_scope": "配置HTP/GPU/CPU、量化工作流/校准、动态shape与Loop/If限制、disable_cpu_ep_fallback、context cache与HTP SSR重建session",
+      "evidence_level": "一手官方运行时文档",
+      "limits": "未验证8B整图/具体SoC；文档另有HTP fp16选项，未将量化工作流写成所有HTP只支持量化；接口支持非端侧实测",
+      "role": "independent_problem_search_NPU_method"
+    }
+  ],
+  "failed_reads": [
+    {
+      "url": "https://www.intel.com/content/www/us/en/content-details/926893/crescent-island-gpu-designed-for-agentic-ai-inference.html",
+      "result": "官方描述页已读；iframe PDF重定向到不可访问地址，未读幻灯片，不引用其内部数据"
+    }
+  ],
+  "gaps": [
+    "同任务NVIDIA/AMD/TPU质量成本比较",
+    "CPU/NPU/国产/wafer-scale/PIM深读",
+    "dispatch/回退和动态输入",
+    "供货、支持组合及长期故障运维"
+  ],
+  "deepening_round": {
+    "round": "mechanism-and-worked-example-deepening",
+    "date": "2026-11-04",
+    "scope": "不含项目名的问题检索→一手方法/源码定点核读；非全域扫描；未改全局截止或冻结证据",
+    "experiments_performed": [],
+    "failed_reads": [],
+    "queries": [
+      "\"NPU\" \"operator\" \"CPU fallback\" site:onnxruntime.ai",
+      "site:docs.pytorch.org CPU inference bfloat16 AMX performance tuning NUMA"
+    ],
+    "organizations": [
+      "ONNX Runtime QNN EP官方文档",
+      "JAX Pallas TPU官方文档",
+      "PyTorch Inductor CPU官方方法教程"
+    ],
+    "calculations": [
+      "教学A(200TF,1TB,48GB),B(400TF,1TB,48GB),C(100TF,2TB,96GB)，非实际芯片规格",
+      "8B4096主要矩阵65.536TF；A/B/C理想矩阵327.68/163.84/655.36ms",
+      "16GB权重读取16/16/8ms；32×4096KV加权重33.179869GB=>33.18/33.18/16.59ms",
+      "每条4352位置570425344bytes，KV预算24/24/72GB最多42/42/126；首token与容量预留分开",
+      "BF16权重主导GEMM AI≈M，C/W阈值200/400/50；非完整8B转折",
+      "CPU额外教学200GB/s读16GB=80ms；编译2s/每次省2ms=1000次摊平",
+      "NPU分区示意15+1+4×2=24ms vs整图CPU20ms；端侧10W×5s=50J vs30W×1s=30J"
+    ],
+    "closed_explanatory_gaps": [
+      "同模型资源比例与容量复算",
+      "GPU/TPU/CPU物理内存/布局/预打包映射",
+      "NPU图划分、CPU回退、量化与session恢复",
+      "边端容量/功率/能量边界",
+      "算子、通信、运维与供应的不同验收终点"
+    ],
+    "candidate_disposition": [
+      {
+        "title": "QNN EP/CPU max-autotune",
+        "disposition": "官方方法补深，动态文档无新发布日期，不计2026新发布"
+      },
+      {
+        "title": "torchao Quantized Inference",
+        "url": "https://docs.pytorch.org/ao/stable/workflows/inference.html",
+        "disposition": "搜索返回CPU/int4路径和示例数据；未完整核读，不采用吞吐数字或当8B通用支持"
+      },
+      {
+        "title": "TorchRec v1.9.0-rc1",
+        "disposition": "父代理已核D15；本域只增加因果跨链，不复制支持矩阵或另记新事件"
+      }
+    ]
+  },
+  "gaps_after_deepening": [
+    "此8B完整模型在具体CPU/NPU/SoC实际覆盖",
+    "NVIDIA/AMD/TPU同任务质量成本比较",
+    "国产/wafer-scale/PIM逐平台实现",
+    "动态dispatch、通信错误恢复与供货地区/配额/交期"
+  ],
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-03",
+          "title": "TorchTPU：API复用后的图通信与数值边界",
+          "domains": [
+            "D13",
+            "D02",
+            "D09"
+          ],
+          "kind": "旧候选推进／机制补录",
+          "first_public": "最早已核官方介绍2026-04-07，当时公开源码仍为计划；非绝对首次证明。",
+          "event_date": "10/20开源阶段公告，页面10/21更新；固定实现提交11/07 21:20:19Z。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "google-pytorch/torch_tpu 680b8436e61baf6f832f32d2bc8ca55615ff619e",
+          "sources": [
+            [
+              "4/7介绍",
+              "https://developers.googleblog.com/torchtpu-running-pytorch-natively-on-tpus-at-google-scale/"
+            ],
+            [
+              "10/20公告",
+              "https://pytorch.org/blog/introducing-torchtpu/"
+            ],
+            [
+              "固定通信支持",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/distributed_support.md"
+            ],
+            [
+              "固定功能矩阵",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/feature_set.md"
+            ],
+            [
+              "精度",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/docs/numerical_precision.md"
+            ],
+            [
+              "握手实现",
+              "https://github.com/google-pytorch/torch_tpu/blob/680b8436e61baf6f832f32d2bc8ca55615ff619e/src/torch_tpu/_internal/distributed/handshake.py"
+            ]
+          ],
+          "read_scope": "三份固定文档、precision_context.cc默认值与handshake should_handshake条件；未全仓审计。",
+          "change": "collective降低为StableHLO；默认skinny collective分图以容纳MPMD，代价是失去图内计算通信重叠。spmd_safe/handshake为融合前提，当前握手仅global PG。默认FP32 matmul走BF16输入精度、FP32累加，更高精度增加MXU passes。",
+          "limits": "公开main，项目自分类SimpleFSDP validated，FSDPv2/MPMD experimental或低性能，RL near-term；不能由API或no-crash计数推导所有模型训练正确或完整RL生产支持。GitHub无release不代表无PyPI包，0.2.0包日期未核。",
+          "judgment": "⚠️明确边界",
+          "independent_experiments": false
+        },
+        {
+          "id": "AIINFRA-E-20261109-09",
+          "title": "CUDA 13.5：Rubin toolkit GA 与 Tile 互操作分阶段",
+          "domains": [
+            "D13",
+            "D09",
+            "D08"
+          ],
+          "kind": "正式toolkit发布，含preview能力",
+          "first_public": "已核官方公告2026-11-04，未穷尽更早公开预览。",
+          "event_date": "2026-11-04公告；cuTile Python1.8.0同日。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "CUDA13.5；官方当前notes列NVCC/TileIR AS13.5.37；固定archive访问失败，动态notes按11/09核验",
+          "sources": [
+            [
+              "官方公告",
+              "https://developer.nvidia.com/blog/nvidia-cuda-13-5-brings-nvidia-vera-rubin-ga-support/"
+            ],
+            [
+              "13.5当前release notes",
+              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/"
+            ],
+            [
+              "cuTile版本说明",
+              "https://docs.nvidia.com/cuda/cutile-python/generated/release_notes.html"
+            ]
+          ],
+          "read_scope": "公告、release notes组件/Tile/驱动/knownissues与cuTile1.8.0；非全部库兼容矩阵。",
+          "change": "Vera Rubin进入toolkit GA；Tile增加跨GPU表达：unicast依赖NVLink对端访问，multicast/multimem还要求带NVLink SHARP的NVSwitch fabric，并须匹配目标架构。SIMT库函数foreign-call仍public preview，须显式开启；自写device函数仍属后续计划。",
+          "limits": "软件支持不证明GPU普遍供货或框架生产验证；preview不承诺跨版本兼容。cuTile列NVSHMEM3.9+而MathDx/CCCL Coop tilelib仍upcoming；新功能需要相应R620+。knownissue只作版本问题候选，未核引入/修复。",
+          "judgment": "🔄支持演进／🧪互操作",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

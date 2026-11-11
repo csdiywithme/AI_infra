@@ -1,0 +1,184 @@
+{
+  "queries": [
+    "site.tridao.me FlashAttention 4 2026",
+    "site.nvidia.com Blackwell CuTe DSL 2026 tensor memory",
+    "site.tridao.me \"FlashAttention-4\""
+  ],
+  "sources": [
+    {
+      "url": "https://arxiv.org/html/2603.05451v1",
+      "date": "2026-03-05",
+      "date_basis": "arXiv fixed v1 header",
+      "read": "sections 2, 3.1, 3.2 and benchmark boundary",
+      "status": "author mechanism and experiment; some prior vault coverage; not new release today"
+    },
+    {
+      "url": "https://tridao.me/blog/2026/flash4/",
+      "date": null,
+      "read": "author mechanism explanation",
+      "status": "mutable explanatory article; use fixed paper for date"
+    },
+    {
+      "url": "https://arxiv.org/html/2609.04105v1",
+      "date": "2026-09-03",
+      "date_basis": "arXiv v1 submission metadata",
+      "read": "mechanism, operating points, sections 5.3 and 7 stability boundaries",
+      "status": "author experiment; kernel excludes dynamic quantization; no independent reproduction"
+    },
+    {
+      "url": "https://docs.nvidia.com/cuda/blackwell-tuning-guide/index.html",
+      "date": null,
+      "read": "SM resources and compatibility",
+      "status": "dynamic documentation as read, not release event"
+    },
+    {
+      "url": "https://github.com/NVIDIA/cutlass/blob/v3.5.1/media/docs/grouped_scheduler.md",
+      "event_date": null,
+      "date_basis": "Fixed v3.5.1 baseline, not a new publication",
+      "read_date": "2026-11-04",
+      "read_scope": "Complete grouped scheduler document: persistent tile assignment, device/host schedule and K-imbalance; source example has a 256/216 typo, not adopted",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://github.com/NVIDIA/cutlass/blob/v3.5.1/media/docs/pipeline.md",
+      "event_date": null,
+      "date_basis": "Fixed baseline",
+      "read_date": "2026-11-04",
+      "read_scope": "Complete pipeline document: acquire/commit/wait/release and TMA specialization; no API execution",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://arxiv.org/html/2205.14135v2",
+      "event_date": "2022-06-23",
+      "date_basis": "Fixed v2 header",
+      "read_date": "2026-11-04",
+      "read_scope": "Sections 2–3.2: online max/exp statistics, algorithm 1, backward recomputation overview, complexity; not FA2",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://arxiv.org/html/2412.06464v1",
+      "event_date": "2024-12-09",
+      "date_basis": "Fixed v1 header",
+      "read_date": "2026-11-04",
+      "read_scope": "Sections 2.1–2.2 and mechanism overview of gated delta/chunkwise forms; no kernel source or experiment adoption",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://arxiv.org/html/2609.16389v1",
+      "event_date": "2026-09-14",
+      "date_basis": "Fixed v1 header",
+      "read_date": "2026-11-04",
+      "read_scope": "Section 6 GEMM/GEMV precision, variants and timing boundary; method/safety audited separately in D09",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    },
+    {
+      "url": "https://developer.nvidia.com/blog/boosting-moe-training-throughput-with-advanced-fusion-kernels/",
+      "event_date": "2026-06-15",
+      "date_basis": "Official byline",
+      "read_date": "2026-11-04",
+      "read_scope": "Body: activation repack and epilogue, device-side group counts, quantization, cluster margin, whole-stack measurement scope; AI summary not evidence",
+      "evidence_level": "primary text or fixed source; no execution",
+      "independent_reproduction": false
+    }
+  ],
+  "failures": [
+    {
+      "url": "https://docs.nvidia.com/cutlass/media/docs/cpp/pipeline.html",
+      "result": "404; not used as evidence"
+    }
+  ],
+  "gaps": [
+    "All implementation families and recent releases not enumerated",
+    "Full backward/source/held-out shapes and deterministic FA4 not audited",
+    "Communication co-execution and hardware measurements not performed"
+  ],
+  "domain": "D08",
+  "checked_on": "2026-11-04",
+  "coverage": "Mechanism deepening with concrete derivations, fixed source and selected frontier; implementation/measurement gaps remain",
+  "independent_experiments": false,
+  "deepening_rounds": [
+    {
+      "round": "mechanism-deepening-20261104",
+      "date": "2026-11-04",
+      "queries": [
+        "GPU irregular grouped GEMM persistent scheduling small batch reduction performance 2026 operator",
+        "site.developer.nvidia.com grouped gemm scheduling persistent small batch MoE 2026",
+        "site.docs.nvidia.com cutlass pipeline producer_acquire consumer_wait consumer_release"
+      ],
+      "sources_added": [
+        "https://github.com/NVIDIA/cutlass/blob/v3.5.1/media/docs/grouped_scheduler.md",
+        "https://github.com/NVIDIA/cutlass/blob/v3.5.1/media/docs/pipeline.md",
+        "https://arxiv.org/html/2205.14135v2",
+        "https://arxiv.org/html/2412.06464v1",
+        "https://arxiv.org/html/2609.16389v1",
+        "https://developer.nvidia.com/blog/boosting-moe-training-throughput-with-advanced-fusion-kernels/"
+      ],
+      "explanation_gaps_addressed": [
+        "Small-M weight traffic and split-K costs",
+        "Persistent grouped tile scheduling and routing imbalance",
+        "Two-slot readiness/reuse protocol",
+        "Exact attention online reduction vs sparse/recursive compute",
+        "Fused producer-consumer layout and measurement boundary"
+      ],
+      "coverage": "Focused method/source review, not all-family or 90-day enumeration",
+      "not_performed": [
+        "GPU or deployment experiment",
+        "independent task-quality validation",
+        "all backend/source audit"
+      ]
+    }
+  ],
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-09",
+          "title": "CUDA 13.5：Rubin toolkit GA 与 Tile 互操作分阶段",
+          "domains": [
+            "D13",
+            "D09",
+            "D08"
+          ],
+          "kind": "正式toolkit发布，含preview能力",
+          "first_public": "已核官方公告2026-11-04，未穷尽更早公开预览。",
+          "event_date": "2026-11-04公告；cuTile Python1.8.0同日。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "CUDA13.5；官方当前notes列NVCC/TileIR AS13.5.37；固定archive访问失败，动态notes按11/09核验",
+          "sources": [
+            [
+              "官方公告",
+              "https://developer.nvidia.com/blog/nvidia-cuda-13-5-brings-nvidia-vera-rubin-ga-support/"
+            ],
+            [
+              "13.5当前release notes",
+              "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/"
+            ],
+            [
+              "cuTile版本说明",
+              "https://docs.nvidia.com/cuda/cutile-python/generated/release_notes.html"
+            ]
+          ],
+          "read_scope": "公告、release notes组件/Tile/驱动/knownissues与cuTile1.8.0；非全部库兼容矩阵。",
+          "change": "Vera Rubin进入toolkit GA；Tile增加跨GPU表达：unicast依赖NVLink对端访问，multicast/multimem还要求带NVLink SHARP的NVSwitch fabric，并须匹配目标架构。SIMT库函数foreign-call仍public preview，须显式开启；自写device函数仍属后续计划。",
+          "limits": "软件支持不证明GPU普遍供货或框架生产验证；preview不承诺跨版本兼容。cuTile列NVSHMEM3.9+而MathDx/CCCL Coop tilelib仍upcoming；新功能需要相应R620+。knownissue只作版本问题候选，未核引入/修复。",
+          "judgment": "🔄支持演进／🧪互操作",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,373 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-11-04",
+  "timezone": "Asia/Shanghai",
+  "status": "mechanism-deepened",
+  "writes_scope": "Only assigned domain note and its evidence JSON. Historical evidence cards, logs and topic studies unchanged.",
+  "date_policy": "Only explicitly dated events at or before 2026-11-04 enter the main frontier section. Foundational revisions are not counted as new events; undated main/release status is not established.",
+  "not_performed": [
+    "No models downloaded.",
+    "No packages installed.",
+    "No training, serving, dataset processing or hardware benchmark executed.",
+    "No exhaustive 90-day publication scan.",
+    "PDF figures were not visually checked; claims used textual methods and settings.",
+    "No native low-precision, loader-recovery, distributed or RL implementation was executed.",
+    "No claims of full-domain coverage or exhausted discovery."
+  ],
+  "domain_id": "D04",
+  "note": "D04 模型结构与数值表示.md",
+  "boundary": "Dense/sparse/recurrent/hybrid interaction and state representation; conditional expert activation; mixed precision, PTQ/QAT and state compression; execution/storage connected to D02/D06/D08.",
+  "audit": [
+    {
+      "file": "courses/hpcgame/HPCGame 2026 MLSys/HPCGame 2026 - 02 稀疏模型与数值格式.md",
+      "headings": [
+        "2. MoE：计算稀疏化，通信动态化",
+        "3. Attention：四种减少成本的方式",
+        "Hybrid 已成为运行时现实",
+        "4. 低精度：表示、搬运和收敛的联合设计"
+      ],
+      "lines": [
+        45,
+        122
+      ],
+      "depth": "Existing rich route map and historical NVFP4/hybrid cases; not reverified as current by reading it."
+    },
+    {
+      "file": "AI Infra 系统主线（2026-10 重构）/正文/04 模型结构怎样重新分配系统压力.md",
+      "headings": [
+        "同一个位置经过什么，不同位置又在哪里相遇",
+        "想扩大前馈容量，为什么会遇到路由和通信",
+        "数据表示更小以后，执行条件也要重新计算"
+      ],
+      "depth": "Teaching derivation of full/GQA/MoE/FP8; not a full hybrid/recurrent/quantization review."
+    }
+  ],
+  "discovery": [
+    {
+      "entry": "Primary arXiv architecture / precision problem search",
+      "queries": [
+        "2026 FP4 training hybrid attention architecture low precision site:arxiv.org/abs",
+        "\"2026\" \"low precision\" \"training\" site:openreview.net/forum",
+        "site:arxiv.org/abs/2610 \"FP4\" \"training\"",
+        "site:arxiv.org/abs/2609 \"FP4\" \"training\"",
+        "site:arxiv.org/abs/2610 \"linear attention\" \"hybrid\""
+      ],
+      "found": [
+        "2607.24953",
+        "2610.05842",
+        "2610.10114",
+        "2611.01909",
+        "2610.32229"
+      ],
+      "selection": "Deep-read transpose-consistent FP4 and HLA. Other candidates kept separate; no search freshness inferred from ranking."
+    },
+    {
+      "date": "2026-11-04",
+      "entry": "Independent problem-led search before known-source deepening",
+      "queries": [
+        "site:arxiv.org/abs/26 hybrid recurrent sparse attention quantization training native low precision",
+        "site:arxiv.org \"AWQ\" \"activation-aware\" \"2023\""
+      ],
+      "selection": "New source methods and evaluation deep-read; old candidate queue not used as boundary.",
+      "new_primary_sources": [
+        "https://arxiv.org/html/2306.00978v3",
+        "https://arxiv.org/html/2609.30950v1"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "D04-S1",
+      "title": "GQA",
+      "url": "https://arxiv.org/html/2305.13245v3",
+      "fixed_revision": "arXiv:2305.13245v3",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Abstract; §2 shared KV and uptraining mechanism"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D04-S2",
+      "title": "DeepSeek-V3 technical report",
+      "url": "https://arxiv.org/html/2412.19437v2",
+      "fixed_revision": "arXiv:2412.19437v2",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§2.1 MLA/MoE and node-limited routing; §3.3 FP8 scale/accumulation/high-precision components"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D04-S3",
+      "title": "Mamba",
+      "url": "https://arxiv.org/html/2312.00752v2",
+      "fixed_revision": "arXiv:2312.00752v2",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§2–3 recurrence/selectivity/state-compression and hardware-aware scan; selected task-scope passages"
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "No implementation run or independent benchmark."
+      ]
+    },
+    {
+      "id": "D04-S4",
+      "title": "Stable FP4 Training via Transposition-Invariant Block Quantization",
+      "url": "https://arxiv.org/html/2607.24953v1",
+      "fixed_revision": "arXiv:2607.24953v1",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "dated_research_event",
+      "event_date": "2026-07-27",
+      "event_date_basis": {
+        "kind": "arXiv submission history v1",
+        "url": "https://arxiv.org/abs/2607.24953",
+        "detail": "v1 submitted 2026-07-27 18:03:34 UTC; outside a strict latest-90-day window and not claimed otherwise."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§2–3 transpose/group scaling; §4.1 software emulation; §5 limitations",
+        "Deepening: §2–3 exact grouping argument, mixed 2D/1D and FP8 Q/K; idealized throughput distinguished from simulated training."
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "Software-emulated FP4; no native-FP4 hardware speedup proved.",
+        "Mixed layouts: 2D weights/gradients do not imply all activations use 2D.",
+        "Author models up to 30B and token runs up to 100B; no larger/longer independent validation."
+      ]
+    },
+    {
+      "id": "D04-S5",
+      "title": "HLA",
+      "url": "https://arxiv.org/html/2610.05842v1",
+      "fixed_revision": "arXiv:2610.05842v1",
+      "commit": null,
+      "commit_basis": "Fixed arXiv paper revision; repository commit not claimed.",
+      "role": "dated_frontier",
+      "event_date": "2026-10-05",
+      "event_date_basis": {
+        "kind": "arXiv submission history v1",
+        "url": "https://arxiv.org/abs/2610.05842",
+        "detail": "v1 submitted 2026-10-05 05:49:31 UTC."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "Introduction; §3 transition/routing overview; §4.3 inference settings/overheads; §5 limitation; appendix B.6 cache/compute complexity",
+        "Deepening: §3 equations 1–9 complete affine transition gating, identity interpolation and causal current chunk; Table 4 operating point; appendix pseudocode and complexity."
+      ],
+      "verification_strength": "Primary document text read; author evidence only; no independent execution.",
+      "limits": [
+        "Chunk-summary cache grows with chunk count, unlike original fixed recurrent state.",
+        "Author latency operating point: single H200 NVL, BF16, B=1, 4096 input/128-token steady decode; overhead rather than unconditional speedup.",
+        "Persistent interactive/agentic memory not evaluated; no independent reproduction."
+      ]
+    },
+    {
+      "id": "D04-S6",
+      "title": "AWQ: Activation-aware Weight Quantization",
+      "url": "https://arxiv.org/html/2306.00978v3",
+      "fixed_revision": "arXiv:2306.00978v3",
+      "commit": null,
+      "commit_basis": "Fixed paper revision; no repository commit or source execution claimed.",
+      "role": "foundation",
+      "event_date": null,
+      "event_date_basis": null,
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§3 salient-channel activation motivation, equivalent scaling and error/scale trade-off; selected ablation passages"
+      ],
+      "verification_strength": "Primary methods and stated evaluation read; author results, not independently reproduced.",
+      "limits": [
+        "Weight-only route; not a proof for W4A4/KV/recurrent states or all calibration domains."
+      ]
+    },
+    {
+      "id": "D04-S7",
+      "title": "Low-Bit Recurrent States in Hybrid Language Models",
+      "url": "https://arxiv.org/html/2609.30950v1",
+      "fixed_revision": "arXiv:2609.30950v1",
+      "commit": null,
+      "commit_basis": "Fixed paper revision; no repository commit or source execution claimed.",
+      "role": "dated_frontier",
+      "event_date": "2026-09-25",
+      "event_date_basis": {
+        "kind": "arXiv v1 submission history",
+        "url": "https://arxiv.org/abs/2609.30950",
+        "detail": "History opened and v1 date checked on 2026-11-04."
+      },
+      "read_date": "2026-11-04",
+      "read_scope": [
+        "§2 conditional linear-noise model, observability Gramian, correlation/erasure/range approximation limits",
+        "§3 decay-aware mixed-width allocation, integer floors/clipping and metadata accounting",
+        "§4 ablations and paired intervals",
+        "§5 tables/protocol, fake-quant, evaluation overlap and no kernel timings; submission history"
+      ],
+      "verification_strength": "Primary methods and stated evaluation read; author results, not independently reproduced.",
+      "limits": [
+        "Quantizers simulated via quantize/dequantize at write-back, no kernel timings or realized packing benchmark.",
+        "Short WikiText NLL; eight per-token windows limit inference, some overlap rule-selection range.",
+        "Mean payload differs from metadata-inclusive total bits; lower-frequency write-back gains sometimes tie.",
+        "Submitted to ICASSP 2027, not peer-reviewed/accepted according to this version."
+      ]
+    }
+  ],
+  "coverage": {
+    "mechanisms": [
+      "Position pairs versus history representation",
+      "Shared/latent KV",
+      "Selective recurrence and scan",
+      "Conditional expert compute/imbalance",
+      "Scale/group/rounding versus hardware efficiency"
+    ],
+    "routes": [
+      "Dense/GQA/MLA",
+      "Local/block/content-sparse attention",
+      "Linear/recurrent/SSM and hybrid",
+      "MoE route/capacity/expert placement",
+      "Mixed precision",
+      "PTQ/QAT overview",
+      "KV/state quantization and structural combinations"
+    ]
+  },
+  "cross_domains": [
+    "D02",
+    "D06",
+    "D08"
+  ],
+  "gaps": [
+    "Matched training-budget/quality tests across sparse/recurrent/hybrid architectures and long retrieval tasks.",
+    "Persistent HLA interaction, chunk-summary growth, branch/cancel/restore.",
+    "Native low-bit full-path performance including scales/transposes/pack/master state; simulations insufficient.",
+    "Recurrent quantization independent long-task eval, held-out tuning and realized storage/decoding timing."
+  ],
+  "candidates": [
+    {
+      "title": "ALTO / Training an MoE LLM in MXFP4",
+      "url": "https://arxiv.org/abs/2610.32229",
+      "fixed_revision": "arXiv:2610.32229v2",
+      "event_date": "2026-10-26",
+      "event_date_basis": "arXiv submission history v2; v1 2026-10-23",
+      "read_scope": "Abstract and submission history only",
+      "status": "Candidate for deep read. Abstract explicitly says simulated MXFP4 on MI300X and no optimized wall-clock speed."
+    },
+    {
+      "title": "Mechanics of Long-Context Hybrid Models Part 1.1",
+      "url": "https://arxiv.org/abs/2610.10114",
+      "read_scope": "Search abstract only",
+      "status": "Date and method not independently checked against submission history; candidate."
+    },
+    {
+      "title": "Who Asks, Who Answers",
+      "url": "https://arxiv.org/abs/2611.01909",
+      "read_scope": "Search abstract only",
+      "status": "Search reports 2026-11-01, but submission-history/time cutoff not independently checked; candidate, no main-text claim."
+    }
+  ],
+  "deepening_pass": {
+    "date": "2026-11-04",
+    "user_requirement": "Explain principles, competing routes, frontier and causal cross-domain choices beyond frameworks and paper abstracts.",
+    "closed_explanation_gaps": [
+      "Dense/GQA/MLA/sparse/recurrent/hybrid history/capacity routes",
+      "Affine composition and HLA complete-transition gating",
+      "MoE active versus resident parameter and dynamic batch load",
+      "PTQ/QAT and complete scale/pack/compute/accumulate/backward/update/export path",
+      "Recurrent error lifetime, payload metadata and simulation versus native execution"
+    ],
+    "read_scope_policy": "New sources list exact successful methods/protocol reading; previous scopes preserved.",
+    "code_scope": "Paper methods/algorithms and pseudocode read. No repository implementation audit or execution claimed.",
+    "candidate_disposition": "Existing candidates unchanged: no additional substantive method read of their sources this pass. Newly discovered sources above enter domain research with stated date and limits; central IDs maintained by root.",
+    "no_completion_claim": "Mechanism gaps explained; empirical and implementation gaps remain."
+  },
+  "arithmetic_verification": {
+    "performed_on": "2026-11-04",
+    "method": "Python3 arithmetic and unit cross-check only; teaching assumptions, not measured benchmark",
+    "checks": {
+      "kv": "32layers*2*S131072*8heads*128*2bytes=16GiB; full32KVheads=64GiB",
+      "recurrent_state": "32layers*32heads*128*128*4bytes=64MiB, excludes other states",
+      "hybrid": "24 recurrent layers 48MiB plus8 GQA layers 4GiB for same teaching shapes",
+      "weight_only": "32e9*0.5+32e9/128*2=16.5GB including scale bytes; no native speed proved",
+      "metadata": "INT4+FP16 scale: group128=4.125bit/value; group16=5bit/value",
+      "stable_scalar_error": "|a|<1, independent zero-mean writeback noise, steady state:variance=sigma^2/(1-a^2); a.99 factor50.2513,a.5 factor1.3333"
+    }
+  },
+  "weekly_followups": [
+    {
+      "date": "2026-11-09",
+      "coverage": "Selected primary sources and fixed versions only; no whole-domain cutoff",
+      "events": [
+        {
+          "id": "AIINFRA-E-20261109-04",
+          "title": "TitanRL：数值契约触及 KV 页面和依赖版本",
+          "domains": [
+            "D03",
+            "D04",
+            "D06",
+            "D16"
+          ],
+          "kind": "旧候选机制补录＋新增工程修复",
+          "first_public": "10/21旧公告（10/22更新）回顾多项工作，不统一作为各功能首发日；PR首次公开分别11/08 22:08:15Z与22:24:57Z。",
+          "event_date": "PR#5955合并11/08 23:05:36Z；#5958合并11/09 03:46:35Z。",
+          "discovered_on": "2026-11-09",
+          "verified_on": "2026-11-09",
+          "version": "共同快照3da9eac83509091503e48534c9e3ca06b4d76fd7；布局修复b6d2c534123e3a658ebaef66bbe277562199fb51；vLLM固定1.0.0.dev20261107+cu132（9f03b510c）",
+          "sources": [
+            [
+              "固定parity契约",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/torchtitan/rl/BITWISE_PARITY.md"
+            ],
+            [
+              "支持范围",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/torchtitan/rl/README.md"
+            ],
+            [
+              "KV修复#5955",
+              "https://github.com/pytorch/torchtitan/pull/5955"
+            ],
+            [
+              "依赖固定#5958",
+              "https://github.com/pytorch/torchtitan/pull/5958"
+            ],
+            [
+              "固定安装脚本",
+              "https://github.com/pytorch/torchtitan/blob/3da9eac83509091503e48534c9e3ca06b4d76fd7/scripts/install_rl_env.sh"
+            ]
+          ],
+          "read_scope": "固定README/parity、batch_invariant.py、公开parity测试；两PR正文/metadata及安装脚本。",
+          "change": "同权重仍可因batch/kernel/归约不同产生logprob偏差；限定BF16 forward、FP32 master、同TP禁SP及匹配kernel/reduction。Kimi K3不同K/V head size遗漏head_size_v导致页面padding与FA4固定16-token块不匹配；修复补真实V维。新vLLM删内部API后暂锁旧nightly维持组合。",
+          "limits": "公开main/active development；README支持表为debug模型两步测试，Kimi K3仍coming soon。布局修复维护者仅报GB300三步RL/logprob diff=0，部分测试在rebase前或含后续修复；不是长期质量或H100/B200保证。依赖pin验证含GB300 aarch64安装及CPU单测，不证明适配最新vLLM；仅cu132固定wheel。",
+          "judgment": "⚠️明确组合／🔄修复",
+          "independent_experiments": false
+        }
+      ],
+      "old_sources_rechecked": false,
+      "not_performed": [
+        "model/GPU/serving experiment",
+        "paid API",
+        "all commits/issues or 90-day enumeration"
+      ]
+    }
+  ]
+}

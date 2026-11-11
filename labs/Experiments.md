@@ -1,6 +1,5 @@
 ---
 type: lab-index
-status: developing
 area: ai-infra
 aliases:
   - AI Infra Experiments
@@ -12,6 +11,8 @@ aliases:
 > 用可复现的实现、profiling 和 benchmark 验证主题笔记中的系统判断，把“能解释”逐步推进到“能测量并说明原因”。
 
 ## 实验列表
+
+- [B300 GEMM 工作流](b300-codex-workflow/README.md) · 2026-11-04 首次 smoke 在 CUDA 编译阶段结束，记录与后续构建修订见工作流说明。
 
 ![[AI Infra Catalog.base#实验]]
 
