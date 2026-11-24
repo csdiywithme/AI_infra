@@ -1,18 +1,18 @@
 ---
-type: topic-note
+type: course-note
 status: evergreen
 course: HPCGame 2026 赛前讲座
 area: gpu-kernels
 topics:
-  - "[[GPU Kernel]]"
-  - "[[Triton]]"
-  - "[[GPU Architecture]]"
+  - "GPU Kernel"
+  - "Triton"
+  - "GPU Architecture"
 ---
 
 # HPCGame 2026：Kernel、DSL 与硬件
 
 > [!nav] 返回与扩散
-> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型/精度]] · [[HPCGame 2026 - 04 通信与内存层级|通信/层级]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群与冷启动]] · [[HPCGame 2026 - 09 多模态与新工作负载|新工作负载]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
+> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型/精度]] · [[HPCGame 2026 - 04 通信与内存层级|通信/层级]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群与冷启动]] · [[HPCGame 2026 - 09 多模态与新工作负载|新工作负载]] · [[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]]
 
 > [!abstract] 核心问题
 > Kernel 优化不是把同一份代码编译到新 GPU，而是针对新的 **compute/memory/synchronization ratio** 重新映射数据。DSL 和 AI agent 改变开发方式，但没有取消硬件知识与正确性验证。
@@ -90,7 +90,7 @@ Triton `3.8.0` 正式发布并加入：
 
 CUTLASS `4.8.0dev` 首次提供 Rubin SM107 的 dense/block-scaled FP8/FP4 GEMM、B collector reuse、更大 SMEM/TMEM、mixed precision，以及 CuTe DSL/C++ building blocks。
 
-2026 年 9 月核查的 CUTLASS `v4.8.0` 正式版仍将相关编译管线和 Rubin Operator API 设为预览能力，新管线需显式启用。具体的驱动和工具链记录见 [[MLSys - 证据台账#E-20260928-08]]。后续支持组合见 [[D13 硬件与跨平台系统]]。
+2026 年 9 月核查的 CUTLASS `v4.8.0` 正式版仍将相关编译管线和 Rubin Operator API 设为预览能力，新管线需显式启用。具体的驱动和工具链记录见 [[MLSys - 证据台账#E-20260928-08]]。后续支持组合见 [[06 数值与硬件]]。
 
 ## 5. 2:4 sparsity 要先问稀疏对象
 
@@ -233,4 +233,4 @@ AMD 与 TPU 提供两个不同的观察窗口：
 
 **当前判断**：可移植的算法与调度思想越来越多，达到相近的端到端效率仍依赖硬件专门化。值得跟踪的是新增功能是否补齐实际部署缺口、同等质量成本是否改善，以及迁移后调试/维护工作量是否下降。
 
-本节链接当前官方文档和仓库，用于建立比较维度；未经固定 release/commit 与事件日期核查，不把 `main` 文档里的能力写成当周新发布。后续核查见 [[D09 编译 DSL 与自动优化]]、[[D13 硬件与跨平台系统]]。
+本节链接当前官方文档和仓库，用于建立比较维度；未经固定 release/commit 与事件日期核查，不把 `main` 文档里的能力写成当周新发布。后续核查见 [[05 算子与编译]]、[[06 数值与硬件]]。

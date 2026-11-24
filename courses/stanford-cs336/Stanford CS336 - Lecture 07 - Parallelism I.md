@@ -5,11 +5,11 @@ lecture: 7
 lecture_date: 2026-04-20
 area: systems
 topics:
-  - "[[Distributed Training]]"
-  - "[[Collective Communication]]"
-  - "[[Data Parallelism]]"
-  - "[[Tensor Parallelism]]"
-  - "[[Pipeline Parallelism]]"
+  - "Distributed Training"
+  - "Collective Communication"
+  - "Data Parallelism"
+  - "Tensor Parallelism"
+  - "Pipeline Parallelism"
 aliases:
   - Stanford CS336 Lecture 07
   - CS336 Parallelism I
@@ -360,7 +360,7 @@ $$g = \frac{1}{P} \sum_{r=1}^{P}g_r$$
 
 ### 6.1 “Each rank should load only its own data”
 
-![](../../assets/_inbox/Pasted%20image%2020260807143554.png)
+![](../../assets/courses/stanford-cs336/lecture-07/l07-slide-01.png)
 
 截图中的代码为了教学简单，把完整 `data` 作为 `main(..., data, ...)` 的参数交给每个进程，然后各 rank 才做：
 

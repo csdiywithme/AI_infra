@@ -1,12 +1,12 @@
 ---
-type: topic-note
+type: course-note
 status: evergreen
 course: HPCGame 2026 赛前讲座
 area: cluster-systems
 baseline_checked: 2026-09-15
 incremental_checked: 2026-10-19
 topics:
-  - "[[Distributed Training]]"
+  - "Distributed Training"
   - "[[LLM Inference]]"
   - Fault Tolerance
 ---
@@ -14,7 +14,7 @@ topics:
 # HPCGame 2026：集群效率与可靠性
 
 > [!nav] 返回与扩散
-> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 01 训练状态与并行|并行作业]] · [[HPCGame 2026 - 03 推理状态与调度|请求调度]] · [[HPCGame 2026 - 04 通信与内存层级|数据路径]] · [[HPCGame 2026 - 07 数据与后训练闭环|数据与后训练]] · [[HPCGame 2026 - 09 多模态与新工作负载|新工作负载]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
+> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 01 训练状态与并行|并行作业]] · [[HPCGame 2026 - 03 推理状态与调度|请求调度]] · [[HPCGame 2026 - 04 通信与内存层级|数据路径]] · [[HPCGame 2026 - 07 数据与后训练闭环|数据与后训练]] · [[HPCGame 2026 - 09 多模态与新工作负载|新工作负载]] · [[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]]
 
 > [!abstract] 30 秒全景
 > 集群的产出由整个生命周期决定：**拿到合适资源 → 准备状态 → 推进有效工作 → 从中断恢复 → 完成质量与时延目标。** 排队、拓扑碎片、慢 rank、冷启动和重算，都可能吃掉 kernel 带来的收益。
@@ -92,7 +92,7 @@ flowchart LR
 
 扩缩信号应连到 queue、到达率、在途工作、KV 压力与实际时延；GPU busy 程度不能单独说明还有多少可用服务容量。缩容还要处理 draining、长 session、adapter 与 KV 的再分布。
 
-llm-d 的 [autoscaling matrix](https://llm-d.ai/docs/dev/architecture/advanced/autoscaling) 可用来定位 KEDA、WVA 和分离式角色的配置入口。具体可用的信号和 SLO 能力按目标版本核验。后续案例见 [[D12 集群资源可靠性与隔离]]。
+llm-d 的 [autoscaling matrix](https://llm-d.ai/docs/dev/architecture/advanced/autoscaling) 可用来定位 KEDA、WVA 和分离式角色的配置入口。具体可用的信号和 SLO 能力按目标版本核验。后续案例见 [[10 持续交付]]。
 
 冷启动中编译与 shape 的部分见 [[HPCGame 2026 - 05 Kernel、DSL 与硬件#10. 整图编译：把局部收益变成可重复的运行时行为]]；agent session 和实时流的退出条件见 [[HPCGame 2026 - 09 多模态与新工作负载]]。
 
@@ -168,6 +168,6 @@ Serving 至少要区分：进程重启、重新接流量、原请求/会话正�
 | placement、autoscaling、cache locality 常需要联合考虑 | 扩容后冷 cache 或拓扑变化造成 SLO 波动 | 独立调节的轻量策略在多 workload 下达到同样目标 |
 | 复杂分片与 RL 在途状态仍是恢复的薄弱点 | resize、async save、在途 rollout 暴露一致性问题 | 明确适用范围内可复现的无损恢复、稳定质量与故障实验 |
 
-后续研究见 [[D12 集群资源可靠性与隔离]]、[[D16 工程交付与模型生命周期]]。
+后续研究见 [[10 持续交付]]、[[10 持续交付]]。
 
 扩散路径：[[HPCGame 2026 - 01 训练状态与并行|谁拥有状态]] → [[HPCGame 2026 - 04 通信与内存层级|状态怎样迁移]] → 本篇“何时能产出” → [[HPCGame 2026 - 07 数据与后训练闭环|产出是否提高质量]]。

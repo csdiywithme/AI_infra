@@ -1,12 +1,12 @@
 ---
-type: research-synthesis-log
+type: record
 status: archived
 initialized: 2026-09-15
 ---
 
 # MLSys：月度复盘
 
-[[领域地图与覆盖缺口|AI Infra 领域地图]] · [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[MLSys - 运行记录|覆盖与断点]]
+[[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]] · [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[MLSys - 运行记录|覆盖与断点]]
 
 > 这里保留 HPCGame 追踪时期的月度综合判断，阅读时按各期实际覆盖范围核对。
 

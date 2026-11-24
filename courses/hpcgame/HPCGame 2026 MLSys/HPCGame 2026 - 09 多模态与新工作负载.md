@@ -1,5 +1,5 @@
 ---
-type: topic-note
+type: course-note
 status: evergreen
 area: multimodal-systems
 baseline_reviewed: 2026-09-15
@@ -12,7 +12,7 @@ tracking_lane: T7
 > [!abstract] 核心问题
 > 工作负载的时间结构、状态和质量指标变化后，原有调度与性能结论还有哪些成立？先画一次任务怎样完成，再选择并行、cache 和硬件。
 
-[[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 03 推理状态与调度|推理]] · [[HPCGame 2026 - 07 数据与后训练闭环|数据和后训练]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
+[[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 03 推理状态与调度|推理]] · [[HPCGame 2026 - 07 数据与后训练闭环|数据和后训练]] · [[HPCGame 2026 - 08 集群效率与可靠性|集群]] · [[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]]
 
 ## 1. 先区分时间结构
 
@@ -121,4 +121,4 @@ SGLang-Omni 官方仓库把 preprocessing、encoder、autoregressive engine、ta
 - [SGLang-Omni 官方仓库](https://github.com/sgl-project/sglang-omni)
 - [Diffusers releases](https://github.com/huggingface/diffusers/releases)
 - [PyTorch：编译、动态 shape、LoRA 与 offload](https://pytorch.org/blog/torch-compile-and-diffusers-a-hands-on-guide-to-peak-performance/)
-- [[D14 多模态 Agent 与流式系统|后续多模态研究]]
+- [[09 模型之外的任务|后续多模态研究]]

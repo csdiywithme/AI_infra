@@ -5,8 +5,8 @@ lecture: 14
 lecture_date: 2026-05-13
 area: data
 topics:
-  - "[[Pretraining Data]]"
-  - "[[Synthetic Data]]"
+  - "Pretraining Data"
+  - "Synthetic Data"
 aliases:
   - Stanford CS336 Lecture 14
   - CS336 Data Filtering Deduplication Mixing and Synthetic Data

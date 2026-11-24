@@ -6,10 +6,10 @@ lecture_date: 2026-06-03
 area: inference
 topics:
   - "[[LLM Inference]]"
-  - "[[KV Cache]]"
-  - "[[Serving Systems]]"
-  - "[[GPU Kernel]]"
-  - "[[Scaling Laws]]"
+  - "KV Cache"
+  - "Serving Systems"
+  - "GPU Kernel"
+  - "Scaling Laws"
 aliases:
   - Stanford CS336 Lecture 18
   - CS336 Guest Lecture Dan Fu

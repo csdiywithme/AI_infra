@@ -7,12 +7,12 @@ lecture_date: 2026-01-28
 updated: 2026-08-24
 area: systems
 topics:
-  - "[[Distributed Training]]"
+  - "Distributed Training"
   - "[[LLM Inference]]"
-  - "[[GPU Kernel]]"
-  - "[[Expert Parallelism]]"
-  - "[[Context Parallelism]]"
-  - "[[FlashAttention]]"
+  - "GPU Kernel"
+  - "Expert Parallelism"
+  - "Context Parallelism"
+  - "FlashAttention"
 aliases:
   - HPCGame 2026 MLSys 概览
   - 大模型训练推理 Infra 概览
@@ -22,7 +22,7 @@ video_url: https://www.bilibili.com/video/BV1vmzXBBESY/
 # HPCGame 2026：大模型训练、推理与 Infra 概览
 
 > [!info] 讲座资料与后续研究
-> 回看原课、时间索引和专题笔记，从 [[HPCGame 2026 - 00 MLSys 知识地图|HPCGame 课程导读]] 进入。近期进展见 [[领域地图与覆盖缺口|AI Infra 领域地图]]，历次核查与勘误见 [[MLSys - 证据台账|HPCGame 历史证据]]。
+> 回看原课、时间索引和专题笔记，从 [[HPCGame 2026 - 00 MLSys 知识地图|HPCGame 课程导读]] 进入。近期进展见 [[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]]，历次核查与勘误见 [[MLSys - 证据台账|HPCGame 历史证据]]。
 
 > [!abstract] 一句话总纲
 > 大模型系统不是一串孤立优化，而是 **数据与算法目标 → 并行分解 → 内存/通信代价 → 运行时调度 → 芯片与互连** 的连续 codesign；模型越稀疏、上下文越长、精度越低，理论 FLOPs 越不能代表真实成本，系统的主要矛盾越会转向数据搬运、状态管理和故障边界。
@@ -346,7 +346,7 @@ llama.cpp / Ollama 代表模型量化与本地执行；KTransformers 则把大 M
 
 ### 10.3 模型支持已经变成核心竞争力
 
-混合注意力、MoE、低精度和多模态一起进入模型时，运行时需要接入新的状态表示、调度和 kernel。不同组合的调度与状态代价见 [[D05 推理服务与调度]]、[[D06 KV 与模型状态系统]]。
+混合注意力、MoE、低精度和多模态一起进入模型时，运行时需要接入新的状态表示、调度和 kernel。不同组合的调度与状态代价见 [[03 请求调度]]、[[02 历史状态]]。
 
 ## 11. 分离式推理：从 P/D 到 E/P/D 与分层 KV
 
@@ -413,7 +413,7 @@ NVSHMEM 提供 PGAS 风格的 symmetric heap、one-sided put/get/atomics 和 dev
 
 讲座列举了传统 NCCL 的若干限制：初始化/拓扑发现重、通信域偏静态、小消息延迟、SM 占用与同步模型受限；并跟进 2.27/2.28/2.29 的 SHARP、shrink/grow、symmetric memory、GIN、copy engine、Inspector、one-sided 和 NCCL4Py。
 
-固定版本的 GPU 发起操作、one-sided 通信与诊断案例见 [[HPCGame 2026 - 04 通信与内存层级#NCCL 的演进|NCCL 的演进]]。能力与故障边界要结合库版本、NIC、驱动、CUDA 和拓扑核验，分析方法见 [[D10 通信与互联]]。
+固定版本的 GPU 发起操作、one-sided 通信与诊断案例见 [[HPCGame 2026 - 04 通信与内存层级#NCCL 的演进|NCCL 的演进]]。能力与故障边界要结合库版本、NIC、驱动、CUDA 和拓扑核验，分析方法见 [[04 数据移动]]。
 
 ✅ [NVSHMEM 3.7.2 release notes](https://docs.nvidia.com/nvshmem/release-notes-install-guide/release-notes/release-3720.html) 显示其已覆盖 Ampere/Hopper/Blackwell 与多代 CUDA，但依然保留兼容性、ABI 和平台限制。它不会因 NCCL 支持 GIN 就消失，更可能成为不同抽象层的互补。
 

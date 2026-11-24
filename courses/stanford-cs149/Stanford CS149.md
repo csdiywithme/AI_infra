@@ -1,5 +1,5 @@
 ---
-type: course
+type: index
 area: systems
 aliases:
   - CS149

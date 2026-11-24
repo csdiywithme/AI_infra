@@ -1,18 +1,18 @@
 ---
-type: topic-note
+type: course-note
 status: evergreen
 course: HPCGame 2026 赛前讲座
 area: distributed-training
 topics:
-  - "[[Distributed Training]]"
-  - "[[Expert Parallelism]]"
-  - "[[Context Parallelism]]"
+  - "Distributed Training"
+  - "Expert Parallelism"
+  - "Context Parallelism"
 ---
 
 # HPCGame 2026：训练状态与并行
 
 > [!nav] 返回与扩散
-> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型结构]] · [[HPCGame 2026 - 04 通信与内存层级|通信]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
+> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型结构]] · [[HPCGame 2026 - 04 通信与内存层级|通信]] · [[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]]
 
 > [!abstract] 核心问题
 > 并行训练不是“用了几维”，而是：**哪些状态由谁拥有，在哪个子图上切分，何时 materialize，通信能否映射到合适拓扑。**

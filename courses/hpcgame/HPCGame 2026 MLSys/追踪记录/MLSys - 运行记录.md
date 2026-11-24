@@ -1,5 +1,5 @@
 ---
-type: research-run-state
+type: record
 status: archived
 protocol_version: 2
 initialized: 2026-09-15
@@ -15,7 +15,7 @@ timezone: Asia/Shanghai
 
 # MLSys：运行记录与核查覆盖
 
-[[领域地图与覆盖缺口|AI Infra 领域地图]] · [[MLSys - 追踪规则与来源|旧来源登记]] · [[MLSys - 证据台账|事实台账]]
+[[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]] · [[MLSys - 追踪规则与来源|旧来源登记]] · [[MLSys - 证据台账|事实台账]]
 
 ## 1. 怎样理解这里的日期
 

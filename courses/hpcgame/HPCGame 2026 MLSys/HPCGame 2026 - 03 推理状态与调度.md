@@ -1,18 +1,18 @@
 ---
-type: topic-note
+type: course-note
 status: evergreen
 course: HPCGame 2026 赛前讲座
 area: inference-systems
 topics:
   - "[[LLM Inference]]"
-  - "[[KV Cache]]"
-  - "[[Disaggregated Inference]]"
+  - "KV Cache"
+  - "Disaggregated Inference"
 ---
 
 # HPCGame 2026：推理状态与调度
 
 > [!nav] 返回与扩散
-> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型状态]] · [[HPCGame 2026 - 04 通信与内存层级|通信/存储]] · [[领域地图与覆盖缺口|AI Infra 领域地图]]
+> [[HPCGame 2026 - 00 MLSys 知识地图|知识地图]] · [[HPCGame 2026 - 02 稀疏模型与数值格式|模型状态]] · [[HPCGame 2026 - 04 通信与内存层级|通信/存储]] · [[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]]
 
 > [!abstract] 核心问题
 > 推理引擎不是“执行模型”的薄封装，而是一个动态状态系统：**请求产生哪些状态、状态能否复用、在哪一层保存、何时搬运、怎样在 SLO 内调度。**
@@ -80,7 +80,7 @@ SGLang `v0.5.18` 的公开 issue 还显示：NEXTN/EAGLE 初始化时的临时 e
 - vLLM 由 PagedAttention 和块式 KV 管理起家。
 - SGLang 由 RadixAttention 和程序级复用起家。
 
-按目标版本和工作负载比较以下实现。近期的调度与缓存机制见 [[D05 推理服务与调度]]、[[D06 KV 与模型状态系统]]。
+按目标版本和工作负载比较以下实现。近期的调度与缓存机制见 [[03 请求调度]]、[[02 历史状态]]。
 
 ```text
 scheduler policy

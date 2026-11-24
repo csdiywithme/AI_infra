@@ -5,9 +5,9 @@ lecture: 12
 lecture_date: 2026-05-06
 area: evaluation
 topics:
-  - "[[Language Model Evaluation]]"
-  - "[[LLM as a Judge]]"
-  - "[[Data Contamination]]"
+  - "Language Model Evaluation"
+  - "LLM as a Judge"
+  - "Data Contamination"
 aliases:
   - Stanford CS336 Lecture 12
   - CS336 Evaluation

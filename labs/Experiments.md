@@ -1,5 +1,5 @@
 ---
-type: lab-index
+type: index
 area: ai-infra
 aliases:
   - AI Infra Experiments

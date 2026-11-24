@@ -1,5 +1,5 @@
 ---
-type: research-protocol
+type: meta
 status: archived
 protocol_version: 2
 updated: 2026-10-12
@@ -9,7 +9,7 @@ automation_id: mlsys-follow-up
 
 # MLSys：旧追踪规则入口与来源索引
 
-现行流程见 [[AI Infra 系统主线（2026-10 重构）/追踪记录/追踪规则|系统主线追踪规则]]，分来源覆盖记录见 [[研究记录]]。HPCGame 历史运行与证据见 [[MLSys - 运行记录]]、[[MLSys - 证据台账]]。
+现行前沿追踪流程见 [[AI Infra 前沿研究/记录/追踪方法|AI Infra 前沿追踪方法]]，入口见 [[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]]。HPCGame 历史运行与证据见 [[MLSys - 运行记录]]、[[MLSys - 证据台账]]。
 
 ## 来源登记
 

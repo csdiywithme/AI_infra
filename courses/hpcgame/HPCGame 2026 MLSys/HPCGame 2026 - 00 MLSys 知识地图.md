@@ -1,13 +1,13 @@
 ---
-type: map-of-content
+type: index
 status: evergreen
 course: HPCGame 2026 赛前讲座
 area: systems
 map_updated: 2026-10-12
 topics:
-  - "[[Distributed Training]]"
+  - "Distributed Training"
   - "[[LLM Inference]]"
-  - "[[GPU Kernel]]"
+  - "GPU Kernel"
 aliases:
   - HPCGame 2026 MLSys 知识地图
   - HPCGame 2026 diffusion map
@@ -19,7 +19,7 @@ aliases:
 > 每次从一个症状、对象或问题进入，先固定**质量与完成目标**，再沿工作量、状态、搬运、调度和反馈展开。每轮阅读都回到同一张关系图。
 
 > [!nav] 从当前关心的层次进入
-> **查找近期研究**：[[领域地图与覆盖缺口|AI Infra 领域地图]]
+> **查找近期研究**：[[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]]
 >
 > **回看历史核查**：[[MLSys - 2026-10 周度更新|2026-10 记录]] · [[MLSys - 月度复盘#2026-10|2026-10 复盘]]
 >
@@ -95,7 +95,7 @@ flowchart TD
 | TTFT 与 TPOT 为什么互相打架 | [[HPCGame 2026 - 03 推理状态与调度]] | batching、PD、KV transfer、goodput |
 | GPU 为什么在等、网络为什么跑不满 | [[HPCGame 2026 - 04 通信与内存层级]] | control path、progress、placement |
 | 一个 kernel 快 2× 为什么不可信 | [[HPCGame 2026 - 05 Kernel、DSL 与硬件]] | shape、Amdahl、正确性、代际绑定 |
-| 如何对照课上的版本与近期研究 | [[领域地图与覆盖缺口|AI Infra 领域地图]] | [[MLSys - 证据台账|HPCGame 历史证据]]、固定 release 和勘误 |
+| 如何对照课上的版本与近期研究 | [[AI Infra 前沿研究/00 入口|AI Infra 前沿研究]] | [[MLSys - 证据台账|HPCGame 历史证据]]、固定 release 和勘误 |
 | rollout 快了，为什么达到同等评测质量仍慢 | [[HPCGame 2026 - 07 数据与后训练闭环]] | 环境长尾、样本陈旧、权重同步、数值一致性 |
 | 卡很多，为什么有效完成的工作少 | [[HPCGame 2026 - 08 集群效率与可靠性]] | 排队/放置、冷启动、慢节点、恢复、多租户 |
 | 视频/音频/agent 为什么不能直接套用 token/s | [[HPCGame 2026 - 09 多模态与新工作负载]] | 阶段、流式时序、质量、任务完成 |

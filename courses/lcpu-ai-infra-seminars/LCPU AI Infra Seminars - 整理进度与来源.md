@@ -1,5 +1,5 @@
 ---
-type: course-index
+type: index
 course: Weiming HPC Training Camp × LCPU AI Infra Seminars
 updated: 2026-09-18
 ---

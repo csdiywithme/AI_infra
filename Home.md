@@ -8,8 +8,9 @@ aliases:
 
 ## 从这里开始
 
-- [AI Infra 领域地图](AI%20Infra%20系统主线（2026-10%20重构）/领域地图与覆盖缺口.md) · 从系统问题进入各领域和近期进展
-- [AI Infra 基础主线](AI%20Infra%20系统主线（2026-10%20重构）/00%20AI%20Infra%20整体主线.md) · 沿同一个代码助手推导训练、推理与交付
+- [AI Infra 前沿研究](AI%20Infra%20前沿研究/00%20入口.md) · 按被改写的判断追踪一线前沿与跨层机制（持续更新主战场）
+- [AI Infra 原理手册](AI%20Infra%20原理手册/00%20从这里开始.md) · 五笔账与对象驱动的系统原理手册
+- [AI Infra 基础主线](AI%20Infra%20原理手册/基础/00%20AI%20Infra%20整体主线.md) · 沿同一个代码助手推导训练、推理与交付
 - 学习路线：[AI Infra Learning Roadmap](roadmaps/AI%20Infra%20Learning%20Roadmap.md)
 - 模型与训练：[Stanford CS336](courses/stanford-cs336/Stanford%20CS336.md)
 - 并行计算：[Stanford CS149](courses/stanford-cs149/Stanford%20CS149.md)

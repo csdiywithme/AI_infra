@@ -487,7 +487,7 @@ register → L1 → L2 → LLC → local DRAM → remote DRAM / network
 > [!question]
 > 下面是视频对上一张 latency/bandwidth 时序图提出的四个问题，需要逐个想清楚。
 
-![](../../assets/_inbox/Pasted%20image%2020260818113530.png)
+![](../../assets/courses/stanford-cs149/lecture-06/l06-slide-01.png)
 
 ### 8.1 先建立读图模型
 

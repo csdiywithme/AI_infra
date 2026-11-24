@@ -5,8 +5,8 @@ lecture: 17
 lecture_date: 2026-05-27
 area: multimodal
 topics:
-  - "[[Vision Language Models]]"
-  - "[[Multimodal Alignment]]"
+  - "Vision Language Models"
+  - "Multimodal Alignment"
 aliases:
   - Stanford CS336 Lecture 17
   - CS336 Alignment and Multimodality

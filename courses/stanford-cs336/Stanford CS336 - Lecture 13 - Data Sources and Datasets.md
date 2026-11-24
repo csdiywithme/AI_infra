@@ -5,8 +5,8 @@ lecture: 13
 lecture_date: 2026-05-11
 area: data
 topics:
-  - "[[Pretraining Data]]"
-  - "[[Data Governance]]"
+  - "Pretraining Data"
+  - "Data Governance"
 aliases:
   - Stanford CS336 Lecture 13
   - CS336 Data Sources and Datasets

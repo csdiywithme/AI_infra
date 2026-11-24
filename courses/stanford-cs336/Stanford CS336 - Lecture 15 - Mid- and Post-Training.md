@@ -5,8 +5,8 @@ lecture: 15
 lecture_date: 2026-05-18
 area: alignment
 topics:
-  - "[[Supervised Fine-Tuning]]"
-  - "[[RLHF]]"
+  - "Supervised Fine-Tuning"
+  - "RLHF"
 aliases:
   - Stanford CS336 Lecture 15
   - CS336 Mid- and Post-Training

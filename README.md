@@ -7,8 +7,9 @@
 ## 入口
 
 - Obsidian 动态首页：[Home](Home.md)
-- 系统研究：[AI Infra 领域地图](AI%20Infra%20系统主线（2026-10%20重构）/领域地图与覆盖缺口.md)
-- 基础推导：[AI Infra 基础主线](AI%20Infra%20系统主线（2026-10%20重构）/00%20AI%20Infra%20整体主线.md)
+- 前沿研究：[AI Infra 前沿研究](AI%20Infra%20前沿研究/00%20入口.md)
+- 原理手册：[AI Infra 原理手册](AI%20Infra%20原理手册/00%20从这里开始.md)
+- 基础推导：[AI Infra 基础主线](AI%20Infra%20原理手册/基础/00%20AI%20Infra%20整体主线.md)
 - 学习路线：[AI Infra Learning Roadmap](roadmaps/AI%20Infra%20Learning%20Roadmap.md)
 - 实验索引：[Experiments](labs/Experiments.md)
 
@@ -41,7 +42,8 @@
 ## 目录约定
 
 ```text
-AI Infra 系统主线（2026-10 重构）/    基础推导、领域综述与研究记录
+AI Infra 前沿研究/    持续更新的前沿判断、跨专题线索与追踪记录
+AI Infra 原理手册/    五笔账、对象驱动系统原理、基础推导与证据台账
 courses/    按课程组织的来源笔记
 topics/     可持续更新的主题知识
 labs/       实现、profiling 与 benchmark

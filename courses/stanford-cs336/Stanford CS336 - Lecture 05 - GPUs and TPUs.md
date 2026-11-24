@@ -5,10 +5,10 @@ lecture: 5
 lecture_date: 2026-04-13
 area: systems
 topics:
-  - "[[GPU Architecture]]"
-  - "[[TPU]]"
-  - "[[Roofline Model]]"
-  - "[[FlashAttention]]"
+  - "GPU Architecture"
+  - "TPU"
+  - "Roofline Model"
+  - "FlashAttention"
 aliases:
   - Stanford CS336 Lecture 05
   - CS336 GPUs and TPUs

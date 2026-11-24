@@ -5,12 +5,12 @@ lecture: 8
 lecture_date: 2026-04-22
 area: systems
 topics:
-  - "[[Distributed Training]]"
-  - "[[ZeRO]]"
-  - "[[FSDP]]"
-  - "[[3D Parallelism]]"
-  - "[[Expert Parallelism]]"
-  - "[[Context Parallelism]]"
+  - "Distributed Training"
+  - "ZeRO"
+  - "FSDP"
+  - "3D Parallelism"
+  - "Expert Parallelism"
+  - "Context Parallelism"
 aliases:
   - Stanford CS336 Lecture 08
   - CS336 Parallelism II
@@ -75,7 +75,7 @@ $$\text{aggregate memory capacity} \propto P$$
 
 课堂中的 TPU v4/v5 图强调规则 mesh；TPU v8i/v8t 已加入更接近 switched fabric 的 **Virgo** 层级，以适应现代 MoE 的 all-to-all 流量。也就是说，“TPU=永远只有 mesh、GPU=真正全互连”都过度简化：两者都在形成分层网络，只是历史设计点和软件映射习惯不同。
 
-![](../../assets/_inbox/Pasted%20image%2020260807155323.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-01.png)
 
 真实系统是分层的：
 
@@ -105,7 +105,7 @@ $$T_{\text{collective}} \approx n_{\text{steps}}\alpha + \frac{V}{B_{\text{effec
 Naive data parallel 把 batch $B$ 分给 $P$ ranks：
 $$B_{\text{local}} = \frac{B}{P}$$
 每 rank 保存完整 parameters 和 optimizer state，独立 forward/backward，再 all-reduce gradients。
-![](../../assets/_inbox/Pasted%20image%2020260807160840.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-02.png)
 ### 3.1 Model-state 显存账本
 设参数量为 $N$，不同 state 的 bytes/parameter：
 - model parameter：$b_p$；
@@ -203,8 +203,8 @@ $$M_{\text{Z1}} \approx S_p+S_g+\frac{S_o}{P}$$
 4. all-gather 更新后的 parameters。
 通信仍约为一个 reduce-scatter 加一个 all-gather；当 gradient/parameter dtype 相同，大 message bandwidth regime 下与 DDP all-reduce 同量级。
 
-![](../../assets/_inbox/Pasted%20image%2020260807170307.png)
-![](../../assets/_inbox/Pasted%20image%2020260807170335.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-03.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-04.png)
 
 以 4 ranks 为例，把参数扁平化成四个 shards $[\theta_0,\theta_1,\theta_2,\theta_3]$：
 
@@ -260,7 +260,7 @@ optimizer: 每个 rank 只更新自己拥有的 gradient/optimizer shards
 AG params: 恢复下一 step 所需的完整 BF16 parameters
 ```
 
-![](../../assets/_inbox/Pasted%20image%2020260807170731.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-05.png)
 
 ### 4.3 ZeRO-3 / FSDP：再 shard parameters
 Steady-state 每 rank：
@@ -291,11 +291,11 @@ Backward 为什么还要再 all-gather？因为默认在 forward 后已经释放
 $$M_{\text{peak,Z3}} \approx \frac{S_p+S_g+S_o}{P} + M_{\text{largest all-gather unit}} + M_{\text{prefetch}} + M_{\text{activations}} + M_{\text{buffers}}$$
 Wrap unit 太大，temporary full parameter 峰值高；太小，collective 数量多、latency 和调度 overhead 高。
 
-![](../../assets/_inbox/Pasted%20image%2020260807171028.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-06.png)
 
 图中“request/free”是 **unit 粒度** 的逻辑动作，不代表一定同步等待或真的把 allocator memory 归还给系统。runtime 常在 communication stream 上预取下一个 unit，并复用 buffer；真正重要的是 full parameter 不再作为长期 live tensor。
 
-![](../../assets/_inbox/Pasted%20image%2020260807171400.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-07.png)
 ## 5. ZeRO/FSDP 的通信与边界
 
 课件按“大 $P$、相同 parameter/gradient payload、忽略 latency”的归一化估算：
@@ -356,7 +356,7 @@ Overlap 需要：
 - 不替代 tensor/context/expert parallel；
 - 不同框架所称 “FSDP” 和 ZeRO stage 的细节可能不同。
 
-![](../../assets/_inbox/Pasted%20image%2020260807172424.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-08.png)
 
 图中的趋势说明：随着 FSDP group 扩大，每 rank local batch/compute 可能变小，而 parameter collectives 并不会按同样比例消失，于是 communication 更难被隐藏；模型并行通过缩小单 rank 所需模型状态、改变 compute/communication 比，可把高利用率区间推向更小 batch。它是 workload 和硬件上的测量趋势，不是“FSDP 到某个 GPU 数必然失效”的固定阈值。
 
@@ -364,7 +364,7 @@ Overlap 需要：
 > 课件的结论针对大 message、bandwidth-limited、overhead 可忽略的理想区间。小 modules、大 world size、跨层碎片化 collectives 或网络拥塞会让 latency 显著。
 
 
-![](../../assets/_inbox/Pasted%20image%2020260807172619.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-09.png)
 ## 6. Pipeline parallel：沿 depth 切模型
 
 把 layers 分给 $P_{\text{PP}}$ stages。相比 FSDP 传 parameters，PP 主要在 stage boundary 传 activations。
@@ -375,7 +375,7 @@ $$M_A = B_\mu S H b_a$$
 > [!important] “PP 放在最慢网络上”是 mapping 结论
 > 不是说慢网能让 PP 更快，而是一个集群若同时有 node 内高速链路和 node 间较慢链路，应把通信最频繁的 TP/EP 留在高速域，把相对通信友好的 PP 映射到慢链路。PP 每个 microbatch 在相邻 stage 间做 point-to-point $BSH$ activation transfer；TP/EP 则几乎每个 block 都做 collective/all-to-all。有限的快链路预算应优先给后者。
 
-![](../../assets/_inbox/Pasted%20image%2020260807183029.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-10.png)
 
 ### 6.1 Bubble：为什么 batch size 是资源
 Naive layer-wise model parallel 同一时刻只有一个 stage 工作，利用率约 $1/P_{\text{PP}}$。
@@ -406,7 +406,7 @@ Stage memory 不只是 parameters，还包括：
 $$M_{\text{stage}} = M_{\text{local state}} + n_{\text{in-flight}} M_{\text{activation/microbatch}}$$
 
 
-![](../../assets/_inbox/Pasted%20image%2020260807183352.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-11.png)
 
 #### Megatron 论文与课堂两张 schedule 图
 
@@ -418,7 +418,7 @@ Narayanan 等人的 Megatron 集群论文系统扫描了 DP/TP/PP、batch size �
 
 上图的 **interleaved 1F1B** 让一个 physical rank 持有多个不连续的 virtual pipeline chunks。rank 在等待一个 chunk 的依赖时可以运行另一个 chunk，等效缩短每个 virtual stage 的 compute slot、降低 bubble；代价是 stage boundary 次数增加，P2P bandwidth、调度和 activation bookkeeping 更复杂。
 
-![](../../assets/_inbox/Pasted%20image%2020260807183431.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-12.png)
 
 下图的 **zero-bubble** 利用 backward 的两类工作：
 
@@ -438,8 +438,8 @@ Transformer block 的常见 sharding：
 | MLP up/gate projection      | Column parallel               |
 | MLP down projection         | Row parallel                  |
 | Norm/router/small ops       | Replicated 或 sequence-sharded |
-![](../../assets/_inbox/Pasted%20image%2020260807184106.png)
-![](../../assets/_inbox/Pasted%20image%2020260807184319.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-13.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-14.png)
 ### 7.1 Column/row pairing
 第一层：
 $$Y^{(r)} = XW_{\text{col}}^{(r)} \in \mathbb{R}^{BS\times H_{\text{ff}}/P_{\text{TP}}}$$
@@ -460,7 +460,7 @@ $$Z = \sum_r Z^{(r)}$$
 
 #### 什么时候用 TP：GPU 与 TPU 的差别
 
-![](../../assets/_inbox/Pasted%20image%2020260807184609.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-15.png)
 
 - **GPU 集群**：优先把 TP group 放进 node 内 NVLink/NVSwitch 一类最高带宽、最低延迟的 scale-up domain。课堂以常见 8-GPU node 为例说“TP 到 8”，这是拓扑经验值，不是算法上限；跨 node 后 collectives 频繁经过较慢 fabric，性能常出现断崖。
 - **传统 TPU mesh**：没有同样尖锐的“8 卡机箱边界”，相邻芯片组成规则大 mesh。TP 的通信模式可规则映射到近邻链路，因此能使用比 GPU node 更大的 TP degree；代价是 mapping 不佳时会多跳、产生链路热点。
@@ -483,7 +483,7 @@ TP degree 过大时：
 这就是实践中 TP 经常限制在单个高速互连 domain 的原因，而不是“TP 理论上最多只能 8”。
 ## 8. Activation memory 不会自动随 TP 线性下降
 
-![](../../assets/_inbox/Pasted%20image%2020260807184900.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-16.png)
 
 Parameters 被 tensor-shard 后，一部分 matmul activations 也被分片；但 block 中还有 replicated activations：
 - LayerNorm input/output/statistics；
@@ -613,7 +613,7 @@ KV/activation memory 可近似降到 $1/P_{\text{CP}}$，代价是与 sequence-s
 > [!note] SP 与 CP 不只是命名差异
 > SP 常指 TP 周围的 pointwise activation sharding；CP 覆盖 attention context dependency。框架术语可能不同，判断时应看实际 tensor layout 和 collective。
 ## 10. Expert parallel：沿 experts 切稀疏 MLP
-![](../../assets/_inbox/Pasted%20image%2020260807190054.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-17.png)
 
 MoE 有 $E$ 个 experts，分到 $P_{\text{EP}}$ ranks。Router 为 $T=BS$ 个 tokens 选择 top-$k$ experts。
 Dispatch：
@@ -642,7 +642,7 @@ $$M_{\text{expert params/rank}} \approx \frac{1}{P_{\text{EP}}} M_{\text{all exp
 - 路由与 packing kernel overhead；
 - fabric bisection bandwidth 压力。
 ### 10.2 Attention 与 MoE MLP 的并行需求不同
-![](../../assets/_inbox/Pasted%20image%2020260807191502.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-18.png)
 
 MoE 只替换 MLP，attention 仍是 dense。可能出现：
 - Attention 希望较高 TP/CP；
@@ -676,7 +676,7 @@ MoE:
 
 ### 10.3 怎样减少等待 routing 的延迟
 
-![](../../assets/_inbox/Pasted%20image%2020260807190730.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-19.png)
 
 Router 本身通常只是一个小 projection/top-$k$；更重的等待来自 token permutation、跨 rank dispatch all-to-all、最慢 expert，以及 combine all-to-all。关键路径可写成：
 
@@ -700,7 +700,7 @@ $$
 课堂用 DeepEP 和 NVIDIA Hybrid EP 说明：frontier EP 的难点已经下沉到 GPU 网络指令、buffer ownership 与 kernel/collective 融合。能 overlap 的前提仍是有独立可执行的 compute；若所有 expert tokens 都未到或某个 rank 严重过载，异步 API 本身不会消除等待。
 ## 11. 组合并行：从约束出发，而不是从名词出发
 
-![](../../assets/_inbox/Pasted%20image%2020260807191206.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-20.png)
 总 GPU 数通常分解为：
 $$P_{\text{total}} = P_{\text{DP}} \times P_{\text{TP}} \times P_{\text{PP}} \times P_{\text{CP}} \times P_{\text{EP}}$$
 但某些 dimensions 可能共享/嵌套 process groups，尤其 MoE 中不能盲目相乘；应以实际 rank mesh 为准。
@@ -795,7 +795,7 @@ $$H_{k+1}=F(H_k;W),\qquad
 | SP          | Sequence pointwise |                  通常不变 |        约 $1/P$ 对相关项 | AG/RS layout change     | 与 TP layout 耦合              |
 | CP          | Context            |                  通常不变 | sequence/KV 约 $1/P$ | K/V 或 partial attention | 长序列通信                       |
 | EP          | Experts            | expert params 约 $1/P$ |     routing buffers | token all-to-all        | load balance、fabric         |
-![](../../assets/_inbox/Pasted%20image%2020260807191839.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-21.png)
 
 
 课堂表格最值得补充的是“每种方案消耗哪一种稀缺资源”：
@@ -808,8 +808,8 @@ $$H_{k+1}=F(H_k;W),\qquad
 
 这也解释了为什么没有单一“最佳并行”：一项技术释放 memory 时，常会转而消耗 batch、network、kernel shape 或 schedule complexity。
 
-![](../../assets/_inbox/Pasted%20image%2020260807192524.png)
-![](../../assets/_inbox/Pasted%20image%2020260807192623.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-22.png)
+![](../../assets/courses/stanford-cs336/lecture-08/l08-slide-23.png)
 
 两张图给出同一套实践顺序：
 

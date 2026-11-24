@@ -7,13 +7,66 @@ filters:
 properties:
   file.name:
     displayName: 笔记
+  type:
+    displayName: 类型
+  area:
+    displayName: 领域
+  status:
+    displayName: 状态
+  verified:
+    displayName: 核对日期
+  updated:
+    displayName: 更新日期
   topics:
     displayName: 主题
   phase:
     displayName: 实验阶段
   result:
     displayName: 实验结果
+  run_date:
+    displayName: 运行日期
 views:
+  - type: table
+    name: 前沿研究
+    filters:
+      and:
+        - file.inFolder("AI Infra 前沿研究")
+        - or:
+            - type == "article"
+            - type == "thread"
+    order:
+      - file.name
+      - type
+      - status
+      - verified
+  - type: table
+    name: 原理手册
+    filters:
+      and:
+        - file.inFolder("AI Infra 原理手册")
+        - type == "article"
+    order:
+      - file.name
+      - updated
+  - type: table
+    name: 课程总览
+    filters:
+      and:
+        - file.inFolder("courses")
+        - type == "index"
+    order:
+      - file.name
+      - area
+  - type: table
+    name: 主题与路线
+    filters:
+      or:
+        - type == "topic"
+        - type == "roadmap"
+    order:
+      - file.name
+      - type
+      - area
   - type: table
     name: 实验
     filters:

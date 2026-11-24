@@ -6,8 +6,8 @@ lecture_date: 2026-04-29
 area: inference
 topics:
   - "[[LLM Inference]]"
-  - "[[KV Cache]]"
-  - "[[Serving Systems]]"
+  - "KV Cache"
+  - "Serving Systems"
 aliases:
   - Stanford CS336 Lecture 10
   - CS336 Inference

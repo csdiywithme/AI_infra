@@ -5,9 +5,9 @@ lecture: 11
 lecture_date: 2026-05-04
 area: scaling
 topics:
-  - "[[Scaling Laws]]"
-  - "[[Hyperparameter Transfer]]"
-  - "[[muP]]"
+  - "Scaling Laws"
+  - "Hyperparameter Transfer"
+  - "muP"
 aliases:
   - Stanford CS336 Lecture 11
   - CS336 Scaling Laws II

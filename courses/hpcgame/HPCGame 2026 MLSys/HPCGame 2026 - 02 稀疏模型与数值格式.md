@@ -1,12 +1,12 @@
 ---
-type: topic-note
+type: course-note
 status: evergreen
 course: HPCGame 2026 赛前讲座
 area: model-systems
 topics:
-  - "[[Expert Parallelism]]"
-  - "[[FlashAttention]]"
-  - "[[Low Precision Training]]"
+  - "Expert Parallelism"
+  - "FlashAttention"
+  - "Low Precision Training"
 ---
 
 # HPCGame 2026：稀疏模型与数值格式
@@ -20,7 +20,7 @@ topics:
 > [!nav] 从结构回到质量和部署
 > 数据准备与低精度下的训练—生成一致性见 [[HPCGame 2026 - 07 数据与后训练闭环]]；生成式多模态的近似与质量比较见 [[HPCGame 2026 - 09 多模态与新工作负载]]。
 >
-> 这里的版本与 benchmark 属于历史案例。近期机制与证据见 [[D04 模型结构与数值表示]]，原始记录见 [[MLSys - 证据台账]]。
+> 这里的版本与 benchmark 属于历史案例。近期机制与证据见 [[06 数值与硬件]]，原始记录见 [[MLSys - 证据台账]]。
 
 ## 1. 能力首先来自数据与 recipe
 

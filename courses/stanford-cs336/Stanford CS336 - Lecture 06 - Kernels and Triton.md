@@ -5,10 +5,10 @@ lecture: 6
 lecture_date: 2026-04-15
 area: systems
 topics:
-  - "[[GPU Kernel]]"
-  - "[[Triton]]"
-  - "[[XLA]]"
-  - "[[FlashAttention]]"
+  - "GPU Kernel"
+  - "Triton"
+  - "XLA"
+  - "FlashAttention"
 aliases:
   - Stanford CS336 Lecture 06
   - CS336 Kernels and Triton

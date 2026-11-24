@@ -5,8 +5,8 @@ lecture: 9
 lecture_date: 2026-04-27
 area: scaling
 topics:
-  - "[[Scaling Laws]]"
-  - "[[Compute Optimal Training]]"
+  - "Scaling Laws"
+  - "Compute Optimal Training"
 aliases:
   - Stanford CS336 Lecture 09
   - CS336 Scaling Laws I

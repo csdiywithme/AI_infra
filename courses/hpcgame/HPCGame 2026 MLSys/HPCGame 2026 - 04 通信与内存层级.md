@@ -1,12 +1,12 @@
 ---
-type: topic-note
+type: course-note
 status: evergreen
 course: HPCGame 2026 赛前讲座
 area: communication-infrastructure
 topics:
-  - "[[NCCL]]"
-  - "[[NVSHMEM]]"
-  - "[[Memory Hierarchy]]"
+  - "NCCL"
+  - "NVSHMEM"
+  - "Memory Hierarchy"
 ---
 
 # HPCGame 2026：通信与内存层级
@@ -20,7 +20,7 @@ topics:
 > [!nav] 把通信接回工作生命周期
 > RL 权重版本和反馈时序见 [[HPCGame 2026 - 07 数据与后训练闭环]]；拓扑放置、慢节点、失败恢复与租户约束见 [[HPCGame 2026 - 08 集群效率与可靠性]]。
 >
-> 这里的版本和规格按当时记录阅读。历史证据见 [[MLSys - 证据台账]]，近期机制与支持边界见 [[D10 通信与互联]]。
+> 这里的版本和规格按当时记录阅读。历史证据见 [[MLSys - 证据台账]]，近期机制与支持边界见 [[04 数据移动]]。
 
 ## 1. 一张统一的层级图
 

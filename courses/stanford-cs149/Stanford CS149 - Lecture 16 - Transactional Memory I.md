@@ -34,45 +34,45 @@ video_url: https://www.youtube.com/watch?v=rFFf3WIJ7BA
 
 ## 视频索引
 
-| 时间 | 内容 |
-|---|---|
-| [00:49](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=49s) | 从 atomics、locks、barriers、lock-free 回顾同步层次 |
-| [02:23](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=143s) | TM：提高 abstraction，同时争取 correctness + performance |
-| [03:17](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=197s) | 实现 design space：versioning、detection、granularity |
-| [04:28](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=268s) | Coarse vs. fine-grained locking 的根本权衡 |
-| [06:13](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=373s) | Bank deposit：lock 与 `atomic {}` 对比 |
-| [08:34](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=514s) | Declarative vs. imperative abstraction |
-| [10:12](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=612s) | TM 的 atomicity、isolation、serializability |
-| [12:39](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=759s) | Transaction 作为一个 bulk atomic memory operation |
-| [15:10](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=910s) | Java HashMap：coarse lock 易用但不 scale |
-| [17:01](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1021s) | Per-bucket/fine-grained locks 与 complexity |
-| [18:34](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1114s) | Fine-grained lock overhead 可能吞掉小规模收益 |
+| 时间                                                           | 内容                                                |
+| ------------------------------------------------------------ | ------------------------------------------------- |
+| [00:49](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=49s)   | 从 atomics、locks、barriers、lock-free 回顾同步层次         |
+| [02:23](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=143s)  | TM：提高 abstraction，同时争取 correctness + performance  |
+| [03:17](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=197s)  | 实现 design space：versioning、detection、granularity  |
+| [04:28](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=268s)  | Coarse vs. fine-grained locking 的根本权衡             |
+| [06:13](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=373s)  | Bank deposit：lock 与 `atomic {}` 对比                |
+| [08:34](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=514s)  | Declarative vs. imperative abstraction            |
+| [10:12](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=612s)  | TM 的 atomicity、isolation、serializability          |
+| [12:39](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=759s)  | Transaction 作为一个 bulk atomic memory operation     |
+| [15:10](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=910s)  | Java HashMap：coarse lock 易用但不 scale               |
+| [17:01](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1021s) | Per-bucket/fine-grained locks 与 complexity        |
+| [18:34](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1114s) | Fine-grained lock overhead 可能吞掉小规模收益              |
 | [21:27](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1287s) | Tree update：相交 traversal path 不等于真实 data conflict |
-| [22:57](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1377s) | Read-set/write-set 与 conflict 判断 |
-| [26:53](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1613s) | Doubly-linked list 用一个 `atomic` region 表达 |
-| [28:27](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1707s) | Failure atomicity：abort 是整体 undo |
-| [30:09](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1809s) | Lock composition 破坏 modularity |
-| [32:52](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1972s) | Nested transactions 与 disjoint transfers |
-| [36:01](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2161s) | TM 三项主要收益总结 |
-| [39:05](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2345s) | Atomic region 不等于 lock；TM 也会被误用 |
-| [40:04](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2404s) | Transaction 内等待另一个 transaction 的 flag 会卡死 |
-| [42:17](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2537s) | Atomicity violation：region boundary 选错 |
-| [43:50](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2630s) | Implementation 必须同时保证 A/I/S 与 concurrency |
-| [44:34](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2674s) | 两条实现轴：data versioning、conflict detection |
-| [46:20](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2780s) | Eager versioning + undo log |
-| [47:28](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2848s) | Eager commit/abort |
-| [51:24](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3084s) | Lazy versioning + write buffer |
-| [53:49](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3229s) | Eager/lazy tradeoff |
-| [56:23](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3383s) | Conflict、read-set、write-set |
-| [57:19](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3439s) | Pessimistic detection：每次 access 时检查 |
-| [60:39](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3639s) | Early detect 后选择 stall 或 abort |
-| [65:57](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3957s) | Writer-wins policy 的 read-write cases |
-| [69:04](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4144s) | 两个 writers 反复互相 abort：livelock |
-| [72:15](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4335s) | Optimistic detection：commit-time validation |
-| [74:09](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4449s) | Doomed transaction 与 wasted work |
-| [76:39](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4599s) | Serialization order 解释 read-before-write |
-| [77:07](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4627s) | Optimistic detection 提供 forward progress 的例子 |
-| [79:02](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4742s) | Eager versioning 与 optimistic detection 不好搭配 |
+| [22:57](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1377s) | Read-set/write-set 与 conflict 判断                  |
+| [26:53](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1613s) | Doubly-linked list 用一个 `atomic` region 表达         |
+| [28:27](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1707s) | Failure atomicity：abort 是整体 undo                  |
+| [30:09](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1809s) | Lock composition 破坏 modularity                    |
+| [32:52](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=1972s) | Nested transactions 与 disjoint transfers          |
+| [36:01](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2161s) | TM 三项主要收益总结                                       |
+| [39:05](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2345s) | Atomic region 不等于 lock；TM 也会被误用                   |
+| [40:04](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2404s) | Transaction 内等待另一个 transaction 的 flag 会卡死         |
+| [42:17](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2537s) | Atomicity violation：region boundary 选错            |
+| [43:50](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2630s) | Implementation 必须同时保证 A/I/S 与 concurrency         |
+| [44:34](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2674s) | 两条实现轴：data versioning、conflict detection          |
+| [46:20](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2780s) | Eager versioning + undo log                       |
+| [47:28](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=2848s) | Eager commit/abort                                |
+| [51:24](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3084s) | Lazy versioning + write buffer                    |
+| [53:49](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3229s) | Eager/lazy tradeoff                               |
+| [56:23](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3383s) | Conflict、read-set、write-set                       |
+| [57:19](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3439s) | Pessimistic detection：每次 access 时检查               |
+| [60:39](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3639s) | Early detect 后选择 stall 或 abort                    |
+| [65:57](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=3957s) | Writer-wins policy 的 read-write cases             |
+| [69:04](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4144s) | 两个 writers 反复互相 abort：livelock                    |
+| [72:15](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4335s) | Optimistic detection：commit-time validation       |
+| [74:09](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4449s) | Doomed transaction 与 wasted work                  |
+| [76:39](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4599s) | Serialization order 解释 read-before-write          |
+| [77:07](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4627s) | Optimistic detection 提供 forward progress 的例子      |
+| [79:02](https://www.youtube.com/watch?v=rFFf3WIJ7BA&t=4742s) | Eager versioning 与 optimistic detection 不好搭配      |
 
 ## 1. Locks 的抽象层次问题
 

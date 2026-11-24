@@ -1,5 +1,5 @@
 ---
-type: course
+type: index
 area: model-architecture
 aliases:
   - CS336

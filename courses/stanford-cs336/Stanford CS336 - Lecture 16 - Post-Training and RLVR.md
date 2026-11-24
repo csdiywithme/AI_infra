@@ -5,8 +5,8 @@ lecture: 16
 lecture_date: 2026-05-20
 area: alignment
 topics:
-  - "[[Reinforcement Learning]]"
-  - "[[RLVR]]"
+  - "Reinforcement Learning"
+  - "RLVR"
 aliases:
   - Stanford CS336 Lecture 16
   - CS336 Post-Training and RLVR
